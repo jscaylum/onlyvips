@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manuscript — Lyric Draft Studio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@300;400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Anton&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Kalam:wght@300;400;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Anton&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg: #131210;
@@ -27,6 +27,37 @@
     --hand: 'Kalam', cursive;
     --sans: 'Inter', -apple-system, sans-serif;
     --mono: 'JetBrains Mono', 'SFMono-Regular', monospace;
+
+    /* Read-mode theme faces: Montserrat approximates Spotify's Circular; the
+       -apple-system stack renders actual SF Pro on Apple devices. */
+    --font-spotify: 'Montserrat', 'Helvetica Neue', Arial, sans-serif;
+    --font-apple: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Helvetica, Arial, sans-serif;
+
+    /* Fallback read-theme tokens (Spotify look) so the note-board quick-preview,
+       which reuses these same classes outside #read-pane, still renders correctly. */
+    --rt-bg: #0a0a0a;
+    --rt-scrim: rgba(0,0,0,0.55);
+    --rt-panel: transparent;
+    --rt-panel-blur: none;
+    --rt-panel-border: transparent;
+    --rt-text: var(--ink);
+    --rt-text-dim: var(--ink-dim);
+    --rt-text-faint: var(--ink-faint);
+    --rt-accent: var(--gold);
+    --rt-accent-text: var(--bg-card);
+    --rt-font-display: var(--font-spotify);
+    --rt-font-body: var(--font-spotify);
+    --rt-font-meta: var(--mono);
+    --rt-title-weight: 800;
+    --rt-title-tracking: -0.5px;
+    --rt-title-transform: none;
+    --rt-line-weight: 700;
+    --rt-line-align: left;
+    --rt-cover-radius: 4px;
+    --rt-cover-size: 64px;
+    --rt-header-align: flex-start;
+    --rt-header-direction: row;
+    --rt-header-text-align: left;
     --display: 'Anton', 'Arial Narrow', sans-serif;
   }
   *{box-sizing:border-box; margin:0; padding:0;}
@@ -336,153 +367,274 @@
   }
   .tag-chip:hover{ border-color: var(--gold-dim); color: var(--gold); }
 
-  /* READ MODE — Spotify-esque lyric stage */
+  /* READ MODE — switchable "now playing" lyric stage: Spotify or Apple Music look */
+
+  /* ---- Spotify theme tokens ---- */
+  #read-pane.theme-spotify{
+    --rt-bg: #0a0a0a;
+    --rt-scrim: rgba(0,0,0,0.55);
+    --rt-panel: transparent;
+    --rt-panel-blur: none;
+    --rt-panel-border: transparent;
+    --rt-text: #ffffff;
+    --rt-text-dim: #8a8a8a;
+    --rt-text-faint: #5a5a5a;
+    --rt-accent: #1ed760;
+    --rt-accent-text: #0a0a0a;
+    --rt-font-display: var(--font-spotify);
+    --rt-font-body: var(--font-spotify);
+    --rt-font-meta: var(--mono);
+    --rt-title-weight: 800;
+    --rt-title-tracking: -0.5px;
+    --rt-title-transform: none;
+    --rt-line-weight: 700;
+    --rt-line-align: left;
+    --rt-cover-radius: 4px;
+    --rt-cover-size: 72px;
+    --rt-header-align: flex-start;
+    --rt-header-direction: row;
+    --rt-header-text-align: left;
+  }
+  /* ---- Apple Music theme tokens ---- */
+  #read-pane.theme-apple{
+    --rt-bg: #000000;
+    --rt-scrim: rgba(0,0,0,0.32);
+    --rt-panel: rgba(255,255,255,0.06);
+    --rt-panel-blur: blur(30px) saturate(1.6);
+    --rt-panel-border: rgba(255,255,255,0.09);
+    --rt-text: #ffffff;
+    --rt-text-dim: rgba(255,255,255,0.55);
+    --rt-text-faint: rgba(255,255,255,0.28);
+    --rt-accent: #fc3c44;
+    --rt-accent-text: #ffffff;
+    --rt-font-display: var(--font-apple);
+    --rt-font-body: var(--font-apple);
+    --rt-font-meta: var(--font-apple);
+    --rt-title-weight: 700;
+    --rt-title-tracking: -0.3px;
+    --rt-title-transform: none;
+    --rt-line-weight: 600;
+    --rt-line-align: center;
+    --rt-cover-radius: 18px;
+    --rt-cover-size: 208px;
+    --rt-header-align: center;
+    --rt-header-direction: column;
+    --rt-header-text-align: center;
+  }
+
   #read-pane{
     height:100%;
     overflow-y:auto;
     display:none;
     justify-content:center;
-    padding: 50px 24px 120px 40px;
+    padding: 50px 24px 140px 40px;
     position: relative;
-    background-color: var(--paper);
-    background-image:
-      linear-gradient(to right, transparent 44px, var(--margin-red) 44px, var(--margin-red) 46px, transparent 46px),
-      repeating-linear-gradient(to bottom, transparent, transparent 31px, var(--rule-line) 32px);
+    background-color: var(--rt-bg);
+    transition: background-color .5s ease;
   }
+  #read-pane.theme-apple{ padding: 60px 32px 140px; justify-content:center; }
+
   #read-backdrop{
     position:absolute; inset:0;
     background-size:cover;
     background-position:center;
-    filter: blur(50px) saturate(1.2);
+    filter: blur(60px) saturate(1.4) brightness(0.7);
     opacity: 0;
-    transition: opacity .35s ease;
+    transition: opacity .45s ease;
     z-index:0;
     pointer-events:none;
   }
-  #read-backdrop.has-cover{ opacity: 0.12; }
+  #read-pane.theme-spotify #read-backdrop.has-cover{ opacity: 0.4; }
+  #read-pane.theme-apple #read-backdrop.has-cover{ opacity: 0.85; }
+  #read-backdrop::after{
+    content:'';
+    position:absolute; inset:0;
+    background: var(--rt-scrim);
+  }
+
+  #read-style-switch{
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display:inline-flex;
+    align-self: flex-start;
+    gap: 2px;
+    padding: 3px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    backdrop-filter: blur(12px);
+    margin-bottom: 28px;
+  }
+  #read-pane.theme-apple #read-style-switch{ align-self:center; }
+  .read-style-btn{
+    font-family: var(--sans);
+    font-size: 11.5px;
+    font-weight:600;
+    letter-spacing: 0.2px;
+    color: rgba(255,255,255,0.55);
+    background: transparent;
+    border:none;
+    padding: 7px 16px;
+    border-radius: 16px;
+    cursor:pointer;
+    transition: background .2s ease, color .2s ease;
+  }
+  .read-style-btn:hover{ color: rgba(255,255,255,0.85); }
+  #read-pane.theme-spotify .read-style-btn[data-theme="spotify"],
+  #read-pane.theme-apple .read-style-btn[data-theme="apple"]{
+    background: #fff;
+    color: #000;
+  }
+
   #read-inner{
     position:relative;
     z-index:1;
     width:100%;
-    max-width: 620px;
+    max-width: 640px;
     margin-left: 24px;
+    display:flex;
+    flex-direction: column;
+    transition: opacity .18s ease;
   }
+  #read-pane.theme-apple #read-inner{ margin-left:0; align-items:center; max-width: 560px; }
+  #read-inner.rt-fade{ opacity: 0; }
+
   .read-header{
-    margin-bottom: 40px;
-    padding-bottom: 20px;
-    border-bottom: 2px solid var(--line);
+    margin-bottom: 36px;
+    padding: 20px;
+    border-radius: 20px;
+    background: var(--rt-panel);
+    -webkit-backdrop-filter: var(--rt-panel-blur);
+    backdrop-filter: var(--rt-panel-blur);
+    border: 1px solid var(--rt-panel-border);
+    width: 100%;
   }
+  #read-pane.theme-spotify .read-header{ padding: 0; border: none; background: transparent; }
+  #read-pane.theme-apple .read-header{ text-align: center; }
+
   .read-header-row{
     display:flex;
-    align-items:center;
-    gap: 16px;
+    flex-direction: var(--rt-header-direction);
+    align-items: var(--rt-header-align);
+    text-align: var(--rt-header-text-align);
+    gap: 18px;
   }
   .read-cover-thumb, .read-cover-placeholder{
-    width: 64px; height:64px;
-    border-radius: 4px;
+    width: var(--rt-cover-size); height: var(--rt-cover-size);
+    border-radius: var(--rt-cover-radius);
     flex-shrink:0;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+    transition: width .35s ease, height .35s ease, border-radius .35s ease;
   }
   .read-cover-thumb{ object-fit:cover; }
   .read-cover-placeholder{
-    background: var(--bg-card);
-    border: 1px solid var(--line);
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
     display:flex; align-items:center; justify-content:center;
-    color: var(--ink-faint);
-    font-family: var(--serif);
-    font-size: 26px;
+    color: var(--rt-text-faint);
+    font-family: var(--rt-font-display);
+    font-size: 28px;
   }
   .read-title{
-    font-family: var(--serif);
-    font-weight: 700;
-    font-size: 34px;
-    line-height:1.2;
-    color: var(--ink);
-    letter-spacing: -0.2px;
+    font-family: var(--rt-font-display);
+    font-weight: var(--rt-title-weight);
+    font-size: 32px;
+    line-height:1.15;
+    color: var(--rt-text);
+    letter-spacing: var(--rt-title-tracking);
+    text-transform: var(--rt-title-transform);
   }
   .read-artist{
-    font-family: var(--hand);
-    font-size: 16px;
-    color: var(--ink-dim);
-    margin-top: 2px;
+    font-family: var(--rt-font-body);
+    font-weight: 500;
+    font-size: 15px;
+    color: var(--rt-text-dim);
+    margin-top: 6px;
   }
   .read-stats{
-    font-family: var(--mono);
+    font-family: var(--rt-font-meta);
     font-size: 10.5px;
-    color: var(--ink-faint);
+    color: var(--rt-text-faint);
     margin-top: 14px;
     letter-spacing: 0.5px;
     text-transform: uppercase;
   }
+  #read-pane.theme-apple .read-stats{ text-transform:none; letter-spacing:0; font-size:12.5px; }
   .sync-play-btn{
-    margin-top: 16px;
+    margin-top: 18px;
     display:inline-flex;
     align-items:center;
     gap: 8px;
-    background: var(--gold);
-    color: var(--bg-card);
+    background: var(--rt-accent);
+    color: var(--rt-accent-text);
     border:none;
     border-radius: 20px;
-    padding: 9px 18px;
-    font-family: var(--sans);
+    padding: 10px 20px;
+    font-family: var(--rt-font-body);
     font-weight:700;
     font-size: 12.5px;
     cursor:pointer;
+    transition: transform .15s ease, background .3s ease, color .3s ease;
   }
+  .sync-play-btn:hover{ transform: scale(1.04); }
   .sync-play-btn svg{ width:11px; height:11px; fill:currentColor; }
   .sync-play-note{
-    font-family: var(--mono);
-    font-size: 10.5px;
-    color: var(--ink-faint);
+    font-family: var(--rt-font-body);
+    font-size: 12px;
+    color: var(--rt-text-faint);
     margin-top: 12px;
   }
 
-  .lyric-section{ margin-bottom: 6px; }
+  .lyric-section{ margin-bottom: 10px; width:100%; }
   .section-tag{
-    font-family: var(--mono);
+    font-family: var(--rt-font-meta);
     font-size: 11px;
-    font-weight:500;
-    color: var(--gold);
+    font-weight:600;
+    color: var(--rt-text-faint);
     text-transform: uppercase;
     letter-spacing: 1.2px;
-    margin: 10px 0 2px;
+    margin: 16px 0 6px;
     display:flex;
     align-items:center;
+    justify-content: var(--rt-line-align);
     gap: 10px;
   }
-  .section-tag::after{
+  #read-pane.theme-spotify .section-tag::after{
     content:'';
     flex:1;
     height:1px;
-    background: var(--line);
+    background: rgba(255,255,255,0.1);
   }
   .lyric-line{
-    font-family: var(--hand);
-    font-weight: 400;
-    font-size: 22px;
-    line-height: 32px;
-    color: var(--ink-dim);
-    text-align: left;
-    transition: color .2s ease, transform .2s ease;
+    font-family: var(--rt-font-body);
+    font-weight: var(--rt-line-weight);
+    font-size: 25px;
+    line-height: 1.4;
+    color: var(--rt-text-dim);
+    text-align: var(--rt-line-align);
+    transition: color .25s ease, transform .25s ease, opacity .25s ease;
   }
-  .lyric-line.faint{ color: var(--ink-faint); }
+  .lyric-line.faint{ color: var(--rt-text-faint); }
   .lyric-line.active-sync{
-    color: var(--gold);
-    font-weight: 700;
-    transform: scale(1.03);
-    transform-origin: left center;
+    color: var(--rt-text);
+    font-weight: 800;
+    transform: scale(1.04);
+    transform-origin: var(--rt-line-align) center;
   }
-  .lyric-line[data-idx]:hover{ color: var(--ink); cursor: pointer; }
-  .lyric-line.blank{ height: 32px; }
+  #read-pane.theme-apple .lyric-line.active-sync{ transform-origin: center; color: var(--rt-accent); }
+  .lyric-line[data-idx]:hover{ color: var(--rt-text); cursor: pointer; }
+  .lyric-line.blank{ height: 22px; }
 
   .read-empty{
-    color: var(--ink-faint);
-    font-family: var(--sans);
+    color: var(--rt-text-faint);
+    font-family: var(--rt-font-body);
     font-size: 14px;
     line-height:1.8;
     padding-top: 20px;
+    text-align: var(--rt-line-align);
   }
-  .read-empty b{ color: var(--ink-dim); font-family: var(--mono); font-weight:500; }
+  .read-empty b{ color: var(--rt-text-dim); font-family: var(--rt-font-meta); font-weight:600; }
 
   /* ---------- MAIN MENU (note-board) ---------- */
   #menu-screen{
@@ -1104,6 +1256,134 @@
     cursor:pointer;
   }
 
+  .exception-chip{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-dim);
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 4px 8px 4px 10px;
+    border-radius: var(--radius);
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .exception-chip button{
+    background:none; border:none;
+    color: var(--ink-faint);
+    cursor:pointer;
+    font-size: 12px;
+    line-height:1;
+    padding:0;
+  }
+  .exception-chip button:hover{ color: var(--danger); }
+
+  /* ---------- storage warning banner ---------- */
+  #storage-warning{
+    display:none;
+    align-items:center;
+    gap: 10px;
+    padding: 9px 24px;
+    background: rgba(193,88,74,0.14);
+    border-bottom: 1px solid var(--danger);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 12.5px;
+  }
+  #storage-warning.show{ display:flex; }
+  #storage-warning b{ color: var(--danger); }
+  #storage-warning .sw-dismiss{
+    margin-left:auto;
+    background:none; border:none; color:var(--ink-faint);
+    cursor:pointer; font-size:16px; line-height:1;
+  }
+
+  /* ---------- account / sign-in ---------- */
+  .account-box{
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .account-signed-out{
+    display:flex; flex-direction:column; gap:8px;
+  }
+  .account-btn{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-weight:600;
+    font-size: 12.5px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    cursor:pointer;
+    transition: border-color .15s ease;
+  }
+  .account-btn:hover{ border-color: var(--gold-dim); }
+  .account-btn svg{ width:16px; height:16px; flex-shrink:0; }
+  .account-note{
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    line-height:1.5;
+  }
+  .account-signed-in{
+    display:flex; align-items:center; gap:10px;
+  }
+  .account-avatar{
+    width:30px; height:30px; border-radius:50%; flex-shrink:0; object-fit:cover;
+    border: 1px solid var(--line);
+  }
+  .account-email{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-dim);
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    flex:1;
+  }
+  .account-owner-badge{
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color: var(--paper);
+    background: var(--gold);
+    padding: 2px 6px;
+    border-radius: 3px;
+    flex-shrink:0;
+  }
+  .account-signout{
+    background:none; border:none; color:var(--ink-faint);
+    cursor:pointer; font-size:16px; line-height:1; flex-shrink:0;
+  }
+  .account-signout:hover{ color: var(--danger); }
+
+  .owner-date-edit{
+    display:flex; align-items:center; gap:6px; margin-top:4px;
+  }
+  .owner-date-edit input{
+    background: var(--bg-card);
+    border: 1px solid var(--gold-dim);
+    color: var(--ink);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    padding: 3px 6px;
+    border-radius: var(--radius);
+  }
+  .owner-date-edit button{
+    background: var(--gold);
+    color: var(--paper);
+    border:none;
+    font-family: var(--sans);
+    font-weight:600;
+    font-size: 10.5px;
+    padding: 4px 8px;
+    border-radius: var(--radius);
+    cursor:pointer;
+  }
+  .note-time.owner-editable{ cursor:pointer; }
+  .note-time.owner-editable:hover{ color: var(--gold); }
+
   /* scrollbars */
   ::-webkit-scrollbar{ width: 10px; }
   ::-webkit-scrollbar-track{ background: transparent; }
@@ -1199,6 +1479,8 @@
       <div class="brand-sub">Lyric Draft Studio</div>
     </div>
 
+    <div class="account-box" id="account-box"></div>
+
     <button class="new-draft-btn" id="new-draft-btn">+ New draft</button>
 
     <div class="search-box">
@@ -1218,6 +1500,10 @@
   </aside>
 
   <main id="main">
+    <div id="storage-warning">
+      <span>⚠ <b>Your browser is blocking local saving</b> — drafts will disappear when you refresh. Sign in above to save to your account instead, or check your browser's cookie/storage settings.</span>
+      <button class="sw-dismiss" id="storage-warning-dismiss" title="Dismiss">×</button>
+    </div>
     <div id="topbar" style="display:none;">
       <button id="menu-btn">☰</button>
       <button id="back-to-menu">← Menu</button>
@@ -1258,9 +1544,15 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
       <div id="sync-pane"></div>
 
-      <div id="read-pane">
+      <div id="read-pane" class="theme-spotify">
         <div id="read-backdrop"></div>
-        <div id="read-inner"></div>
+        <div id="read-inner">
+          <div id="read-style-switch">
+            <button class="read-style-btn" data-theme="spotify" type="button">Spotify</button>
+            <button class="read-style-btn" data-theme="apple" type="button">Apple Music</button>
+          </div>
+          <div id="read-content"></div>
+        </div>
       </div>
     </div>
 
@@ -1280,7 +1572,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
   const STORAGE_KEY = 'manuscript_lyric_drafts_v1';
   const ACTIVE_KEY = 'manuscript_active_draft_v1';
   const UNLOCK_KEY = 'manuscript_unlocked_v1';
+  const EXCEPTIONS_KEY = 'manuscript_correction_exceptions_v1';
   const APP_PASSWORD = 'PASSW0RDF0RV1PS';
+  const OWNER_EMAIL = 'jscaylum@gmail.com';
 
   // Some sandboxed/preview environments block localStorage entirely (reads/writes throw).
   // This wrapper falls back to an in-memory store so the UI never silently breaks —
@@ -1302,6 +1596,19 @@ Everything saves automatically, right in this file — nothing leaves your brows
     }
   };
 
+  // Detect up front (not just on first failed write) so we can warn immediately.
+  function detectStorage(){
+    try{
+      const testKey = '__manuscript_probe__';
+      localStorage.setItem(testKey, '1');
+      localStorage.removeItem(testKey);
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+  if(!detectStorage()) storageAvailable = false;
+
   let drafts = [];
   let activeId = null;
   let mode = 'edit';
@@ -1309,6 +1616,15 @@ Everything saves automatically, right in this file — nothing leaves your brows
   let saveTimeout = null;
   let sessionAudio = { draftId: null, url: null, el: null }; // audio is session-only, never persisted
   let syncPlaybackDraftId = null;
+
+  // ---------- account state (placeholder until a backend is wired in) ----------
+  // NOTE: this is intentionally NOT real authentication yet. Real Google Sign-In
+  // requires a backend (Firebase Auth + Firestore, or similar) so that "owner"
+  // permissions are enforced by a server, not just by this client-side JS —
+  // otherwise anyone could open dev tools and grant themselves owner access.
+  // This object is where that real session will plug in once that's set up.
+  let account = { signedIn: false, email: null, name: null, photo: null };
+  function isOwner(){ return account.signedIn && account.email === OWNER_EMAIL; }
 
   // ---------- persistence ----------
   function loadDrafts(){
@@ -1331,7 +1647,50 @@ Everything saves automatically, right in this file — nothing leaves your brows
       ind.textContent = 'storage full';
       ind.classList.remove('saved');
     }
+    updateStorageWarning();
   }
+
+  // Flush any pending debounced edits immediately — called on refresh/tab-close/away
+  // so a fast reload right after typing can't lose the last few keystrokes.
+  function flushPendingSave(){
+    if(saveTimeout){
+      clearTimeout(saveTimeout);
+      saveTimeout = null;
+      commitFieldsToActiveDraft();
+    }
+  }
+  function commitFieldsToActiveDraft(){
+    const d = getActive();
+    if(!d) return;
+    const titleEl = document.getElementById('title-input');
+    const artistEl = document.getElementById('artist-input');
+    const lyricsEl = document.getElementById('lyrics-input');
+    if(!titleEl) return; // not in editor view, nothing to flush
+    d.title = titleEl.value;
+    d.artist = artistEl.value;
+    d.lyrics = lyricsEl.value;
+    d.updated = Date.now();
+    persist();
+  }
+  window.addEventListener('beforeunload', flushPendingSave);
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.visibilityState === 'hidden') flushPendingSave();
+  });
+
+  let storageWarningDismissed = false;
+  function updateStorageWarning(){
+    const el = document.getElementById('storage-warning');
+    if(!el) return;
+    if(!storageAvailable && !storageWarningDismissed){
+      el.classList.add('show');
+    } else {
+      el.classList.remove('show');
+    }
+  }
+  document.getElementById('storage-warning-dismiss').addEventListener('click', ()=>{
+    storageWarningDismissed = true;
+    updateStorageWarning();
+  });
 
   function showSaved(){
     const ind = document.getElementById('save-indicator');
@@ -1385,6 +1744,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   }
 
   function selectDraft(id){
+    flushPendingSave();
     activeId = id;
     screen = 'editor';
     safeLS.setItem(ACTIVE_KEY, activeId);
@@ -1392,8 +1752,40 @@ Everything saves automatically, right in this file — nothing leaves your brows
   }
 
   function showMenu(){
+    flushPendingSave();
     screen = 'menu';
     renderAll();
+  }
+
+  // ---------- rendering: account box ----------
+  function renderAccountBox(){
+    const box = document.getElementById('account-box');
+    if(!account.signedIn){
+      box.innerHTML =
+        '<div class="account-signed-out">' +
+          '<button class="account-btn" id="google-signin-btn">' +
+            '<svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 2.9l6-6C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.6 18.9 13 24 13c3 0 5.8 1.1 7.9 2.9l6-6C34.5 5.1 29.5 3 24 3 16.3 3 9.6 7.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 45c5.3 0 10.2-2 13.8-5.4l-6.4-5.4C29.3 35.9 26.8 37 24 37c-5.3 0-9.8-3.4-11.4-8.1l-6.5 5C9.4 40.6 16.1 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1 3-3.1 5.4-5.9 6.9l6.4 5.4C39.6 37.6 45 31.3 45 24c0-1.2-.1-2.4-.4-3.5z"/></svg>' +
+            'Sign in with Google' +
+          '</button>' +
+          '<div class="account-note">Not wired up yet — needs a Firebase project connected first. See setup steps.</div>' +
+        '</div>';
+      document.getElementById('google-signin-btn').addEventListener('click', ()=>{
+        alert('Google Sign-In isn\'t connected yet. This needs a small (free) Firebase project set up first — ask Claude for the setup steps if you haven\'t already.');
+      });
+    } else {
+      const owner = isOwner();
+      box.innerHTML =
+        '<div class="account-signed-in">' +
+          (account.photo ? '<img class="account-avatar" src="'+account.photo+'" alt="">' : '') +
+          '<span class="account-email">' + escapeHtml(account.email || '') + '</span>' +
+          (owner ? '<span class="account-owner-badge">Owner</span>' : '') +
+          '<button class="account-signout" id="account-signout-btn" title="Sign out">×</button>' +
+        '</div>';
+      document.getElementById('account-signout-btn').addEventListener('click', ()=>{
+        account = { signedIn:false, email:null, name:null, photo:null };
+        renderAll();
+      });
+    }
   }
 
   // ---------- rendering: sidebar ----------
@@ -1472,6 +1864,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
         const artist = escapeHtml(d.artist || 'No artist yet');
         const snippet = escapeHtml(firstLyricSnippet(d.lyrics)) || '<em style="opacity:.6">Nothing written yet…</em>';
         const coverHtml = d.cover ? '<img class="note-cover-thumb" src="' + d.cover + '" alt="">' : '';
+        const timeClass = isOwner() ? 'note-time owner-editable' : 'note-time';
+        const timeTitle = isOwner() ? ' title="Owner: click to edit creation date"' : '';
         return '<div class="note-card" data-id="' + d.id + '">' +
           '<button class="note-icon-btn note-preview-btn" data-preview="' + d.id + '" title="Preview lyrics"><svg viewBox="0 0 24 24"><path d="M12,5C7,5,2.73,8.11,1,12.5,2.73,16.89,7,20,12,20s9.27-3.11,11-7.5C21.27,8.11,17,5,12,5Zm0,12.5A5,5,0,1,1,17,12.5,5,5,0,0,1,12,17.5Zm0-8A3,3,0,1,0,15,12.5,3,3,0,0,0,12,9.5Z"/></svg></button>' +
           '<button class="note-icon-btn note-del-btn" data-del="' + d.id + '" title="Delete draft">×</button>' +
@@ -1479,7 +1873,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
           '<div class="note-title">' + title + '</div>' +
           '<div class="note-artist">' + artist + '</div>' +
           '<div class="note-snippet">' + snippet + '</div>' +
-          '<div class="note-time">' + timeAgo(d.updated) + '</div>' +
+          '<div class="' + timeClass + '" data-owner-date="' + d.id + '"' + timeTitle + '>' + timeAgo(d.created || d.updated) + '</div>' +
         '</div>';
       }).join('');
     }
@@ -1488,7 +1882,10 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
     document.getElementById('note-new').addEventListener('click', ()=> newDraft());
     grid.querySelectorAll('.note-card[data-id]').forEach(card=>{
-      card.addEventListener('click', ()=> openDraftWithAnimation(card.dataset.id, card));
+      card.addEventListener('click', (e)=>{
+        if(e.target.closest('[data-owner-date]') && isOwner()) return; // handled separately
+        openDraftWithAnimation(card.dataset.id, card);
+      });
     });
     grid.querySelectorAll('[data-del]').forEach(el=>{
       el.addEventListener('click', (e)=> deleteDraft(el.dataset.del, e));
@@ -1498,6 +1895,46 @@ Everything saves automatically, right in this file — nothing leaves your brows
         e.stopPropagation();
         openPreview(el.dataset.preview);
       });
+    });
+    if(isOwner()){
+      grid.querySelectorAll('[data-owner-date]').forEach(el=>{
+        el.addEventListener('click', (e)=>{
+          e.stopPropagation();
+          openOwnerDateEditor(el.dataset.ownerDate, el);
+        });
+      });
+    }
+  }
+
+  // Owner-only: override a draft's "created" timestamp to a custom date/time.
+  // Placeholder client-side version — once Firebase is wired in, this same
+  // action gets sent as a write that Firestore's security rules will check
+  // is coming from OWNER_EMAIL before allowing it, server-side.
+  function openOwnerDateEditor(draftId, el){
+    if(!isOwner()) return;
+    const d = drafts.find(x=>x.id===draftId);
+    if(!d) return;
+    const current = new Date(d.created || d.updated);
+    const pad = n => String(n).padStart(2,'0');
+    const dateStr = current.getFullYear() + '-' + pad(current.getMonth()+1) + '-' + pad(current.getDate());
+    const timeStr = pad(current.getHours()) + ':' + pad(current.getMinutes());
+
+    el.innerHTML =
+      '<div class="owner-date-edit" onclick="event.stopPropagation()">' +
+        '<input type="date" value="' + dateStr + '" id="owner-date-input">' +
+        '<input type="time" value="' + timeStr + '" id="owner-time-input">' +
+        '<button id="owner-date-save">Set</button>' +
+      '</div>';
+
+    document.getElementById('owner-date-save').addEventListener('click', ()=>{
+      const dateVal = document.getElementById('owner-date-input').value;
+      const timeVal = document.getElementById('owner-time-input').value || '00:00';
+      if(!dateVal) return;
+      const combined = new Date(dateVal + 'T' + timeVal);
+      if(isNaN(combined.getTime())) return;
+      d.created = combined.getTime();
+      persist();
+      renderMenu();
     });
   }
 
@@ -1823,7 +2260,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   }
 
   function renderReadView(d){
-    const inner = document.getElementById('read-inner');
+    const inner = document.getElementById('read-content');
     const backdrop = document.getElementById('read-backdrop');
     const lyrics = d.lyrics || '';
 
@@ -1928,22 +2365,19 @@ Everything saves automatically, right in this file — nothing leaves your brows
   });
 
   function renderAll(){
+    renderAccountBox();
     renderList();
     renderMain();
     renderTitleCueing();
+    updateStorageWarning();
   }
 
   // ---------- editing ----------
   function scheduleSave(){
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(()=>{
-      const d = getActive();
-      if(!d) return;
-      d.title = document.getElementById('title-input').value;
-      d.artist = document.getElementById('artist-input').value;
-      d.lyrics = document.getElementById('lyrics-input').value;
-      d.updated = Date.now();
-      persist();
+      saveTimeout = null;
+      commitFieldsToActiveDraft();
       renderList();
     }, 250);
   }
@@ -1966,6 +2400,36 @@ Everything saves automatically, right in this file — nothing leaves your brows
     });
   });
 
+  // ---------- read-mode theme (Spotify / Apple Music look) ----------
+  const READ_THEME_KEY = 'manuscript_read_theme_v1';
+  function applyReadTheme(theme, opts){
+    const skipSave = opts && opts.skipSave;
+    const pane = document.getElementById('read-pane');
+    pane.classList.remove('theme-spotify', 'theme-apple');
+    pane.classList.add(theme === 'apple' ? 'theme-apple' : 'theme-spotify');
+    document.querySelectorAll('.read-style-btn').forEach(b=>{
+      b.classList.toggle('active', b.dataset.theme === theme);
+    });
+    if(!skipSave) safeLS.setItem(READ_THEME_KEY, theme);
+  }
+  function initReadTheme(){
+    const saved = safeLS.getItem(READ_THEME_KEY) || 'spotify';
+    applyReadTheme(saved, {skipSave:true});
+  }
+  document.querySelectorAll('.read-style-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const pane = document.getElementById('read-pane');
+      const target = document.getElementById('read-inner');
+      if(pane.classList.contains('theme-' + btn.dataset.theme)) return;
+      target.classList.add('rt-fade');
+      setTimeout(()=>{
+        applyReadTheme(btn.dataset.theme);
+        target.classList.remove('rt-fade');
+      }, 180);
+    });
+  });
+  initReadTheme();
+
   // tag chip inserts + formatting corrections
   const commonTags = ['[Intro]','[Verse 1]','[Verse 2]','[Pre-Chorus]','[Chorus]','[Bridge]','[Outro]','[Hook]'];
   const hintWrap = document.createElement('div');
@@ -1973,7 +2437,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
   hintWrap.id = 'tag-hint-bar';
   hintWrap.innerHTML = commonTags.map(t=>'<span class="tag-chip">'+t+'</span>').join('') +
     '<span style="flex:1"></span>' +
-    '<button class="fix-btn" id="fix-format-btn" title="Auto-fix capitalization and section formatting">✓ Fix formatting</button>' +
+    '<span id="exception-chips" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;"></span>' +
+    '<button class="fix-btn" id="add-exception-btn" style="border-color:var(--ink-faint); color:var(--ink-dim);" title="Protect a word (like a name) from being auto-corrected">+ Exception</button>' +
+    '<button class="fix-btn" id="fix-format-btn" title="Fix spelling in the lyric text and add a question mark where clearly missing — leaves anything in [brackets] untouched and never adds a period">✓ Fix formatting</button>' +
     '<button class="undo-fix-btn" id="undo-fix-btn" style="display:none;">Undo</button>';
   document.getElementById('canvas-wrap').after(hintWrap);
   hintWrap.querySelectorAll('.tag-chip').forEach(chip=>{
@@ -1993,7 +2459,55 @@ Everything saves automatically, right in this file — nothing leaves your brows
     });
   });
 
+  // ---------- correction exceptions (protect names/words from auto-correction) ----------
+  let correctionExceptions = [];
+  try{
+    correctionExceptions = JSON.parse(safeLS.getItem(EXCEPTIONS_KEY) || '[]');
+    if(!Array.isArray(correctionExceptions)) correctionExceptions = [];
+  }catch(e){ correctionExceptions = []; }
+
+  function saveExceptions(){
+    safeLS.setItem(EXCEPTIONS_KEY, JSON.stringify(correctionExceptions));
+  }
+
+  function renderExceptionChips(){
+    const wrap = document.getElementById('exception-chips');
+    if(!wrap) return;
+    if(correctionExceptions.length === 0){
+      wrap.innerHTML = '';
+      return;
+    }
+    wrap.innerHTML = correctionExceptions.map(w =>
+      '<span class="exception-chip">' + escapeHtml(w) + '<button data-remove-exception="' + escapeHtml(w) + '" title="Stop protecting this word">×</button></span>'
+    ).join('');
+    wrap.querySelectorAll('[data-remove-exception]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const word = btn.dataset.removeException;
+        correctionExceptions = correctionExceptions.filter(w => w !== word);
+        saveExceptions();
+        renderExceptionChips();
+      });
+    });
+  }
+  renderExceptionChips();
+
+  document.getElementById('add-exception-btn').addEventListener('click', ()=>{
+    const input = prompt('Word(s) to never auto-correct (e.g. a name). Separate multiple with commas:');
+    if(!input) return;
+    const words = input.split(',').map(w=>w.trim()).filter(Boolean);
+    words.forEach(w=>{
+      if(!correctionExceptions.some(existing => existing.toLowerCase() === w.toLowerCase())){
+        correctionExceptions.push(w);
+      }
+    });
+    saveExceptions();
+    renderExceptionChips();
+  });
+
   // ---------- formatting corrections ----------
+  // Only touches lyric text OUTSIDE of [bracketed] section tags. Bracketed lines,
+  // and bare tag names on their own line (e.g. "verse 1"), pass through as tags —
+  // their text is never spell/punctuation-corrected, only wrapped/standardized as a tag.
   const KNOWN_TAGS = ['intro','verse 1','verse 2','verse 3','verse 4','pre-chorus','prechorus','chorus','bridge','outro','hook','refrain'];
   let lastFixSnapshot = null;
 
@@ -2001,43 +2515,131 @@ Everything saves automatically, right in this file — nothing leaves your brows
     return raw.split(' ').map(w => w ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w).join(' ');
   }
 
+  // Common typing shortcuts / missing-apostrophe contractions seen in quick lyric drafts.
+  // Deliberately excludes ambiguous entries (e.g. "well", "shed", "id") that are common
+  // words on their own — those are exactly the kind of case the exceptions list is for.
+  const WORD_CORRECTIONS = {
+    im: "i'm",
+    ive: "i've",
+    ill: "i'll",
+    youre: "your",
+    youve: "you've",
+    youll: "you'll",
+    theyre: "they're",
+    theyve: "they've",
+    theyll: "they'll",
+    dont: "don't",
+    doesnt: "doesn't",
+    didnt: "didn't",
+    cant: "can't",
+    wont: "won't",
+    wouldnt: "wouldn't",
+    couldnt: "couldn't",
+    shouldnt: "shouldn't",
+    isnt: "isn't",
+    arent: "aren't",
+    wasnt: "wasn't",
+    werent: "weren't",
+    hasnt: "hasn't",
+    havent: "haven't",
+    hadnt: "hadn't",
+    thats: "that's",
+    whats: "what's",
+    whos: "who's",
+    wheres: "where's",
+    lets: "let's",
+    theres: "there's",
+    heres: "here's",
+    aint: "ain't",
+    recieve: "receive",
+    definately: "definitely",
+    seperate: "separate",
+    untill: "until",
+    beleive: "believe",
+    becuase: "because",
+    wich: "which",
+    tommorow: "tomorrow",
+    truely: "truly",
+    freind: "friend",
+    goverment: "government"
+  };
+
+  function correctLyricLineText(line, exceptionSet){
+    let text = line.replace(/\s+/g, ' ').trim();
+    if(!text) return text;
+
+    // word-level fixes, skipping anything in the exceptions list
+    text = text.replace(/[A-Za-z']+/g, (word) => {
+      const lower = word.toLowerCase();
+      if(exceptionSet.has(lower)) return word;
+      if(Object.prototype.hasOwnProperty.call(WORD_CORRECTIONS, lower)){
+        const repl = WORD_CORRECTIONS[lower];
+        const wasCapitalized = word.charAt(0) === word.charAt(0).toUpperCase() && word.charAt(0) !== word.charAt(0).toLowerCase();
+        return wasCapitalized ? (repl.charAt(0).toUpperCase() + repl.slice(1)) : repl;
+      }
+      return word;
+    });
+
+    // standalone "i" (and i'm/i've/i'll/i'd) always capitalizes as a pronoun
+    if(!exceptionSet.has('i')){
+      text = text.replace(/\bi\b/g, 'I');
+    }
+
+    // capitalize the first letter of the line
+    text = text.charAt(0).toUpperCase() + text.slice(1);
+
+    // add a comma after a leading interjection/vocative if one isn't already there
+    const interjectionMatch = text.match(/^(Hey|Oh|Yeah|Yo|Ok|Okay|Look|Listen|Wait|Baby|Girl|Boy|Man|No|Now)(\s+\S.*)$/);
+    if(interjectionMatch){
+      const word = interjectionMatch[1];
+      const rest = interjectionMatch[2];
+      if(!/^[,.!?;:]/.test(rest.trim())){
+        text = word + ',' + rest;
+      }
+    }
+
+    // only add punctuation the line is clearly missing — a question mark for
+    // question-shaped lines. Never tack on a period; if the writer left a line
+    // unpunctuated on purpose (very common in lyrics), that's respected.
+    if(!/[.,!?;:'"”’)]$/.test(text)){
+      const isQuestion = /^(who|what|when|where|why|how|is|are|do|does|did|can|could|would|will|should)\b/i.test(text);
+      if(isQuestion) text += '?';
+    }
+
+    return text;
+  }
+
   function correctLyricsText(text){
+    const exceptionSet = new Set(correctionExceptions.map(w => w.toLowerCase()));
     const lines = text.split('\n');
     const out = [];
-    lines.forEach((line, i) => {
-      let trimmed = line.replace(/\s+$/,'');
-      const bareTagMatch = trimmed.trim().match(/^\[?\s*([a-zA-Z\- ]+?\d*)\s*\]?$/);
-      const innerLower = trimmed.trim().replace(/^\[|\]$/g,'').trim().toLowerCase();
+    lines.forEach((line) => {
+      const trimmedFull = line.replace(/\s+$/, '');
+      const trimmed = trimmedFull.trim();
 
-      if(trimmed.trim() !== '' && KNOWN_TAGS.includes(innerLower)){
-        // standardize known section tags
-        if(out.length && out[out.length-1].trim() !== ''){ out.push(''); }
+      // fully bracketed tag line — leave completely untouched, brackets and all
+      if(/^\[.+\]$/.test(trimmed)){
+        out.push(trimmedFull);
+        return;
+      }
+
+      // bare recognized tag name (no brackets yet) — wrap it as a tag, don't run
+      // spelling/punctuation correction on it since it isn't lyric text
+      const innerLower = trimmed.toLowerCase();
+      if(trimmed !== '' && KNOWN_TAGS.includes(innerLower)){
+        if(out.length && out[out.length - 1].trim() !== ''){ out.push(''); }
         out.push('[' + titleCaseTag(innerLower === 'prechorus' ? 'pre-chorus' : innerLower) + ']');
         return;
       }
 
-      if(trimmed.trim() === ''){
+      if(trimmed === ''){
         out.push('');
         return;
       }
 
-      // already-bracketed tag left as-is but normalize capitalization
-      if(/^\[.+\]$/.test(trimmed.trim())){
-        if(out.length && out[out.length-1].trim() !== ''){ out.push(''); }
-        const inner = trimmed.trim().slice(1,-1);
-        out.push('[' + titleCaseTag(inner) + ']');
-        return;
-      }
-
-      // regular lyric line: capitalize first letter, capitalize standalone "i"
-      let fixed = trimmed.replace(/\s+/g, ' ').trim();
-      if(fixed.length){
-        fixed = fixed.charAt(0).toUpperCase() + fixed.slice(1);
-        fixed = fixed.replace(/\bi\b/g, 'I');
-      }
-      out.push(fixed);
+      // regular lyric text — the only case that gets spelling/punctuation correction
+      out.push(correctLyricLineText(trimmed, exceptionSet));
     });
-    // collapse 3+ blank lines into 1
     return out.join('\n').replace(/\n{3,}/g, '\n\n');
   }
 
@@ -2061,6 +2663,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
   // ---------- transfer to another device (send / receive) ----------
   document.getElementById('export-btn').addEventListener('click', ()=>{
+    flushPendingSave();
     const blob = new Blob([JSON.stringify(drafts, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -2108,6 +2711,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   // ---------- lock ----------
   document.getElementById('lock-btn').addEventListener('click', ()=>{
     if(!confirm('Lock the app? You\'ll need the password again to get back in on this device.')) return;
+    flushPendingSave();
     safeLS.removeItem(UNLOCK_KEY);
     const lockScreen = document.getElementById('lock-screen');
     lockScreen.classList.remove('hidden', 'fading');
@@ -2179,6 +2783,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   });
 
   function goToTitle(){
+    flushPendingSave();
     screen = 'title';
     const titleScreen = document.getElementById('title-screen');
     titleScreen.classList.remove('hidden', 'fading');
