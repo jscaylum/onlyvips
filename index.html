@@ -1694,9 +1694,152 @@ Everything saves automatically, right in this file — nothing leaves your brows
   let mode = 'edit';
   let screen = 'title'; // 'title' | 'menu' | 'editor'
   let saveTimeout = null;
-  let sessionAudio = { draftId: null, url: null, el: null }; // audio is session-only, never persisted
+  // Each draft now gets its own dedicated audio file, saved locally in the browser
+  // (IndexedDB, since audio blobs are too big for localStorage) instead of a single
+  // session-only slot. Only one audio element is actually decoded/kept in memory at
+  // a time (whichever draft is active) — the rest just sit in IndexedDB until opened.
+  let activeAudio = { draftId: null, url: null, el: null, name: null, type: null };
+  let audioIndex = new Set(); // ids of drafts that currently have audio saved in IndexedDB
+  let audioLoadingId = null; // draft id whose audio is being fetched from IndexedDB right now
   let syncPlaybackDraftId = null;
   let syncCursorIdx = null; // raw lyric-line index that's "next up" to be tapped in sync mode
+
+  // ---------- per-draft audio storage (IndexedDB) ----------
+  const AUDIO_DB_NAME = 'manuscript_audio_db';
+  const AUDIO_DB_VERSION = 1;
+  const AUDIO_STORE = 'audio';
+  let audioDBPromise = null;
+  let audioDBAvailable = true;
+
+  function openAudioDB(){
+    if(audioDBPromise) return audioDBPromise;
+    audioDBPromise = new Promise((resolve)=>{
+      if(!('indexedDB' in window)){ audioDBAvailable = false; resolve(null); return; }
+      let req;
+      try{
+        req = indexedDB.open(AUDIO_DB_NAME, AUDIO_DB_VERSION);
+      }catch(e){ audioDBAvailable = false; resolve(null); return; }
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if(!db.objectStoreNames.contains(AUDIO_STORE)) db.createObjectStore(AUDIO_STORE);
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => { audioDBAvailable = false; resolve(null); };
+      req.onblocked = () => { resolve(null); };
+    });
+    return audioDBPromise;
+  }
+
+  // stores { blob, name, type } keyed by draft id — put() overwrites, so this also
+  // doubles as "replace this draft's audio"
+  async function dbSetAudio(draftId, blob, name, type){
+    const db = await openAudioDB();
+    if(!db) return false;
+    return new Promise((resolve)=>{
+      try{
+        const tx = db.transaction(AUDIO_STORE, 'readwrite');
+        tx.objectStore(AUDIO_STORE).put({ blob, name: name || '', type: type || '' }, draftId);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => { audioDBAvailable = false; resolve(false); };
+      }catch(e){ audioDBAvailable = false; resolve(false); }
+    });
+  }
+
+  async function dbGetAudio(draftId){
+    const db = await openAudioDB();
+    if(!db) return null;
+    return new Promise((resolve)=>{
+      try{
+        const tx = db.transaction(AUDIO_STORE, 'readonly');
+        const req = tx.objectStore(AUDIO_STORE).get(draftId);
+        req.onsuccess = () => resolve(req.result || null);
+        req.onerror = () => resolve(null);
+      }catch(e){ resolve(null); }
+    });
+  }
+
+  async function dbDeleteAudio(draftId){
+    const db = await openAudioDB();
+    if(!db) return false;
+    return new Promise((resolve)=>{
+      try{
+        const tx = db.transaction(AUDIO_STORE, 'readwrite');
+        tx.objectStore(AUDIO_STORE).delete(draftId);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      }catch(e){ resolve(false); }
+    });
+  }
+
+  async function dbListAudioIds(){
+    const db = await openAudioDB();
+    if(!db) return [];
+    return new Promise((resolve)=>{
+      try{
+        const tx = db.transaction(AUDIO_STORE, 'readonly');
+        const req = tx.objectStore(AUDIO_STORE).getAllKeys();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      }catch(e){ resolve([]); }
+    });
+  }
+
+  async function initAudioIndex(){
+    const ids = await dbListAudioIds();
+    audioIndex = new Set(ids);
+    updateStorageWarning();
+    renderMain();
+  }
+
+  function blobToBase64(blob){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // Loads whichever draft's audio should now be "active" (i.e. decoded into an <audio>
+  // element ready to play) — tearing down the previous one first. Safe to call on every
+  // draft switch; it no-ops if that draft's audio is already loaded.
+  async function switchActiveDraftAudio(draftId){
+    if(activeAudio.draftId === draftId) return;
+
+    if(activeAudio.el){ try{ activeAudio.el.pause(); }catch(e){} }
+    if(activeAudio.url){ URL.revokeObjectURL(activeAudio.url); }
+    activeAudio = { draftId: null, url: null, el: null, name: null, type: null };
+    syncPlaybackDraftId = null;
+
+    if(!audioIndex.has(draftId)){
+      renderMain();
+      return;
+    }
+
+    audioLoadingId = draftId;
+    renderMain();
+
+    const rec = await dbGetAudio(draftId);
+
+    if(activeId !== draftId){
+      // user already navigated elsewhere while this was loading — abandon it
+      if(audioLoadingId === draftId) audioLoadingId = null;
+      return;
+    }
+    audioLoadingId = null;
+
+    if(!rec || !rec.blob){
+      audioIndex.delete(draftId); // stale/corrupt entry
+      renderMain();
+      return;
+    }
+
+    const url = URL.createObjectURL(rec.blob);
+    const el = new Audio(url);
+    wireAudioElement(el);
+    activeAudio = { draftId, url, el, name: rec.name, type: rec.type };
+    renderMain();
+  }
 
   // ---------- account state (placeholder until a backend is wired in) ----------
   // NOTE: this is intentionally NOT real authentication yet. Real Google Sign-In
