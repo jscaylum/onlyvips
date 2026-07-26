@@ -800,6 +800,12 @@
     pointer-events:none;
   }
   .menu-header{ margin-bottom: 40px; }
+  .menu-header-row{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 20px;
+  }
   .menu-header h1{
     font-family: var(--serif);
     font-weight:700;
@@ -812,6 +818,33 @@
     font-size: 15px;
     color: var(--ink-faint);
     margin-top: 6px;
+  }
+  .help-btn{
+    display:flex;
+    align-items:center;
+    gap: 7px;
+    background: transparent;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: var(--sans);
+    font-weight:600;
+    font-size: 12.5px;
+    padding: 9px 16px;
+    border-radius: 20px;
+    cursor:pointer;
+    flex-shrink:0;
+    margin-top: 6px;
+    transition: background .15s ease;
+  }
+  .help-btn:hover{ background: rgba(244,238,224,0.08); }
+  .help-btn .help-mark{
+    width: 18px; height:18px;
+    border-radius:50%;
+    border: 1.5px solid var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-size: 11px;
+    font-weight:700;
+    flex-shrink:0;
   }
   .note-grid{
     display:grid;
@@ -1611,6 +1644,304 @@
   .note-time.owner-editable{ cursor:pointer; }
   .note-time.owner-editable:hover{ color: var(--gold); }
 
+  /* ---------- admin / owner panel ---------- */
+  .admin-btn{
+    width:100%;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background: rgba(244,238,224,0.06);
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    font-family: var(--sans);
+    font-weight:600;
+    font-size: 12px;
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    cursor:pointer;
+    margin-top: 8px;
+    transition: background .15s ease;
+  }
+  .admin-btn:hover{ background: rgba(244,238,224,0.12); }
+
+  #admin-modal{
+    position:fixed; inset:0;
+    z-index: 900;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding: 30px 20px;
+  }
+  #admin-modal.open{ display:flex; }
+  .admin-backdrop{
+    position:absolute; inset:0;
+    background: rgba(8,8,12,0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .admin-panel{
+    position:relative;
+    background: linear-gradient(180deg, var(--bg-raised), var(--bg));
+    border: 1px solid var(--gold-dim);
+    border-radius: 6px;
+    width:100%;
+    max-width: 760px;
+    max-height: 86vh;
+    overflow-y:auto;
+    padding: 34px 40px 36px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.6);
+  }
+  .admin-close{
+    position:absolute; top:14px; right:16px;
+    background:none; border:none;
+    color: var(--ink-faint);
+    font-size: 22px;
+    line-height:1;
+    cursor:pointer;
+    width:32px; height:32px;
+  }
+  .admin-close:hover{ color: var(--ink); }
+  .admin-head{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom: 4px;
+  }
+  .admin-title{
+    font-family: var(--serif);
+    font-weight:700;
+    font-size: 26px;
+    color: var(--ink);
+  }
+  .admin-owner-badge{
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    color: var(--paper);
+    background: var(--gold);
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+  .admin-sub{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-bottom: 26px;
+  }
+  .admin-section{
+    margin-bottom: 28px;
+    padding-bottom: 26px;
+    border-bottom: 1px solid var(--line);
+  }
+  .admin-section:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .admin-section-title{
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--ink-dim);
+    margin-bottom: 14px;
+  }
+  .admin-stats-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 14px;
+  }
+  .admin-stat-card{
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .admin-stat-value{
+    font-family: var(--serif);
+    font-size: 26px;
+    color: var(--gold);
+    line-height:1.1;
+  }
+  .admin-stat-label{
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing:0.5px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+  }
+  .admin-table-wrap{
+    max-height: 260px;
+    overflow-y:auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  table.admin-table{
+    width:100%;
+    border-collapse: collapse;
+    font-family: var(--sans);
+    font-size: 12.5px;
+  }
+  table.admin-table th{
+    text-align:left;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing:0.5px;
+    color: var(--ink-faint);
+    padding: 9px 12px;
+    background: var(--bg-card);
+    position: sticky;
+    top:0;
+    border-bottom: 1px solid var(--line);
+  }
+  table.admin-table td{
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-dim);
+    vertical-align: middle;
+  }
+  table.admin-table tr:last-child td{ border-bottom:none; }
+  table.admin-table tr.admin-row-clickable{ cursor:pointer; }
+  table.admin-table tr.admin-row-clickable:hover td{ color: var(--ink); background: rgba(236,228,211,0.04); }
+  .admin-row-title{ color: var(--ink); font-weight:600; }
+  .admin-empty-row td{ color: var(--ink-faint); text-align:center; padding: 20px; }
+  .admin-actions-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap: 10px;
+  }
+  .admin-danger-btn{
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    font-family: var(--sans);
+    font-weight:600;
+    font-size: 12px;
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    cursor:pointer;
+  }
+  .admin-danger-btn:hover{ background: rgba(193,88,74,0.14); }
+  .admin-note{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    line-height:1.6;
+    margin-top: 10px;
+  }
+  .admin-locked{
+    text-align:center;
+    padding: 40px 20px;
+    color: var(--ink-faint);
+    font-family: var(--sans);
+    font-size: 13.5px;
+    line-height:1.7;
+  }
+
+  /* ---------- help panel ---------- */
+  #help-modal{
+    position:fixed; inset:0;
+    z-index: 850;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding: 30px 20px;
+  }
+  #help-modal.open{ display:flex; }
+  .help-backdrop{
+    position:absolute; inset:0;
+    background: rgba(8,8,12,0.72);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .help-panel{
+    position:relative;
+    background: linear-gradient(180deg, var(--bg-raised), var(--bg));
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    width:100%;
+    max-width: 660px;
+    max-height: 82vh;
+    overflow-y:auto;
+    padding: 40px 44px 38px;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.55);
+    animation: preview-in .25s cubic-bezier(.4,0,.2,1);
+  }
+  .help-close{
+    position:absolute; top:14px; right:16px;
+    background:none; border:none;
+    color: var(--ink-faint);
+    font-size: 22px;
+    line-height:1;
+    cursor:pointer;
+    width:32px; height:32px;
+  }
+  .help-close:hover{ color: var(--ink); }
+  .help-title{
+    font-family: var(--serif);
+    font-weight:700;
+    font-size: 26px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .help-sub{
+    font-family: var(--hand);
+    font-size: 14.5px;
+    color: var(--ink-faint);
+    margin-bottom: 26px;
+  }
+  .help-section{
+    margin-bottom: 22px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .help-section:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
+  .help-section-title{
+    display:flex;
+    align-items:center;
+    gap: 9px;
+    font-family: var(--sans);
+    font-weight:700;
+    font-size: 14.5px;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .help-section-icon{
+    width: 22px; height:22px;
+    border-radius: 50%;
+    background: rgba(244,238,224,0.1);
+    display:flex; align-items:center; justify-content:center;
+    font-size: 12px;
+    flex-shrink:0;
+  }
+  .help-tips{
+    list-style:none;
+    display:flex;
+    flex-direction:column;
+    gap: 9px;
+  }
+  .help-tips li{
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height:1.55;
+    color: var(--ink-dim);
+    padding-left: 16px;
+    position:relative;
+  }
+  .help-tips li::before{
+    content:'—';
+    position:absolute;
+    left:0;
+    color: var(--ink-faint);
+  }
+  .help-tips li b{ color: var(--ink); font-weight:600; }
+  .help-tips li kbd{
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: var(--ink-dim);
+  }
+
   /* scrollbars */
   ::-webkit-scrollbar{ width: 10px; }
   ::-webkit-scrollbar-track{ background: transparent; }
@@ -1631,6 +1962,7 @@
     #play-btn{ width:58px; height:58px; }
     .preview-panel{ padding: 34px 24px; }
     #helper-panel{ display:none !important; }
+    .admin-panel{ padding: 26px 20px 28px; }
   }
   #menu-btn{
     display:none;
@@ -1698,6 +2030,22 @@
   <div class="preview-panel">
     <button class="preview-close" id="preview-close" title="Close">×</button>
     <div id="preview-content"></div>
+  </div>
+</div>
+
+<div id="admin-modal">
+  <div class="admin-backdrop" id="admin-backdrop"></div>
+  <div class="admin-panel">
+    <button class="admin-close" id="admin-close" title="Close">×</button>
+    <div id="admin-content"></div>
+  </div>
+</div>
+
+<div id="help-modal">
+  <div class="help-backdrop" id="help-backdrop"></div>
+  <div class="help-panel">
+    <button class="help-close" id="help-close" title="Close">×</button>
+    <div id="help-content"></div>
   </div>
 </div>
 
@@ -1812,8 +2160,13 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
     <div id="menu-screen">
       <div class="menu-header">
-        <h1>Your drafts</h1>
-        <p>Pick a note to keep writing, or start something new. Everything here lives only in this browser.</p>
+        <div class="menu-header-row">
+          <div>
+            <h1>Your drafts</h1>
+            <p>Pick a note to keep writing, or start something new. Everything here lives only in this browser.</p>
+          </div>
+          <button class="help-btn" id="open-help-btn" title="Tips for this page"><span class="help-mark">?</span> Help</button>
+        </div>
       </div>
       <div class="note-grid" id="note-grid"></div>
     </div>
@@ -2066,8 +2419,11 @@ Everything saves automatically, right in this file — nothing leaves your brows
           '<span class="account-email">' + escapeHtml(account.email || '') + '</span>' +
           (owner ? '<span class="account-owner-badge">Owner</span>' : '') +
           '<button class="account-signout" id="account-signout-btn" title="Sign out">×</button>' +
-        '</div>';
+        '</div>' +
+        (owner ? '<button class="admin-btn" id="open-admin-btn">⚙ Admin panel</button>' : '');
       document.getElementById('account-signout-btn').addEventListener('click', googleSignOut);
+      const adminBtn = document.getElementById('open-admin-btn');
+      if(adminBtn) adminBtn.addEventListener('click', openAdminPanel);
     }
   }
 
@@ -2780,6 +3136,192 @@ Everything saves automatically, right in this file — nothing leaves your brows
   document.getElementById('preview-backdrop').addEventListener('click', closePreview);
   document.addEventListener('keydown', (e)=>{
     if(e.key === 'Escape') closePreview();
+  });
+
+  // ---------- admin / owner panel ----------
+  function estimateStorageBytes(){
+    try{
+      const raw = safeLS.getItem(STORAGE_KEY) || '';
+      return raw.length;
+    }catch(e){ return 0; }
+  }
+
+  function fmtBytes(n){
+    if(n < 1024) return n + ' B';
+    if(n < 1024*1024) return (n/1024).toFixed(1) + ' KB';
+    return (n/(1024*1024)).toFixed(2) + ' MB';
+  }
+
+  function renderAdminContent(){
+    const content = document.getElementById('admin-content');
+    if(!isOwner()){
+      content.innerHTML = '<div class="admin-locked">Sign in with the owner account to view this panel.</div>';
+      return;
+    }
+
+    const sorted = [...drafts].sort((a,b)=>b.updated-a.updated);
+    const totalWords = drafts.reduce((sum,d)=> sum + wordCount(d.lyrics||''), 0);
+    const totalSynced = drafts.reduce((sum,d)=> sum + Object.keys(d.syncedTimes||{}).length, 0);
+    const withCover = drafts.filter(d=>d.cover).length;
+    const storageBytes = estimateStorageBytes();
+
+    let html = '';
+    html += '<div class="admin-head"><div class="admin-title">Admin panel</div><span class="admin-owner-badge">Owner</span></div>';
+    html += '<div class="admin-sub">Signed in as ' + escapeHtml(account.email || '') + '</div>';
+
+    html += '<div class="admin-section">';
+    html += '<div class="admin-section-title">Overview</div>';
+    html += '<div class="admin-stats-grid">';
+    html += '<div class="admin-stat-card"><div class="admin-stat-value">' + drafts.length + '</div><div class="admin-stat-label">Drafts</div></div>';
+    html += '<div class="admin-stat-card"><div class="admin-stat-value">' + totalWords.toLocaleString() + '</div><div class="admin-stat-label">Total words</div></div>';
+    html += '<div class="admin-stat-card"><div class="admin-stat-value">' + totalSynced + '</div><div class="admin-stat-label">Synced lines</div></div>';
+    html += '<div class="admin-stat-card"><div class="admin-stat-value">' + withCover + '</div><div class="admin-stat-label">With cover art</div></div>';
+    html += '<div class="admin-stat-card"><div class="admin-stat-value">' + fmtBytes(storageBytes) + '</div><div class="admin-stat-label">Local storage used</div></div>';
+    html += '<div class="admin-stat-card"><div class="admin-stat-value">' + (storageAvailable ? 'OK' : 'Blocked') + '</div><div class="admin-stat-label">Storage status</div></div>';
+    html += '</div></div>';
+
+    html += '<div class="admin-section">';
+    html += '<div class="admin-section-title">All drafts</div>';
+    html += '<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Title</th><th>Artist</th><th>Words</th><th>Synced</th><th>Created</th><th>Updated</th></tr></thead><tbody>';
+    if(sorted.length === 0){
+      html += '<tr class="admin-empty-row"><td colspan="6">No drafts yet.</td></tr>';
+    } else {
+      sorted.forEach(d=>{
+        html += '<tr class="admin-row-clickable" data-admin-open="' + d.id + '">' +
+          '<td class="admin-row-title">' + escapeHtml(d.title || 'Untitled') + '</td>' +
+          '<td>' + escapeHtml(d.artist || '—') + '</td>' +
+          '<td>' + wordCount(d.lyrics||'') + '</td>' +
+          '<td>' + Object.keys(d.syncedTimes||{}).length + '</td>' +
+          '<td>' + timeAgo(d.created || d.updated) + '</td>' +
+          '<td>' + timeAgo(d.updated) + '</td>' +
+        '</tr>';
+      });
+    }
+    html += '</tbody></table></div>';
+    html += '<div class="admin-note">Click a row to open that draft in the editor.</div>';
+    html += '</div>';
+
+    html += '<div class="admin-section">';
+    html += '<div class="admin-section-title">Auto-correct exceptions</div>';
+    if(correctionExceptions.length){
+      html += '<div style="display:flex; flex-wrap:wrap; gap:6px;">' +
+        correctionExceptions.map(w=>'<span class="exception-chip">' + escapeHtml(w) + '</span>').join('') +
+        '</div>';
+    } else {
+      html += '<div class="admin-note" style="margin-top:0;">No protected words yet. Add some from the Word helper bar in Write mode.</div>';
+    }
+    html += '</div>';
+
+    html += '<div class="admin-section">';
+    html += '<div class="admin-section-title">Danger zone</div>';
+    html += '<div class="admin-actions-row">' +
+      '<button class="admin-danger-btn" id="admin-clear-all-btn">Delete all drafts</button>' +
+      '<button class="footer-btn" id="admin-export-all-btn" style="flex:none;">Export all drafts (JSON)</button>' +
+    '</div>';
+    html += '<div class="admin-note">These actions affect every draft stored on this device/account. Deleting all drafts can\'t be undone.</div>';
+    html += '</div>';
+
+    content.innerHTML = html;
+
+    content.querySelectorAll('[data-admin-open]').forEach(row=>{
+      row.addEventListener('click', ()=>{
+        closeAdminPanel();
+        selectDraft(row.dataset.adminOpen);
+      });
+    });
+    const clearBtn = document.getElementById('admin-clear-all-btn');
+    if(clearBtn) clearBtn.addEventListener('click', ()=>{
+      if(!isOwner()) return;
+      if(!confirm('Delete ALL ' + drafts.length + ' draft(s)? This cannot be undone.')) return;
+      if(!confirm('Really sure? Type OK to confirm one more time.')) return;
+      drafts = [];
+      activeId = null;
+      screen = 'menu';
+      persist();
+      renderAll();
+      renderAdminContent();
+    });
+    const exportAllBtn = document.getElementById('admin-export-all-btn');
+    if(exportAllBtn) exportAllBtn.addEventListener('click', ()=>{
+      document.getElementById('export-btn').click();
+    });
+  }
+
+  function openAdminPanel(){
+    if(!isOwner()) return;
+    renderAdminContent();
+    document.getElementById('admin-modal').classList.add('open');
+  }
+  function closeAdminPanel(){
+    document.getElementById('admin-modal').classList.remove('open');
+  }
+  document.getElementById('admin-close').addEventListener('click', closeAdminPanel);
+  document.getElementById('admin-backdrop').addEventListener('click', closeAdminPanel);
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape') closeAdminPanel();
+  });
+
+  // ---------- help panel (drafts page tips) ----------
+  function renderHelpContent(){
+    const content = document.getElementById('help-content');
+    let html = '';
+    html += '<div class="help-title">Tips for the drafts page</div>';
+    html += '<div class="help-sub">A quick tour of everything you can do from this screen.</div>';
+
+    html += '<div class="help-section">' +
+      '<div class="help-section-title"><span class="help-section-icon">✎</span>Starting a draft</div>' +
+      '<ul class="help-tips">' +
+        '<li>Click the dashed <b>+ New draft</b> note to start a fresh lyric sheet.</li>' +
+        '<li>Click any existing note to open it back up in the editor, right where you left off.</li>' +
+        '<li>Every draft saves automatically in this browser as you type — no save button needed.</li>' +
+      '</ul></div>';
+
+    html += '<div class="help-section">' +
+      '<div class="help-section-title"><span class="help-section-icon">🔍</span>Finding a draft</div>' +
+      '<ul class="help-tips">' +
+        '<li>Use the <b>Search drafts…</b> box in the sidebar to filter by title, artist, or any word inside the lyrics.</li>' +
+        '<li>The sidebar list is sorted with your most recently edited draft at the top.</li>' +
+      '</ul></div>';
+
+    html += '<div class="help-section">' +
+      '<div class="help-section-title"><span class="help-section-icon">👁</span>Previewing &amp; managing notes</div>' +
+      '<ul class="help-tips">' +
+        '<li>Hover a note card to reveal a small <b>eye icon</b> — click it for a quick lyrics preview without leaving this page.</li>' +
+        '<li>Hover a note card to reveal the <b>× icon</b> to delete that draft — this can\'t be undone, so you\'ll get a confirmation first.</li>' +
+        '<li>Add a cover image once you\'re inside a draft (click the square next to the title) and it\'ll show up as a thumbnail on the note here.</li>' +
+      '</ul></div>';
+
+    html += '<div class="help-section">' +
+      '<div class="help-section-title"><span class="help-section-icon">⇄</span>Moving drafts between devices</div>' +
+      '<ul class="help-tips">' +
+        '<li>Use <b>Send</b> in the sidebar to download all your drafts as one transfer file.</li>' +
+        '<li>Use <b>Receive</b> on another device to load that file in — existing drafts there are left alone unless the incoming copy is newer.</li>' +
+        '<li><b>Import song package</b> loads a single song exported from a draft (lyrics + sync timing + its audio, if it was included).</li>' +
+      '</ul></div>';
+
+    if(isOwner()){
+      html += '<div class="help-section">' +
+        '<div class="help-section-title"><span class="help-section-icon">⚙</span>Owner tools</div>' +
+        '<ul class="help-tips">' +
+          '<li>As the signed-in owner, click a note\'s date stamp to edit its creation date directly.</li>' +
+          '<li>Open the <b>Admin panel</b> from the sidebar for stats on every draft, plus export and bulk-delete tools.</li>' +
+        '</ul></div>';
+    }
+
+    content.innerHTML = html;
+  }
+  function openHelpPanel(){
+    renderHelpContent();
+    document.getElementById('help-modal').classList.add('open');
+  }
+  function closeHelpPanel(){
+    document.getElementById('help-modal').classList.remove('open');
+  }
+  document.getElementById('open-help-btn').addEventListener('click', openHelpPanel);
+  document.getElementById('help-close').addEventListener('click', closeHelpPanel);
+  document.getElementById('help-backdrop').addEventListener('click', closeHelpPanel);
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape') closeHelpPanel();
   });
 
   function renderAll(){
