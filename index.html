@@ -1410,6 +1410,8 @@
     width:32px; height:32px; align-items:center; justify-content:center; flex-shrink:0;
   }
 </style>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -1626,6 +1628,40 @@ Everything saves automatically, right in this file — nothing leaves your brows
   let account = { signedIn: false, email: null, name: null, photo: null };
   function isOwner(){ return account.signedIn && account.email === OWNER_EMAIL; }
 
+  // ---------- Firebase (Google Sign-In) ----------
+  const firebaseConfig = {
+    apiKey: "AIzaSyDHhg2Oo4I99NYA4NfNAjynAvyUfeb8jT8",
+    authDomain: "manuscript-forvipsonly.firebaseapp.com",
+    projectId: "manuscript-forvipsonly",
+    storageBucket: "manuscript-forvipsonly.firebasestorage.app",
+    messagingSenderId: "131202314125",
+    appId: "1:131202314125:web:67304b7f7e5edd754c17c4"
+  };
+  let firebaseAuth = null;
+  try{
+    firebase.initializeApp(firebaseConfig);
+    firebaseAuth = firebase.auth();
+    firebaseAuth.onAuthStateChanged(user => {
+      account = user
+        ? { signedIn: true, email: user.email, name: user.displayName, photo: user.photoURL }
+        : { signedIn: false, email: null, name: null, photo: null };
+      renderAccountBox();
+    });
+  }catch(e){
+    console.error('Firebase init failed:', e);
+  }
+  function googleSignIn(){
+    if(!firebaseAuth) return;
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebaseAuth.signInWithPopup(provider).catch(err=>{
+      alert('Sign-in failed: ' + (err && err.message ? err.message : 'unknown error'));
+    });
+  }
+  function googleSignOut(){
+    if(!firebaseAuth) return;
+    firebaseAuth.signOut();
+  }
+
   // ---------- persistence ----------
   function loadDrafts(){
     try{
@@ -1767,11 +1803,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
             '<svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.6 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 2.9l6-6C34.5 5.1 29.5 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21 21-9.4 21-21c0-1.2-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.6 18.9 13 24 13c3 0 5.8 1.1 7.9 2.9l6-6C34.5 5.1 29.5 3 24 3 16.3 3 9.6 7.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 45c5.3 0 10.2-2 13.8-5.4l-6.4-5.4C29.3 35.9 26.8 37 24 37c-5.3 0-9.8-3.4-11.4-8.1l-6.5 5C9.4 40.6 16.1 45 24 45z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1 3-3.1 5.4-5.9 6.9l6.4 5.4C39.6 37.6 45 31.3 45 24c0-1.2-.1-2.4-.4-3.5z"/></svg>' +
             'Sign in with Google' +
           '</button>' +
-          '<div class="account-note">Not wired up yet — needs a Firebase project connected first. See setup steps.</div>' +
         '</div>';
-      document.getElementById('google-signin-btn').addEventListener('click', ()=>{
-        alert('Google Sign-In isn\'t connected yet. This needs a small (free) Firebase project set up first — ask Claude for the setup steps if you haven\'t already.');
-      });
+      document.getElementById('google-signin-btn').addEventListener('click', googleSignIn);
     } else {
       const owner = isOwner();
       box.innerHTML =
@@ -1781,10 +1814,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
           (owner ? '<span class="account-owner-badge">Owner</span>' : '') +
           '<button class="account-signout" id="account-signout-btn" title="Sign out">×</button>' +
         '</div>';
-      document.getElementById('account-signout-btn').addEventListener('click', ()=>{
-        account = { signedIn:false, email:null, name:null, photo:null };
-        renderAll();
-      });
+      document.getElementById('account-signout-btn').addEventListener('click', googleSignOut);
     }
   }
 
