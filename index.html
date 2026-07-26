@@ -1179,58 +1179,134 @@
   .audio-upload-btn:hover{ background: rgba(236,228,211,0.08); }
   .audio-time{ font-variant-numeric: tabular-nums; flex-shrink:0; }
 
-  /* ---------- sync mode ---------- */
+  /* ---------- sync mode — Musixmatch-style tap-through teleprompter ---------- */
   #sync-pane{
     display:none;
     height:100%;
-    overflow-y:auto;
-    padding: 30px 48px 80px 40px;
+    flex-direction: column;
     background-color: var(--paper);
   }
-  .sync-line{
+  .sync-controls-bar{
     display:flex;
-    align-items:baseline;
-    gap: 14px;
-    padding: 9px 0;
+    align-items:center;
+    gap: 12px;
+    padding: 14px 40px;
     border-bottom: 1px solid var(--line);
+    background: var(--bg-raised);
+    flex-shrink:0;
   }
-  .sync-line-text{
-    font-family: var(--hand);
-    font-size: 18px;
-    color: var(--ink);
-    flex:1;
-  }
-  .sync-line.tag .sync-line-text{
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--gold);
-    text-transform:uppercase;
-    letter-spacing:1px;
-  }
-  .sync-time-badge{
+  .sync-progress-label{
     font-family: var(--mono);
     font-size: 11px;
     color: var(--ink-faint);
-    min-width: 52px;
-    text-align:right;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
   }
-  .sync-set-btn{
+  .sync-ctrl-btn{
     background: var(--bg-card);
     border: 1px solid var(--line);
     color: var(--ink-dim);
-    font-family: var(--mono);
-    font-size: 10.5px;
-    padding: 5px 10px;
+    font-family: var(--sans);
+    font-size: 11.5px;
+    font-weight:600;
+    padding: 7px 14px;
     border-radius: var(--radius);
     cursor:pointer;
     flex-shrink:0;
+    white-space:nowrap;
   }
-  .sync-set-btn:hover{ border-color: var(--gold-dim); color: var(--gold); }
+  .sync-ctrl-btn:hover{ border-color: var(--gold-dim); color: var(--gold); }
+  .sync-ctrl-btn:disabled{ opacity:0.4; cursor:default; }
+  .sync-ctrl-btn:disabled:hover{ border-color: var(--line); color: var(--ink-dim); }
+
+  .sync-teleprompter{
+    flex:1;
+    overflow-y:auto;
+    padding: 60px 48px 60px 64px;
+    max-width: 720px;
+  }
+  .sync-tp-line{
+    font-family: var(--hand);
+    font-size: 19px;
+    line-height: 1.6;
+    color: var(--ink-faint);
+    padding: 8px 14px;
+    border-radius: var(--radius);
+    display:flex;
+    align-items:center;
+    gap: 12px;
+    transition: color .2s ease, background .2s ease, transform .2s ease;
+    cursor: default;
+  }
+  .sync-tp-line.synced{ color: var(--ink-dim); cursor:pointer; }
+  .sync-tp-line.synced:hover{ background: rgba(236,228,211,0.05); }
+  .sync-tp-line.cursor{
+    color: var(--ink);
+    background: rgba(244,238,224,0.08);
+    font-weight: 600;
+    transform: scale(1.02);
+    transform-origin: left center;
+  }
+  .sync-tp-badge{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    min-width: 44px;
+    text-align:right;
+    flex-shrink:0;
+  }
+  .sync-tp-line.cursor .sync-tp-badge{ color: var(--gold); }
+  .sync-tp-tag{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin: 14px 0 2px;
+    padding: 0 14px;
+  }
+  .sync-tp-done{
+    color: var(--teal);
+    font-family: var(--sans);
+    font-size: 14px;
+    padding: 20px 14px;
+  }
+  .sync-tap-dock{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap: 16px;
+    padding: 18px;
+    border-top: 1px solid var(--line);
+    background: var(--bg-raised);
+    flex-shrink:0;
+  }
+  .sync-tap-btn{
+    background: var(--gold);
+    color: var(--paper);
+    border:none;
+    font-family: var(--sans);
+    font-weight:700;
+    font-size: 14px;
+    padding: 14px 40px;
+    border-radius: 30px;
+    cursor:pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+    transition: transform .1s ease;
+  }
+  .sync-tap-btn:active{ transform: scale(0.96); }
+  .sync-tap-btn:disabled{ opacity:0.35; cursor:default; }
+  .sync-tap-hint{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    letter-spacing: 0.5px;
+  }
   .sync-no-audio{
     color: var(--ink-faint);
     font-size: 13px;
     line-height:1.8;
-    padding-top: 10px;
+    padding: 30px 48px;
   }
 
   /* ---------- corrections button ---------- */
@@ -1496,6 +1572,8 @@
         <button class="footer-btn" id="export-btn" title="Save all drafts as a transfer file">Send</button>
         <button class="footer-btn" id="import-btn" title="Load drafts from a transfer file">Receive</button>
       </div>
+      <button class="footer-btn" id="song-import-btn" title="Load a single song package (lyrics + sync + audio) exported from a draft" style="width:100%;">Import song package</button>
+      <input type="file" id="song-import-input" accept="application/json" style="display:none;">
       <button class="footer-btn" id="lock-btn" title="Lock the app again" style="width:100%;">Lock</button>
       <input type="file" id="import-input" accept="application/json">
     </div>
@@ -1618,6 +1696,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   let saveTimeout = null;
   let sessionAudio = { draftId: null, url: null, el: null }; // audio is session-only, never persisted
   let syncPlaybackDraftId = null;
+  let syncCursorIdx = null; // raw lyric-line index that's "next up" to be tapped in sync mode
 
   // ---------- account state (placeholder until a backend is wired in) ----------
   // NOTE: this is intentionally NOT real authentication yet. Real Google Sign-In
@@ -2055,7 +2134,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       readPane.style.display = 'flex';
       renderReadView(d);
     } else if(mode === 'sync'){
-      syncPane.style.display = 'block';
+      syncPane.style.display = 'flex';
       renderSyncPane(d);
     } else {
       editPane.style.display = 'flex';
@@ -2100,6 +2179,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
       slot.innerHTML = '<div class="audio-bar">' +
         '<button class="audio-upload-btn" id="audio-upload-trigger">🎵 Upload song audio</button>' +
         '<span style="color:var(--ink-faint); font-size:11px;">Optional — lets you manually sync lyric lines to the track. Audio stays only for this session; timestamps you set are saved.</span>' +
+        '<span style="flex:1"></span>' +
+        '<button class="audio-upload-btn" id="song-export-btn" style="border-color:var(--line); color:var(--ink-faint);" title="Export this song as a single file (lyrics + sync + audio if loaded)">⬇ Export song</button>' +
         '<input type="file" id="audio-file-input" accept="audio/*" style="display:none;">' +
         '</div>';
       document.getElementById('audio-upload-trigger').addEventListener('click', ()=>{
@@ -2111,10 +2192,11 @@ Everything saves automatically, right in this file — nothing leaves your brows
         if(sessionAudio.url) URL.revokeObjectURL(sessionAudio.url);
         const url = URL.createObjectURL(file);
         const el = new Audio(url);
-        sessionAudio = { draftId: d.id, url, el };
+        sessionAudio = { draftId: d.id, url, el, file };
         wireAudioElement(el);
         renderMain();
       });
+      document.getElementById('song-export-btn').addEventListener('click', ()=> exportSongPackage(d));
       return;
     }
 
@@ -2123,6 +2205,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       '<span class="audio-time" id="audio-time-cur">0:00</span>' +
       '<input type="range" id="audio-scrub" min="0" max="100" value="0" step="0.1">' +
       '<span class="audio-time" id="audio-time-dur">0:00</span>' +
+      '<button class="audio-upload-btn" id="song-export-btn" style="border-color:var(--line); color:var(--ink-faint);" title="Export this song as a single file (lyrics + sync + audio)">⬇ Export song</button>' +
       '<button class="audio-upload-btn" id="audio-eject" title="Remove audio from this session" style="border-color:var(--line); color:var(--ink-faint);">Eject</button>' +
       '</div>';
 
@@ -2145,6 +2228,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     scrub.addEventListener('input', ()=>{
       if(audioEl.duration) audioEl.currentTime = (scrub.value/100)*audioEl.duration;
     });
+    document.getElementById('song-export-btn').addEventListener('click', ()=> exportSongPackage(d));
     document.getElementById('audio-eject').addEventListener('click', ()=>{
       audioEl.pause();
       if(sessionAudio.url) URL.revokeObjectURL(sessionAudio.url);
@@ -2208,47 +2292,167 @@ Everything saves automatically, right in this file — nothing leaves your brows
   });
 
   // ---------- sync mode (manually time each lyric line to the audio) ----------
+  // returns the raw line indices (into lyrics.split('\n')) that are actual syncable lyric lines —
+  // skips blank lines and [Section] tags, same filter used when the pane is first built
+  function getSyncableLineIndices(lyrics){
+    const rawLines = lyrics.split('\n');
+    const out = [];
+    rawLines.forEach((line, i)=>{
+      const trimmed = line.trim();
+      if(trimmed === '') return;
+      if(/^\[.+\]$/.test(trimmed)) return;
+      out.push(i);
+    });
+    return out;
+  }
+
+  function initSyncCursor(d){
+    const indices = getSyncableLineIndices(d.lyrics || '');
+    const times = d.syncedTimes || {};
+    syncCursorIdx = indices.find(i => times[i] === undefined);
+    if(syncCursorIdx === undefined) syncCursorIdx = null; // every line already synced
+  }
+
   function renderSyncPane(d){
     const pane = document.getElementById('sync-pane');
     const loaded = sessionAudio.draftId === d.id;
 
     if(!loaded){
-      pane.innerHTML = '<div class="sync-no-audio">Upload the song\'s audio above to start timing lyric lines to it.</div>';
+      pane.innerHTML = '<div class="sync-no-audio">Upload the song\'s audio above to start syncing lyric lines to it.</div>';
       return;
     }
 
     if(!d.syncedTimes) d.syncedTimes = {};
-    const rawLines = d.lyrics.split('\n');
-    let html = '';
+    const indices = getSyncableLineIndices(d.lyrics || '');
+    if(syncCursorIdx === null && !indices.every(i => d.syncedTimes[i] !== undefined)){
+      initSyncCursor(d);
+    } else if(indices.length && syncCursorIdx === null){
+      // leave as null (fully synced) unless the lyrics changed and introduced new unsynced lines
+      const stillUnsynced = indices.find(i => d.syncedTimes[i] === undefined);
+      if(stillUnsynced !== undefined) syncCursorIdx = stillUnsynced;
+    }
+
+    const syncedCount = indices.filter(i => d.syncedTimes[i] !== undefined).length;
+
+    const rawLines = (d.lyrics || '').split('\n');
+    let html = '<div class="sync-controls-bar">' +
+      '<span class="sync-progress-label">' + syncedCount + ' / ' + indices.length + ' lines synced</span>' +
+      '<span style="flex:1"></span>' +
+      '<button class="sync-ctrl-btn" id="sync-restart-btn" title="Clear all timestamps and start over">↺ Restart</button>' +
+      '<button class="sync-ctrl-btn" id="sync-undo-btn" title="Undo the last tap">Undo</button>' +
+      '<button class="sync-ctrl-btn" id="sync-jump-start-btn" title="Seek to the start of the song">⏮ From start</button>' +
+    '</div>';
+
+    html += '<div class="sync-teleprompter" id="sync-teleprompter">';
     rawLines.forEach((line, i)=>{
       const trimmed = line.trim();
       if(trimmed === '') return;
       const tagMatch = trimmed.match(/^\[(.+)\]$/);
       if(tagMatch){
-        html += '<div class="sync-line tag"><div class="sync-line-text">' + escapeHtml(tagMatch[1]) + '</div></div>';
+        html += '<div class="sync-tp-tag">' + escapeHtml(tagMatch[1]) + '</div>';
         return;
       }
       const t = d.syncedTimes[i];
-      html += '<div class="sync-line">' +
-        '<div class="sync-line-text">' + escapeHtml(line) + '</div>' +
-        '<span class="sync-time-badge" id="sync-badge-' + i + '">' + (t !== undefined ? fmtTime(t) : '—') + '</span>' +
-        '<button class="sync-set-btn" data-set-idx="' + i + '">⏱ Set</button>' +
+      const isSynced = t !== undefined;
+      const isCursor = syncCursorIdx === i;
+      const cls = 'sync-tp-line' + (isSynced ? ' synced' : '') + (isCursor ? ' cursor' : '');
+      html += '<div class="' + cls + '" data-line-idx="' + i + '">' +
+        '<span class="sync-tp-badge">' + (isSynced ? fmtTime(t) : '') + '</span>' +
+        '<span>' + escapeHtml(line) + '</span>' +
       '</div>';
     });
+    if(syncCursorIdx === null && indices.length){
+      html += '<div class="sync-tp-done">✓ Every line is synced. Play it back in Read mode to check it, or tap any line above to re-sync it.</div>';
+    }
+    html += '</div>';
+
+    html += '<div class="sync-tap-dock">' +
+      '<button class="sync-tap-btn" id="sync-tap-btn"' + (syncCursorIdx === null ? ' disabled' : '') + '>⏱ Tap for next line</button>' +
+      '<span class="sync-tap-hint">or press Space while this tab is focused</span>' +
+    '</div>';
+
     pane.innerHTML = html;
 
-    pane.querySelectorAll('[data-set-idx]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const idx = btn.dataset.setIdx;
-        if(!sessionAudio.el) return;
-        d.syncedTimes[idx] = sessionAudio.el.currentTime;
-        d.updated = Date.now();
-        persist();
-        const badge = document.getElementById('sync-badge-' + idx);
-        if(badge) badge.textContent = fmtTime(sessionAudio.el.currentTime);
+    // clicking any already-synced line: seek playback there for review, and make it
+    // the sync cursor again so the next tap re-writes just that line
+    pane.querySelectorAll('.sync-tp-line.synced').forEach(el=>{
+      el.addEventListener('click', ()=>{
+        const idx = el.dataset.lineIdx;
+        const t = d.syncedTimes[idx];
+        if(sessionAudio.el && t !== undefined) sessionAudio.el.currentTime = t;
+        syncCursorIdx = idx;
+        renderSyncPane(d);
       });
     });
+
+    const tapBtn = document.getElementById('sync-tap-btn');
+    if(tapBtn) tapBtn.addEventListener('click', ()=> tapSyncLine(d));
+
+    document.getElementById('sync-restart-btn').addEventListener('click', ()=>{
+      if(!confirm('Clear all synced timestamps for this draft and start over?')) return;
+      d.syncedTimes = {};
+      d.updated = Date.now();
+      persist();
+      if(sessionAudio.el) sessionAudio.el.currentTime = 0;
+      initSyncCursor(d);
+      renderSyncPane(d);
+    });
+    document.getElementById('sync-undo-btn').addEventListener('click', ()=> undoLastSyncTap(d));
+    document.getElementById('sync-jump-start-btn').addEventListener('click', ()=>{
+      if(sessionAudio.el) sessionAudio.el.currentTime = 0;
+    });
+
+    // keep the current line in view, teleprompter-style
+    const cursorEl = pane.querySelector('.sync-tp-line.cursor');
+    if(cursorEl) cursorEl.scrollIntoView({block:'center', behavior:'smooth'});
   }
+
+  // records the current playback time against whichever line is "next up", then
+  // advances the cursor to the next unsynced line — this is the core tap-through motion
+  function tapSyncLine(d){
+    if(syncCursorIdx === null || !sessionAudio.el) return;
+    d.syncedTimes[syncCursorIdx] = sessionAudio.el.currentTime;
+    d.updated = Date.now();
+    persist();
+    const indices = getSyncableLineIndices(d.lyrics || '');
+    const pos = indices.indexOf(Number(syncCursorIdx));
+    const next = indices.slice(pos + 1).find(i => d.syncedTimes[i] === undefined);
+    syncCursorIdx = next !== undefined ? next : (indices.find(i => d.syncedTimes[i] === undefined) ?? null);
+    renderSyncPane(d);
+  }
+
+  // removes the timestamp for whichever line was tapped most recently (the one
+  // immediately before the current cursor) and moves the cursor back onto it
+  function undoLastSyncTap(d){
+    const indices = getSyncableLineIndices(d.lyrics || '');
+    if(!indices.length) return;
+    let prevIdx;
+    if(syncCursorIdx === null){
+      prevIdx = indices[indices.length - 1];
+    } else {
+      const pos = indices.indexOf(Number(syncCursorIdx));
+      if(pos <= 0) return; // nothing before the current cursor to undo
+      prevIdx = indices[pos - 1];
+    }
+    if(d.syncedTimes[prevIdx] === undefined) return;
+    delete d.syncedTimes[prevIdx];
+    d.updated = Date.now();
+    persist();
+    syncCursorIdx = prevIdx;
+    renderSyncPane(d);
+  }
+
+  // Space bar taps the next line whenever Sync mode is open and focus isn't in a text field
+  document.addEventListener('keydown', (e)=>{
+    if(mode !== 'sync' || screen !== 'editor') return;
+    const tag = (document.activeElement && document.activeElement.tagName) || '';
+    if(tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if(e.code === 'Space' || e.key === ' '){
+      e.preventDefault();
+      const d = getActive();
+      if(d) tapSyncLine(d);
+    }
+  });
 
   function fmtTime(s){
     if(!isFinite(s)) return '0:00';
@@ -2736,6 +2940,108 @@ Everything saves automatically, right in this file — nothing leaves your brows
       e.target.value = '';
     };
     reader.readAsText(file);
+  });
+
+  // ---------- single-song export/import (bundles audio + lyrics + sync into one file) ----------
+  function fileToBase64(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function exportSongPackage(d){
+    const hasAudio = sessionAudio.draftId === d.id && sessionAudio.file;
+    let audioData = null, audioName = null;
+    if(hasAudio){
+      try{
+        audioData = await fileToBase64(sessionAudio.file);
+        audioName = sessionAudio.file.name;
+      }catch(e){
+        alert('Could not read the audio file — exporting lyrics and sync only.');
+      }
+    } else if(d.syncedTimes && Object.keys(d.syncedTimes).length){
+      // has sync data but the audio isn't loaded this session
+      const proceed = confirm('This draft has synced timestamps, but its audio isn\'t loaded right now — re-upload the song in Write mode first if you want the audio bundled in. Export lyrics + sync without audio instead?');
+      if(!proceed) return;
+    }
+    const pkg = {
+      kind: 'manuscript-song-package',
+      version: 1,
+      title: d.title || '',
+      artist: d.artist || '',
+      lyrics: d.lyrics || '',
+      cover: d.cover || null,
+      syncedTimes: d.syncedTimes || {},
+      audio: audioData,
+      audioName: audioName,
+      exportedAt: Date.now()
+    };
+    const blob = new Blob([JSON.stringify(pkg)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    const safeName = (d.title || 'untitled').replace(/[^a-z0-9\-_ ]/gi, '').trim() || 'untitled';
+    a.download = safeName + '.manuscriptsong.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importSongPackage(file){
+    const reader = new FileReader();
+    reader.onload = () => {
+      let pkg;
+      try{
+        pkg = JSON.parse(reader.result);
+        if(pkg.kind !== 'manuscript-song-package') throw new Error('bad format');
+      }catch(err){
+        alert('Could not read that file — make sure it\'s a Manuscript song export.');
+        return;
+      }
+      const d = {
+        id: uid(),
+        title: pkg.title || '',
+        artist: pkg.artist || '',
+        lyrics: pkg.lyrics || '',
+        cover: pkg.cover || null,
+        syncedTimes: pkg.syncedTimes || {},
+        created: Date.now(),
+        updated: Date.now()
+      };
+      drafts.unshift(d);
+      activeId = d.id;
+      screen = 'editor';
+      persist();
+
+      if(pkg.audio){
+        fetch(pkg.audio).then(res=>res.blob()).then(blob=>{
+          const audioFile = new File([blob], pkg.audioName || 'audio', {type: blob.type});
+          if(sessionAudio.url) URL.revokeObjectURL(sessionAudio.url);
+          const url = URL.createObjectURL(audioFile);
+          const el = new Audio(url);
+          sessionAudio = { draftId: d.id, url, el, file: audioFile };
+          wireAudioElement(el);
+          renderAll();
+        }).catch(()=>{
+          renderAll();
+        });
+      } else {
+        renderAll();
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  document.getElementById('song-import-btn').addEventListener('click', ()=>{
+    document.getElementById('song-import-input').click();
+  });
+  document.getElementById('song-import-input').addEventListener('change', (e)=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    importSongPackage(file);
+    e.target.value = '';
   });
 
   // ---------- lock ----------
