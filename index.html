@@ -367,6 +367,157 @@
   }
   .tag-chip:hover{ border-color: var(--gold-dim); color: var(--gold); }
 
+  /* ---------- writing helper panel (rhymes / synonyms / syllables) ---------- */
+  .helper-toggle-btn.active{ background: var(--gold); color: var(--paper); border-color: var(--gold); }
+  #helper-panel{
+    display:none;
+    width: 300px;
+    min-width:300px;
+    flex-shrink:0;
+    border-left: 1px solid var(--line);
+    background: var(--bg-raised);
+    flex-direction:column;
+    height:100%;
+  }
+  #helper-panel.open{ display:flex; }
+  .helper-head{
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid var(--line);
+    flex-shrink:0;
+  }
+  .helper-head-title{
+    font-family: var(--serif);
+    font-size:15px;
+    color: var(--ink);
+    margin-bottom:8px;
+  }
+  .helper-search-row{ display:flex; gap:6px; }
+  #helper-word-input{
+    flex:1;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 7px 9px;
+    border-radius: var(--radius);
+    outline:none;
+  }
+  #helper-word-input:focus{ border-color: var(--gold-dim); }
+  .helper-go-btn{
+    background: var(--gold);
+    color: var(--paper);
+    border:none;
+    font-family: var(--sans);
+    font-weight:600;
+    font-size:12.5px;
+    padding: 0 12px;
+    border-radius: var(--radius);
+    cursor:pointer;
+  }
+  .helper-hint{
+    font-family: var(--mono);
+    font-size:10px;
+    color: var(--ink-faint);
+    margin-top:6px;
+    line-height:1.5;
+  }
+  .helper-tabs{
+    display:flex;
+    border-bottom: 1px solid var(--line);
+    flex-shrink:0;
+  }
+  .helper-tab{
+    flex:1;
+    background:none;
+    border:none;
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.5px;
+    text-transform:uppercase;
+    padding: 10px 4px;
+    cursor:pointer;
+    border-bottom: 2px solid transparent;
+  }
+  .helper-tab.active{ color: var(--gold); border-bottom-color: var(--gold); }
+  .helper-tab:hover:not(.active){ color: var(--ink); }
+  #helper-results{
+    flex:1;
+    overflow-y:auto;
+    padding: 14px 16px;
+    display:flex;
+    flex-wrap:wrap;
+    gap: 7px;
+    align-content:flex-start;
+  }
+  .helper-word-chip{
+    font-family: var(--sans);
+    font-size: 12.5px;
+    color: var(--ink);
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 5px 10px;
+    border-radius: 14px;
+    cursor:pointer;
+    transition: all .12s ease;
+  }
+  .helper-word-chip:hover{ border-color: var(--gold); color: var(--gold); background: rgba(244,238,224,0.06); }
+  .helper-empty, .helper-loading, .helper-error{
+    color: var(--ink-faint);
+    font-family: var(--sans);
+    font-size: 12.5px;
+    line-height:1.7;
+    padding: 4px 2px;
+  }
+  .helper-error{ color: var(--danger); }
+  .helper-foot{
+    border-top: 1px solid var(--line);
+    padding: 10px 16px;
+    flex-shrink:0;
+  }
+  .helper-syllable-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .helper-syllable-label{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    letter-spacing:0.4px;
+    text-transform:uppercase;
+  }
+  .helper-toggle-switch{
+    position:relative;
+    width:34px; height:18px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .helper-toggle-switch::after{
+    content:'';
+    position:absolute;
+    top:2px; left:2px;
+    width:12px; height:12px;
+    background: var(--ink-faint);
+    border-radius:50%;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .helper-toggle-switch.on{ border-color: var(--gold-dim); }
+  .helper-toggle-switch.on::after{ transform: translateX(16px); background: var(--gold); }
+
+  .line-syllable-badge{
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--ink-faint);
+    display:inline-block;
+    min-width:14px;
+  }
+
   /* READ MODE — switchable "now playing" lyric stage: Spotify or Apple Music look */
 
   /* ---- Spotify theme tokens ---- */
@@ -1479,6 +1630,7 @@
     .player-btn{ width:36px; height:36px; }
     #play-btn{ width:58px; height:58px; }
     .preview-panel{ padding: 34px 24px; }
+    #helper-panel{ display:none !important; }
   }
   #menu-btn{
     display:none;
@@ -1620,6 +1772,28 @@ Blank lines separate lines to breathe
 
 [Bridge]
 Everything saves automatically, right in this file — nothing leaves your browser."></textarea>
+        <div id="helper-panel">
+          <div class="helper-head">
+            <div class="helper-head-title">Word helper</div>
+            <div class="helper-search-row">
+              <input type="text" id="helper-word-input" placeholder="Type a word…" spellcheck="false">
+              <button class="helper-go-btn" id="helper-go-btn">Go</button>
+            </div>
+            <div class="helper-hint">Double-click a word in your lyrics to look it up. Click a suggestion to drop it in at your cursor.</div>
+          </div>
+          <div class="helper-tabs">
+            <button class="helper-tab active" data-tab="rhyme" type="button">Rhymes</button>
+            <button class="helper-tab" data-tab="near" type="button">Near rhymes</button>
+            <button class="helper-tab" data-tab="synonym" type="button">Synonyms</button>
+          </div>
+          <div id="helper-results"><div class="helper-empty">Look up a word to see rhymes, near-rhymes, and synonyms here.</div></div>
+          <div class="helper-foot">
+            <div class="helper-syllable-row">
+              <span class="helper-syllable-label">Show syllable counts</span>
+              <div class="helper-toggle-switch" id="syllable-toggle" title="Show an estimated syllable count next to each line — handy for matching meter"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="sync-pane"></div>
@@ -2150,10 +2324,20 @@ Everything saves automatically, right in this file — nothing leaves your brows
   function updateGutter(){
     const ta = document.getElementById('lyrics-input');
     const gutter = document.getElementById('line-gutter');
-    const lines = ta.value.split('\n').length;
-    let out = '';
-    for(let i=1;i<=Math.max(lines, 30);i++){ out += i + '\n'; }
-    gutter.textContent = out;
+    const rawLines = ta.value.split('\n');
+    const total = Math.max(rawLines.length, 30);
+    let html = '';
+    for(let i=1;i<=total;i++){
+      const lineText = rawLines[i-1] || '';
+      const trimmed = lineText.trim();
+      const isTag = /^\[.+\]$/.test(trimmed);
+      let badge = '';
+      if(showSyllables && trimmed && !isTag){
+        badge = ' <span class="line-syllable-badge">(' + lineSyllableCount(trimmed) + ')</span>';
+      }
+      html += '<div>' + i + badge + '</div>';
+    }
+    gutter.innerHTML = html;
   }
 
   // ---------- cover image ----------
@@ -2674,7 +2858,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
     '<span id="exception-chips" style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;"></span>' +
     '<button class="fix-btn" id="add-exception-btn" style="border-color:var(--ink-faint); color:var(--ink-dim);" title="Protect a word (like a name) from being auto-corrected">+ Exception</button>' +
     '<button class="fix-btn" id="fix-format-btn" title="Fix spelling in the lyric text and add a question mark where clearly missing — leaves anything in [brackets] untouched and never adds a period">✓ Fix formatting</button>' +
-    '<button class="undo-fix-btn" id="undo-fix-btn" style="display:none;">Undo</button>';
+    '<button class="undo-fix-btn" id="undo-fix-btn" style="display:none;">Undo</button>' +
+    '<button class="fix-btn helper-toggle-btn" id="toggle-helper-btn" title="Open rhyme, near-rhyme and synonym suggestions">📝 Word helper</button>';
   document.getElementById('canvas-wrap').after(hintWrap);
   hintWrap.querySelectorAll('.tag-chip').forEach(chip=>{
     chip.addEventListener('click', ()=>{
@@ -2737,6 +2922,134 @@ Everything saves automatically, right in this file — nothing leaves your brows
     saveExceptions();
     renderExceptionChips();
   });
+
+  // ---------- writing helper: rhymes / synonyms / syllable counts ----------
+  const SYLLABLE_TOGGLE_KEY = 'manuscript_show_syllables_v1';
+  let showSyllables = safeLS.getItem(SYLLABLE_TOGGLE_KEY) === 'true';
+  let helperTab = 'rhyme';
+  let helperFetchToken = 0;
+
+  // Rough English syllable estimator — good enough for meter-matching at a glance,
+  // not phonetically perfect (no dictionary lookup is used, so it stays fully offline
+  // except for the rhyme/synonym lookups themselves).
+  function estimateSyllables(word){
+    const w = word.toLowerCase().replace(/[^a-z]/g, '');
+    if(!w) return 0;
+    const vowelGroups = w.match(/[aeiouy]+/g);
+    let count = vowelGroups ? vowelGroups.length : 1;
+    if(w.endsWith('e') && !w.endsWith('le') && count > 1) count--;
+    if(w.endsWith('le') && w.length > 2 && !'aeiouy'.includes(w.charAt(w.length-3))) count++;
+    return Math.max(count, 1);
+  }
+
+  function lineSyllableCount(line){
+    const words = line.trim().split(/\s+/).filter(Boolean);
+    if(!words.length) return 0;
+    return words.reduce((sum,w) => sum + estimateSyllables(w), 0);
+  }
+
+  const syllableToggleEl = document.getElementById('syllable-toggle');
+  syllableToggleEl.classList.toggle('on', showSyllables);
+  syllableToggleEl.addEventListener('click', function(){
+    showSyllables = !showSyllables;
+    this.classList.toggle('on', showSyllables);
+    safeLS.setItem(SYLLABLE_TOGGLE_KEY, String(showSyllables));
+    updateGutter();
+  });
+
+  function toggleHelperPanel(forceOpen){
+    const panel = document.getElementById('helper-panel');
+    const btn = document.getElementById('toggle-helper-btn');
+    const open = typeof forceOpen === 'boolean' ? forceOpen : !panel.classList.contains('open');
+    panel.classList.toggle('open', open);
+    if(btn) btn.classList.toggle('active', open);
+  }
+  document.getElementById('toggle-helper-btn').addEventListener('click', ()=> toggleHelperPanel());
+
+  document.querySelectorAll('.helper-tab').forEach(tab=>{
+    tab.addEventListener('click', ()=>{
+      document.querySelectorAll('.helper-tab').forEach(t=>t.classList.remove('active'));
+      tab.classList.add('active');
+      helperTab = tab.dataset.tab;
+      const word = document.getElementById('helper-word-input').value.trim();
+      if(word) lookupWord(word);
+    });
+  });
+
+  document.getElementById('helper-go-btn').addEventListener('click', ()=>{
+    const word = document.getElementById('helper-word-input').value.trim();
+    if(word) lookupWord(word);
+  });
+  document.getElementById('helper-word-input').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){
+      e.preventDefault();
+      const word = e.target.value.trim();
+      if(word) lookupWord(word);
+    }
+  });
+
+  // Double-clicking a word in the lyric textarea sends it straight to the helper panel
+  document.getElementById('lyrics-input').addEventListener('dblclick', function(){
+    const start = this.selectionStart, end = this.selectionEnd;
+    const selected = this.value.slice(start, end).trim();
+    const word = selected.replace(/[^A-Za-z']/g, '');
+    if(!word) return;
+    toggleHelperPanel(true);
+    document.getElementById('helper-word-input').value = word;
+    lookupWord(word);
+  });
+
+  function helperEndpointFor(tab, word){
+    const base = 'https://api.datamuse.com/words';
+    const enc = encodeURIComponent(word);
+    if(tab === 'rhyme') return base + '?rel_rhy=' + enc + '&max=30';
+    if(tab === 'near') return base + '?sl=' + enc + '&max=30'; // "sounds like" — good for slant/near rhymes
+    return base + '?ml=' + enc + '&max=30'; // "means like" — synonyms/related words
+  }
+
+  // Uses the free, keyless Datamuse API (https://www.datamuse.com/api/) purely for
+  // word-relationship lookups — nothing about the lyrics themselves is sent, only
+  // the single word being looked up.
+  async function lookupWord(word){
+    const results = document.getElementById('helper-results');
+    const token = ++helperFetchToken;
+    results.innerHTML = '<div class="helper-loading">Looking up "' + escapeHtml(word) + '"…</div>';
+    try{
+      const res = await fetch(helperEndpointFor(helperTab, word));
+      if(token !== helperFetchToken) return; // a newer lookup superseded this one
+      if(!res.ok) throw new Error('bad response');
+      const data = await res.json();
+      if(token !== helperFetchToken) return;
+      if(!Array.isArray(data) || data.length === 0){
+        results.innerHTML = '<div class="helper-empty">No suggestions found for "' + escapeHtml(word) + '".</div>';
+        return;
+      }
+      results.innerHTML = data.map(item =>
+        '<span class="helper-word-chip" data-word="' + escapeHtml(item.word) + '">' + escapeHtml(item.word) + '</span>'
+      ).join('');
+      results.querySelectorAll('.helper-word-chip').forEach(chip=>{
+        chip.addEventListener('click', ()=> insertWordAtCursor(chip.dataset.word));
+      });
+    }catch(err){
+      if(token !== helperFetchToken) return;
+      results.innerHTML = '<div class="helper-error">Couldn\'t reach the word-lookup service — check your connection and try again.</div>';
+    }
+  }
+
+  // Drops a suggested word into the lyrics textarea: replaces the current selection
+  // (e.g. the word just double-clicked) if there is one, otherwise inserts at the cursor.
+  function insertWordAtCursor(word){
+    const ta = document.getElementById('lyrics-input');
+    ta.focus();
+    const start = ta.selectionStart, end = ta.selectionEnd;
+    const before = ta.value.slice(0, start);
+    const after = ta.value.slice(end);
+    ta.value = before + word + after;
+    const newPos = before.length + word.length;
+    ta.setSelectionRange(newPos, newPos);
+    updateGutter();
+    scheduleSave();
+  }
 
   // ---------- formatting corrections ----------
   // Only touches lyric text OUTSIDE of [bracketed] section tags. Bracketed lines,
