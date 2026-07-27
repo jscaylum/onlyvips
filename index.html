@@ -2036,6 +2036,7 @@
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -2301,7 +2302,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   // permissions are enforced by a server, not just by this client-side JS —
   // otherwise anyone could open dev tools and grant themselves owner access.
   // This object is where that real session will plug in once that's set up.
-  let account = { signedIn: false, email: null, name: null, photo: null };
+  let account = { signedIn: false, email: null, name: null, photo: null, uid: null };
   function isOwner(){ return account.signedIn && account.email === OWNER_EMAIL; }
 
   // ---------- access control (owner-maintained ban list) ----------
@@ -2353,12 +2354,13 @@ Everything saves automatically, right in this file — nothing leaves your brows
     root.setProperty('--paper', theme.panel);
     root.setProperty('--ink', theme.ink);
   }
-  function saveCustomTheme(){
+  function saveCustomTheme(skipCloudPush){
     safeLS.setItem(CUSTOM_THEME_KEY, JSON.stringify(customTheme));
+    if(!skipCloudPush && account.signedIn) pushSettingsToCloud();
   }
   applyCustomTheme(customTheme);
 
-  // ---------- Firebase (Google Sign-In) ----------
+  // ---------- Firebase (Google Sign-In + Firestore cloud sync) ----------
   const firebaseConfig = {
     apiKey: "AIzaSyDHhg2Oo4I99NYA4NfNAjynAvyUfeb8jT8",
     authDomain: "manuscript-forvipsonly.firebaseapp.com",
@@ -2368,15 +2370,25 @@ Everything saves automatically, right in this file — nothing leaves your brows
     appId: "1:131202314125:web:67304b7f7e5edd754c17c4"
   };
   let firebaseAuth = null;
+  let firestoreDb = null;
   try{
     firebase.initializeApp(firebaseConfig);
     firebaseAuth = firebase.auth();
+    try{ firestoreDb = firebase.firestore(); }catch(e){ console.error('Firestore init failed:', e); }
     firebaseAuth.onAuthStateChanged(user => {
+      const wasSignedIn = account.signedIn;
       account = user
-        ? { signedIn: true, email: user.email, name: user.displayName, photo: user.photoURL }
-        : { signedIn: false, email: null, name: null, photo: null };
+        ? { signedIn: true, email: user.email, name: user.displayName, photo: user.photoURL, uid: user.uid }
+        : { signedIn: false, email: null, name: null, photo: null, uid: null };
       if(enforceBanOnCurrentSession()) return; // googleSignOut() will re-trigger this callback
       renderAccountBox();
+      // Only on the actual signed-out -> signed-in transition: pull down anything
+      // saved to this account from another device/browser, merge it with whatever
+      // is already local, then push the merged result back up so both sides match.
+      if(account.signedIn && !wasSignedIn){
+        mergeCloudAndLocalDrafts();
+        mergeCloudSettings();
+      }
     });
   }catch(e){
     console.error('Firebase init failed:', e);
@@ -2391,6 +2403,127 @@ Everything saves automatically, right in this file — nothing leaves your brows
   function googleSignOut(){
     if(!firebaseAuth) return;
     firebaseAuth.signOut();
+  }
+
+  // ---------- cloud sync (drafts + preferences follow the signed-in account) ----------
+  // Drafts live at users/{uid}/drafts/{draftId}; a draft's cover image (base64) can be
+  // sizeable, so each draft is its own Firestore document rather than one big array field
+  // (Firestore's 1MB-per-document ceiling is easy to hit with several covers in one doc).
+  // Preferences (theme + auto-correct exceptions) live at users/{uid}/meta/settings.
+  let pendingCloudDeletes = []; // draft ids deleted locally, to remove from the cloud on next push
+  let cloudPushTimer = null;
+
+  function cloudDraftsCollection(){
+    if(!firestoreDb || !account.uid) return null;
+    return firestoreDb.collection('users').doc(account.uid).collection('drafts');
+  }
+  function cloudSettingsDoc(){
+    if(!firestoreDb || !account.uid) return null;
+    return firestoreDb.collection('users').doc(account.uid).collection('meta').doc('settings');
+  }
+
+  function scheduleCloudPush(){
+    if(!account.signedIn || !firestoreDb) return;
+    clearTimeout(cloudPushTimer);
+    cloudPushTimer = setTimeout(pushAllDraftsToCloud, 700);
+  }
+
+  async function pushAllDraftsToCloud(){
+    const col = cloudDraftsCollection();
+    if(!col) return;
+    try{
+      const results = await Promise.allSettled(drafts.map(d => col.doc(d.id).set(d)));
+      results.forEach((r, i)=>{
+        if(r.status === 'rejected'){
+          console.error('Could not sync "' + (drafts[i].title || 'Untitled') + '" to the cloud (a cover image may be too large):', r.reason);
+        }
+      });
+      if(pendingCloudDeletes.length){
+        const toDelete = pendingCloudDeletes.slice();
+        pendingCloudDeletes = [];
+        await Promise.allSettled(toDelete.map(id => col.doc(id).delete()));
+      }
+    }catch(e){
+      console.error('Cloud draft sync failed:', e);
+    }
+  }
+
+  // Runs once, right after sign-in: pulls down whatever's already saved to this
+  // account, merges it with whatever's already local (newer "updated" wins per
+  // draft, nothing already local is dropped), then pushes the merged set back up
+  // so the cloud and this device agree.
+  async function mergeCloudAndLocalDrafts(){
+    const col = cloudDraftsCollection();
+    if(!col) return;
+    let snapshot;
+    try{
+      snapshot = await col.get();
+    }catch(e){
+      console.error('Could not load drafts from your account:', e);
+      return;
+    }
+    let added = 0, updatedCount = 0;
+    snapshot.forEach(doc=>{
+      const cd = doc.data();
+      const existing = drafts.find(x=>x.id===cd.id);
+      if(!existing){
+        drafts.push(cd);
+        added++;
+      } else if((cd.updated||0) > (existing.updated||0)){
+        Object.assign(existing, cd);
+        updatedCount++;
+      }
+    });
+    if(added || updatedCount){
+      persist();
+      renderAll();
+    }
+    await pushAllDraftsToCloud();
+    if(added){
+      alert('Restored ' + added + ' draft(s) from your account.' + (updatedCount ? ' Updated ' + updatedCount + ' more.' : ''));
+    }
+  }
+
+  async function pushSettingsToCloud(){
+    const doc = cloudSettingsDoc();
+    if(!doc) return;
+    try{
+      await doc.set({ customTheme, correctionExceptions });
+    }catch(e){
+      console.error('Could not save preferences to your account:', e);
+    }
+  }
+
+  // Runs once, right after sign-in: merges cloud theme/exceptions with whatever's
+  // local (exceptions are unioned so neither side loses an entry; theme prefers
+  // whatever's saved to the account if this device is still on the defaults),
+  // then pushes the merged result back up.
+  async function mergeCloudSettings(){
+    const doc = cloudSettingsDoc();
+    if(!doc) return;
+    try{
+      const snap = await doc.get();
+      if(snap.exists){
+        const cloud = snap.data();
+        const localIsDefault = JSON.stringify(customTheme) === JSON.stringify(DEFAULT_THEME);
+        if(cloud.customTheme && localIsDefault){
+          customTheme = { ...DEFAULT_THEME, ...cloud.customTheme };
+          applyCustomTheme(customTheme);
+          saveCustomTheme(true);
+        }
+        if(Array.isArray(cloud.correctionExceptions)){
+          const seen = new Set(correctionExceptions.map(w=>w.toLowerCase()));
+          cloud.correctionExceptions.forEach(w=>{
+            if(!seen.has(w.toLowerCase())){ correctionExceptions.push(w); seen.add(w.toLowerCase()); }
+          });
+          saveExceptions(true);
+          renderExceptionChips();
+        }
+      }
+      await pushSettingsToCloud();
+    }catch(e){
+      console.error('Could not sync preferences from your account:', e);
+    }
   }
 
   // ---------- persistence ----------
@@ -2409,6 +2542,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       safeLS.setItem(STORAGE_KEY, JSON.stringify(drafts));
       if(activeId) safeLS.setItem(ACTIVE_KEY, activeId);
       showSaved();
+      scheduleCloudPush();
     }catch(e){
       const ind = document.getElementById('save-indicator');
       ind.textContent = 'storage full';
@@ -2502,6 +2636,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       activeId = drafts.length ? drafts[0].id : null;
       if(!activeId) screen = 'menu';
     }
+    if(account.signedIn) pendingCloudDeletes.push(id);
     persist();
     renderAll();
   }
@@ -3678,6 +3813,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       if(!isOwner()) return;
       if(!confirm('Delete ALL ' + drafts.length + ' draft(s)? This cannot be undone.')) return;
       if(!confirm('Really sure? Type OK to confirm one more time.')) return;
+      if(account.signedIn) pendingCloudDeletes.push(...drafts.map(d=>d.id));
       drafts = [];
       activeId = null;
       screen = 'menu';
@@ -3917,8 +4053,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
     if(!Array.isArray(correctionExceptions)) correctionExceptions = [];
   }catch(e){ correctionExceptions = []; }
 
-  function saveExceptions(){
+  function saveExceptions(skipCloudPush){
     safeLS.setItem(EXCEPTIONS_KEY, JSON.stringify(correctionExceptions));
+    if(!skipCloudPush && account.signedIn) pushSettingsToCloud();
   }
 
   function renderExceptionChips(){
@@ -4143,9 +4280,89 @@ Everything saves automatically, right in this file — nothing leaves your brows
     goverment: "government"
   };
 
+  // ---------- contextual homophone corrections ----------
+  // These are words that are spelled correctly on their own (so WORD_CORRECTIONS
+  // above can't safely rewrite them - "your" is fine 90% of the time, e.g. "your
+  // dog") but are frequently mistyped for a homophone in a specific grammatical
+  // context. Each rule only fires when the *next* word signals that context, so
+  // "your dog"/"your own" are left alone but "your so dumb" -> "you're so dumb".
+  const CONTEXT_HOMOPHONE_RULES = [
+    {
+      // "your" -> "you're" when followed by something that can't grammatically
+      // follow a possessive: an intensifier/adverb, a gerund (-ing verb), or an
+      // article ("your a/the ___" only makes sense as "you're a/the ___").
+      word: 'your',
+      replacement: "you're",
+      nextWordTriggers: new Set([
+        'so','such','not','never','always','still','really','probably','definitely',
+        'totally','literally','actually','gonna','about','going','welcome','kidding',
+        'right','wrong','done','only','just','the','a','an','my','being','doing',
+        'saying','amazing','beautiful','perfect','crazy','insane','awesome','killing',
+        'breaking','making','driving','the','all'
+      ]),
+      nextWordPattern: /ing$/
+    },
+    {
+      // "their" -> "they're" for the same reason ("their so mean" -> "they're so mean")
+      word: 'their',
+      replacement: "they're",
+      nextWordTriggers: new Set([
+        'so','not','never','always','still','really','probably','definitely',
+        'totally','literally','actually','gonna','about','going','the','a','an',
+        'only','just','being','doing','saying','killing','breaking'
+      ]),
+      nextWordPattern: /ing$/
+    },
+    {
+      // "its" -> "it's" when followed by a word that signals "it is/it has"
+      // ("its over" -> "it's over"), left alone before a noun ("its color").
+      word: 'its',
+      replacement: "it's",
+      nextWordTriggers: new Set([
+        'so','not','never','always','still','really','probably','definitely',
+        'totally','literally','actually','gonna','about','going','over','done',
+        'the','a','an','been','all','on','off','time','just','only'
+      ]),
+      nextWordPattern: /ing$/
+    }
+  ];
+
+  // Scans a line for any word matching a CONTEXT_HOMOPHONE_RULES entry, and swaps
+  // it for the contraction when the following word matches that rule's trigger set
+  // or pattern. Runs on the raw (untrimmed-of-punctuation) word list so punctuation
+  // right after the next word ("your so dumb!") still matches correctly.
+  function applyContextHomophoneCorrections(text, exceptionSet){
+    const wordRe = /[A-Za-z']+/g;
+    const words = [];
+    let m;
+    while((m = wordRe.exec(text)) !== null){
+      words.push({ raw: m[0], start: m.index, end: m.index + m[0].length });
+    }
+    let result = text;
+    // walk backwards so earlier replacements don't shift indices we still need
+    for(let i = words.length - 1; i >= 0; i--){
+      const w = words[i];
+      const lower = w.raw.toLowerCase();
+      if(exceptionSet.has(lower)) continue;
+      const rule = CONTEXT_HOMOPHONE_RULES.find(r => r.word === lower);
+      if(!rule || i + 1 >= words.length) continue;
+      const nextLower = words[i + 1].raw.toLowerCase();
+      const triggers = rule.nextWordTriggers.has(nextLower) || (rule.nextWordPattern && rule.nextWordPattern.test(nextLower));
+      if(!triggers) continue;
+      const wasCapitalized = w.raw.charAt(0) === w.raw.charAt(0).toUpperCase() && w.raw.charAt(0) !== w.raw.charAt(0).toLowerCase();
+      const repl = wasCapitalized ? (rule.replacement.charAt(0).toUpperCase() + rule.replacement.slice(1)) : rule.replacement;
+      result = result.slice(0, w.start) + repl + result.slice(w.end);
+    }
+    return result;
+  }
+
   function correctLyricLineText(line, exceptionSet){
     let text = line.replace(/\s+/g, ' ').trim();
     if(!text) return text;
+
+    // context-aware homophone fixes (your/you're, their/they're, its/it's) run
+    // first, before the simple word-for-word table below
+    text = applyContextHomophoneCorrections(text, exceptionSet);
 
     // word-level fixes, skipping anything in the exceptions list
     text = text.replace(/[A-Za-z']+/g, (word) => {
