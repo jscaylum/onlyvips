@@ -777,6 +777,11 @@
   .lyric-line[data-idx]:hover{ color: var(--rt-text); cursor: pointer; }
   .lyric-line.blank{ height: 22px; }
 
+  /* Apple Music-style word-by-word highlight, only lit up once a line has word-level sync data */
+  .lyric-word{ transition: color .12s ease, opacity .12s ease; }
+  .lyric-line.active-sync .lyric-word.active-word{ color: var(--rt-accent, var(--gold)); }
+  .lyric-line.active-sync .lyric-word.sung-word{ opacity: 0.55; }
+
   .read-empty{
     color: var(--rt-text-faint);
     font-family: var(--rt-font-body);
@@ -1441,6 +1446,32 @@
     flex-shrink:0;
   }
   .sync-tp-line.cursor .sync-tp-badge{ color: var(--gold); }
+  .sync-tp-line.holding{
+    background: rgba(244,238,224,0.16);
+    animation: sync-holding-pulse 1s ease-in-out infinite;
+  }
+  @keyframes sync-holding-pulse{
+    0%, 100% { background: rgba(244,238,224,0.12); }
+    50% { background: rgba(244,238,224,0.22); }
+  }
+  .sync-ctrl-btn-active{ border-color: var(--gold); color: var(--gold); background: rgba(244,238,224,0.08); }
+  .sync-tp-line-words{ flex-wrap: wrap; }
+  .sync-tp-word-wrap{ flex: 1; }
+  .sync-tp-word{
+    display:inline-block;
+    padding: 1px 2px;
+    border-radius: 4px;
+    transition: color .15s ease, background .15s ease;
+  }
+  .sync-tp-word.w-synced{ color: var(--ink-dim); }
+  .sync-tp-word.w-cursor{
+    color: var(--gold);
+    background: rgba(244,238,224,0.16);
+    font-weight: 700;
+  }
+  .sync-tp-word.w-cursor.holding{
+    animation: sync-holding-pulse 1s ease-in-out infinite;
+  }
   .sync-tp-tag{
     font-family: var(--mono);
     font-size: 10.5px;
@@ -2259,6 +2290,10 @@ Everything saves automatically, right in this file — nothing leaves your brows
   let sessionAudio = { draftId: null, url: null, el: null }; // audio is session-only, never persisted
   let syncPlaybackDraftId = null;
   let syncCursorIdx = null; // raw lyric-line index that's "next up" to be tapped in sync mode
+  let wordSyncMode = false; // false = syncing whole lines, true = syncing individual words
+  let syncHold = null; // { kind:'line'|'word', idx, wordIdx, startTime } while space/tap-btn is held down; null otherwise
+  let syncPrevActiveIdx = null; // last highlighted line during karaoke playback, so we only re-scroll on change
+  let syncUserScrollUntil = 0; // timestamp (performance.now()) until which auto-scroll is suppressed because the person is scrolling manually
 
   // ---------- account state (placeholder until a backend is wired in) ----------
   // NOTE: this is intentionally NOT real authentication yet. Real Google Sign-In
@@ -2675,7 +2710,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
       const combined = new Date(dateVal + 'T' + timeVal);
       if(isNaN(combined.getTime())) return;
       d.created = combined.getTime();
+      d.updated = Date.now();
       persist();
+      renderList();
       if(typeof onSaved === 'function') onSaved(); else renderMenu();
     });
   }
@@ -2952,12 +2989,58 @@ Everything saves automatically, right in this file — nothing leaves your brows
     return out;
   }
 
-  function initSyncCursor(d){
+  // Flat, in-document-order list of every word across every syncable line — the
+  // unit Word Sync mode steps through, one hold-and-release at a time.
+  function getSyncableWords(lyrics){
+    const indices = getSyncableLineIndices(lyrics);
+    const rawLines = lyrics.split('\n');
+    const out = [];
+    indices.forEach(li=>{
+      rawLines[li].trim().split(/\s+/).forEach((word, wi)=>{
+        out.push({ lineIdx: li, wordIdx: wi, word });
+      });
+    });
+    return out;
+  }
+
+  function wordKey(lineIdx, wordIdx){ return lineIdx + ':' + wordIdx; }
+
+  // Old drafts stored a single tap timestamp (a plain number) per line. New drafts
+  // store { start, end } from the hold gesture. This lets every reader treat both
+  // the same way without a one-time migration pass.
+  function normTime(t){
+    if(t === undefined || t === null) return undefined;
+    if(typeof t === 'number') return { start: t, end: t };
+    return t;
+  }
+
+  function firstUnsyncedLineIdx(d){
     const indices = getSyncableLineIndices(d.lyrics || '');
     const times = d.syncedTimes || {};
-    syncCursorIdx = indices.find(i => times[i] === undefined);
-    if(syncCursorIdx === undefined) syncCursorIdx = null; // every line already synced
+    const idx = indices.find(i => times[i] === undefined);
+    return idx === undefined ? null : idx;
   }
+  function firstUnsyncedWordKey(d){
+    const words = getSyncableWords(d.lyrics || '');
+    const synced = d.syncedWords || {};
+    const w = words.find(w => synced[wordKey(w.lineIdx, w.wordIdx)] === undefined);
+    return w ? wordKey(w.lineIdx, w.wordIdx) : null;
+  }
+  function nextLineAfter(d, idx){
+    const indices = getSyncableLineIndices(d.lyrics || '');
+    const pos = indices.indexOf(Number(idx));
+    const next = indices.slice(pos + 1).find(i => (d.syncedTimes||{})[i] === undefined);
+    return next !== undefined ? next : firstUnsyncedLineIdx(d);
+  }
+  function nextWordAfter(d, key){
+    const words = getSyncableWords(d.lyrics || '');
+    const pos = words.findIndex(w => wordKey(w.lineIdx, w.wordIdx) === key);
+    const next = words.slice(pos + 1).find(w => (d.syncedWords||{})[wordKey(w.lineIdx,w.wordIdx)] === undefined);
+    return next ? wordKey(next.lineIdx, next.wordIdx) : firstUnsyncedWordKey(d);
+  }
+
+  function initSyncCursor(d){ syncCursorIdx = firstUnsyncedLineIdx(d); }
+  function initWordSyncCursor(d){ wordSyncCursorKey = firstUnsyncedWordKey(d); }
 
   function renderSyncPane(d){
     const pane = document.getElementById('sync-pane');
@@ -2969,23 +3052,39 @@ Everything saves automatically, right in this file — nothing leaves your brows
     }
 
     if(!d.syncedTimes) d.syncedTimes = {};
+    if(!d.syncedWords) d.syncedWords = {};
     const indices = getSyncableLineIndices(d.lyrics || '');
-    if(syncCursorIdx === null && !indices.every(i => d.syncedTimes[i] !== undefined)){
-      initSyncCursor(d);
-    } else if(indices.length && syncCursorIdx === null){
-      // leave as null (fully synced) unless the lyrics changed and introduced new unsynced lines
-      const stillUnsynced = indices.find(i => d.syncedTimes[i] === undefined);
-      if(stillUnsynced !== undefined) syncCursorIdx = stillUnsynced;
+    const words = getSyncableWords(d.lyrics || '');
+
+    if(wordSyncMode){
+      if(wordSyncCursorKey === null && words.length && firstUnsyncedWordKey(d) !== null){
+        initWordSyncCursor(d);
+      } else if(words.length && wordSyncCursorKey === null){
+        const still = firstUnsyncedWordKey(d);
+        if(still !== null) wordSyncCursorKey = still;
+      }
+    } else {
+      if(syncCursorIdx === null && indices.length && firstUnsyncedLineIdx(d) !== null){
+        initSyncCursor(d);
+      } else if(indices.length && syncCursorIdx === null){
+        const still = firstUnsyncedLineIdx(d);
+        if(still !== null) syncCursorIdx = still;
+      }
     }
 
-    const syncedCount = indices.filter(i => d.syncedTimes[i] !== undefined).length;
+    const syncedLineCount = indices.filter(i => d.syncedTimes[i] !== undefined).length;
+    const syncedWordCount = words.filter(w => d.syncedWords[wordKey(w.lineIdx,w.wordIdx)] !== undefined).length;
+    const progressLabel = wordSyncMode
+      ? (syncedWordCount + ' / ' + words.length + ' words synced')
+      : (syncedLineCount + ' / ' + indices.length + ' lines synced');
 
     const rawLines = (d.lyrics || '').split('\n');
     let html = '<div class="sync-controls-bar">' +
-      '<span class="sync-progress-label">' + syncedCount + ' / ' + indices.length + ' lines synced</span>' +
+      '<span class="sync-progress-label">' + progressLabel + '</span>' +
       '<span style="flex:1"></span>' +
+      '<button class="sync-ctrl-btn' + (wordSyncMode ? ' sync-ctrl-btn-active' : '') + '" id="sync-wordmode-btn" title="Fine-tune word-by-word timing, Apple Music style">' + (wordSyncMode ? '✓ Word sync' : 'Word sync') + '</button>' +
       '<button class="sync-ctrl-btn" id="sync-restart-btn" title="Clear all timestamps and start over">↺ Restart</button>' +
-      '<button class="sync-ctrl-btn" id="sync-undo-btn" title="Undo the last tap">Undo</button>' +
+      '<button class="sync-ctrl-btn" id="sync-undo-btn" title="Undo the last one">Undo</button>' +
       '<button class="sync-ctrl-btn" id="sync-jump-start-btn" title="Seek to the start of the song">⏮ From start</button>' +
     '</div>';
 
@@ -2998,105 +3097,270 @@ Everything saves automatically, right in this file — nothing leaves your brows
         html += '<div class="sync-tp-tag">' + escapeHtml(tagMatch[1]) + '</div>';
         return;
       }
-      const t = d.syncedTimes[i];
+
+      if(wordSyncMode){
+        const lineWords = trimmed.split(/\s+/);
+        const isLineCursor = wordSyncCursorKey !== null && wordSyncCursorKey.split(':')[0] === String(i);
+        const wordSpans = lineWords.map((w, wi)=>{
+          const key = wordKey(i, wi);
+          const isSynced = d.syncedWords[key] !== undefined;
+          const isCursor = wordSyncCursorKey === key;
+          const cls = 'sync-tp-word' + (isSynced ? ' w-synced' : '') + (isCursor ? ' w-cursor' : '');
+          return '<span class="' + cls + '" data-line-idx="' + i + '" data-word-idx="' + wi + '">' + escapeHtml(w) + '</span>';
+        }).join(' ');
+        html += '<div class="sync-tp-line sync-tp-line-words' + (isLineCursor ? ' cursor' : '') + '" data-line-idx="' + i + '">' +
+          '<span class="sync-tp-badge"></span>' +
+          '<span class="sync-tp-word-wrap">' + wordSpans + '</span>' +
+        '</div>';
+        return;
+      }
+
+      const t = normTime(d.syncedTimes[i]);
       const isSynced = t !== undefined;
       const isCursor = syncCursorIdx === i;
       const cls = 'sync-tp-line' + (isSynced ? ' synced' : '') + (isCursor ? ' cursor' : '');
       html += '<div class="' + cls + '" data-line-idx="' + i + '">' +
-        '<span class="sync-tp-badge">' + (isSynced ? fmtTime(t) : '') + '</span>' +
+        '<span class="sync-tp-badge">' + (isSynced ? fmtTime(t.start) : '') + '</span>' +
         '<span>' + escapeHtml(line) + '</span>' +
       '</div>';
     });
-    if(syncCursorIdx === null && indices.length){
-      html += '<div class="sync-tp-done">✓ Every line is synced. Play it back in Read mode to check it, or tap any line above to re-sync it.</div>';
+
+    const allDone = wordSyncMode ? (wordSyncCursorKey === null && words.length > 0) : (syncCursorIdx === null && indices.length > 0);
+    if(allDone){
+      html += '<div class="sync-tp-done">✓ Every ' + (wordSyncMode ? 'word' : 'line') + ' is synced. Play it back in Read mode to check it, or tap any ' + (wordSyncMode ? 'word' : 'line') + ' above to re-sync it.</div>';
     }
     html += '</div>';
 
+    const dockDisabled = wordSyncMode ? wordSyncCursorKey === null : syncCursorIdx === null;
     html += '<div class="sync-tap-dock">' +
-      '<button class="sync-tap-btn" id="sync-tap-btn"' + (syncCursorIdx === null ? ' disabled' : '') + '>⏱ Tap for next line</button>' +
-      '<span class="sync-tap-hint">or press Space while this tab is focused</span>' +
+      '<button class="sync-tap-btn" id="sync-tap-btn"' + (dockDisabled ? ' disabled' : '') + '>⏱ Hold for next ' + (wordSyncMode ? 'word' : 'line') + '</button>' +
+      '<span class="sync-tap-hint">hold Space (or the button) through the ' + (wordSyncMode ? 'word' : 'line') + ', let go right when it ends</span>' +
     '</div>';
 
     pane.innerHTML = html;
 
-    // clicking any already-synced line: seek playback there for review, and make it
-    // the sync cursor again so the next tap re-writes just that line
-    pane.querySelectorAll('.sync-tp-line.synced').forEach(el=>{
-      el.addEventListener('click', ()=>{
-        const idx = el.dataset.lineIdx;
-        const t = d.syncedTimes[idx];
-        if(sessionAudio.el && t !== undefined) sessionAudio.el.currentTime = t;
-        syncCursorIdx = idx;
-        renderSyncPane(d);
+    // clicking any already-synced line/word: seek playback there for review, and make
+    // it the cursor again so the next hold re-writes just that one
+    if(wordSyncMode){
+      pane.querySelectorAll('.sync-tp-word.w-synced').forEach(el=>{
+        el.addEventListener('click', ()=>{
+          const key = wordKey(el.dataset.lineIdx, el.dataset.wordIdx);
+          const t = d.syncedWords[key];
+          if(sessionAudio.el && t) sessionAudio.el.currentTime = t.start;
+          wordSyncCursorKey = key;
+          renderSyncPane(d);
+        });
       });
-    });
+    } else {
+      pane.querySelectorAll('.sync-tp-line.synced').forEach(el=>{
+        el.addEventListener('click', ()=>{
+          const idx = el.dataset.lineIdx;
+          const t = normTime(d.syncedTimes[idx]);
+          if(sessionAudio.el && t) sessionAudio.el.currentTime = t.start;
+          syncCursorIdx = idx;
+          renderSyncPane(d);
+        });
+      });
+    }
 
     const tapBtn = document.getElementById('sync-tap-btn');
-    if(tapBtn) tapBtn.addEventListener('click', ()=> tapSyncLine(d));
+    if(tapBtn){
+      tapBtn.addEventListener('mousedown', ()=> beginSyncHold(d));
+      tapBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); beginSyncHold(d); }, {passive:false});
+      tapBtn.addEventListener('mouseup', ()=> endSyncHold(d));
+      tapBtn.addEventListener('mouseleave', ()=>{ if(syncHold) endSyncHold(d); });
+      tapBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); endSyncHold(d); });
+    }
+
+    document.getElementById('sync-wordmode-btn').addEventListener('click', ()=>{
+      wordSyncMode = !wordSyncMode;
+      if(wordSyncMode) initWordSyncCursor(d); else initSyncCursor(d);
+      renderSyncPane(d);
+    });
 
     document.getElementById('sync-restart-btn').addEventListener('click', ()=>{
       if(!confirm('Clear all synced timestamps for this draft and start over?')) return;
       d.syncedTimes = {};
+      d.syncedWords = {};
       d.updated = Date.now();
       persist();
       if(sessionAudio.el) sessionAudio.el.currentTime = 0;
+      syncCursorIdx = null;
+      wordSyncCursorKey = null;
       initSyncCursor(d);
       renderSyncPane(d);
     });
-    document.getElementById('sync-undo-btn').addEventListener('click', ()=> undoLastSyncTap(d));
+    document.getElementById('sync-undo-btn').addEventListener('click', ()=> undoLastSync(d));
     document.getElementById('sync-jump-start-btn').addEventListener('click', ()=>{
       if(sessionAudio.el) sessionAudio.el.currentTime = 0;
     });
 
-    // keep the current line in view, teleprompter-style
-    const cursorEl = pane.querySelector('.sync-tp-line.cursor');
+    // keep the current line/word in view, teleprompter-style. This only runs on a
+    // full render (first load, restart, mode switch) — never on every hold-release —
+    // so it's always animating from wherever the person already is, not from the top.
+    const cursorEl = pane.querySelector('.sync-tp-line.cursor, .sync-tp-word.w-cursor');
     if(cursorEl) cursorEl.scrollIntoView({block:'center', behavior:'smooth'});
   }
 
-  // records the current playback time against whichever line is "next up", then
-  // advances the cursor to the next unsynced line — this is the core tap-through motion
-  function tapSyncLine(d){
-    if(syncCursorIdx === null || !sessionAudio.el) return;
-    d.syncedTimes[syncCursorIdx] = sessionAudio.el.currentTime;
-    d.updated = Date.now();
-    persist();
-    const indices = getSyncableLineIndices(d.lyrics || '');
-    const pos = indices.indexOf(Number(syncCursorIdx));
-    const next = indices.slice(pos + 1).find(i => d.syncedTimes[i] === undefined);
-    syncCursorIdx = next !== undefined ? next : (indices.find(i => d.syncedTimes[i] === undefined) ?? null);
-    renderSyncPane(d);
-  }
-
-  // removes the timestamp for whichever line was tapped most recently (the one
-  // immediately before the current cursor) and moves the cursor back onto it
-  function undoLastSyncTap(d){
-    const indices = getSyncableLineIndices(d.lyrics || '');
-    if(!indices.length) return;
-    let prevIdx;
-    if(syncCursorIdx === null){
-      prevIdx = indices[indices.length - 1];
+  // Begins timing whichever line/word is "next up": remembers the playback position
+  // the instant Space (or the dock button) goes down.
+  function beginSyncHold(d){
+    if(syncHold || !sessionAudio.el) return;
+    if(wordSyncMode){
+      if(wordSyncCursorKey === null) return;
+      syncHold = { kind:'word', key: wordSyncCursorKey, startTime: sessionAudio.el.currentTime };
+      const [li, wi] = wordSyncCursorKey.split(':');
+      const el = document.querySelector('.sync-tp-word[data-line-idx="' + li + '"][data-word-idx="' + wi + '"]');
+      if(el) el.classList.add('holding');
     } else {
-      const pos = indices.indexOf(Number(syncCursorIdx));
-      if(pos <= 0) return; // nothing before the current cursor to undo
-      prevIdx = indices[pos - 1];
+      if(syncCursorIdx === null) return;
+      syncHold = { kind:'line', idx: syncCursorIdx, startTime: sessionAudio.el.currentTime };
+      const el = document.querySelector('.sync-tp-line.cursor');
+      if(el) el.classList.add('holding');
     }
-    if(d.syncedTimes[prevIdx] === undefined) return;
-    delete d.syncedTimes[prevIdx];
-    d.updated = Date.now();
-    persist();
-    syncCursorIdx = prevIdx;
-    renderSyncPane(d);
   }
 
-  // Space bar taps the next line whenever Sync mode is open and focus isn't in a text field
+  // Ends the timing on release: the held duration [start, end] becomes that line's
+  // (or word's) exact timing, then the cursor moves on to the next unsynced one.
+  // Patches the DOM in place instead of re-rendering the whole pane, so the
+  // teleprompter never resets its scroll position back to the top.
+  function endSyncHold(d){
+    if(!syncHold || !sessionAudio.el) return;
+    const startTime = syncHold.startTime;
+    const endTime = Math.max(sessionAudio.el.currentTime, startTime + 0.05);
+
+    if(syncHold.kind === 'word'){
+      if(!d.syncedWords) d.syncedWords = {};
+      const prevKey = syncHold.key;
+      d.syncedWords[prevKey] = { start: startTime, end: endTime };
+      d.updated = Date.now();
+      persist();
+      wordSyncCursorKey = nextWordAfter(d, prevKey);
+      syncHold = null;
+      patchSyncCursorMove(d, prevKey, wordSyncCursorKey, 'word');
+    } else {
+      const prevIdx = syncHold.idx;
+      d.syncedTimes[prevIdx] = { start: startTime, end: endTime };
+      d.updated = Date.now();
+      persist();
+      syncCursorIdx = nextLineAfter(d, prevIdx);
+      syncHold = null;
+      patchSyncCursorMove(d, prevIdx, syncCursorIdx, 'line');
+    }
+  }
+
+  // Incremental DOM patch for the common case (advancing after a hold-release): moves
+  // the "cursor" highlight, marks the previous item synced, and updates the progress
+  // label — all without touching the rest of the teleprompter's DOM or scroll position.
+  function patchSyncCursorMove(d, prevId, newId, kind){
+    const pane = document.getElementById('sync-pane');
+    if(!pane) return;
+
+    if(kind === 'line'){
+      const prevEl = pane.querySelector('.sync-tp-line[data-line-idx="' + prevId + '"]');
+      if(prevEl){
+        prevEl.classList.remove('cursor', 'holding');
+        prevEl.classList.add('synced');
+        const t = normTime(d.syncedTimes[prevId]);
+        const badge = prevEl.querySelector('.sync-tp-badge');
+        if(badge && t) badge.textContent = fmtTime(t.start);
+      }
+      if(newId === null || newId === undefined){ renderSyncPane(d); return; } // nothing left unsynced — full render shows the "all done" state
+      const newEl = pane.querySelector('.sync-tp-line[data-line-idx="' + newId + '"]');
+      if(newEl){
+        newEl.classList.add('cursor');
+        newEl.scrollIntoView({block:'center', behavior:'smooth'});
+      }
+      const indices = getSyncableLineIndices(d.lyrics || '');
+      const syncedCount = indices.filter(i => d.syncedTimes[i] !== undefined).length;
+      const label = pane.querySelector('.sync-progress-label');
+      if(label) label.textContent = syncedCount + ' / ' + indices.length + ' lines synced';
+    } else {
+      const [pli, pwi] = prevId.split(':');
+      const prevEl = pane.querySelector('.sync-tp-word[data-line-idx="' + pli + '"][data-word-idx="' + pwi + '"]');
+      if(prevEl){
+        prevEl.classList.remove('w-cursor', 'holding');
+        prevEl.classList.add('w-synced');
+      }
+      if(newId === null || newId === undefined){ renderSyncPane(d); return; }
+      const [nli, nwi] = newId.split(':');
+      const newEl = pane.querySelector('.sync-tp-word[data-line-idx="' + nli + '"][data-word-idx="' + nwi + '"]');
+      if(newEl){
+        newEl.classList.add('w-cursor');
+        newEl.scrollIntoView({block:'center', behavior:'smooth'});
+      }
+      pane.querySelectorAll('.sync-tp-line-words.cursor').forEach(el=> el.classList.remove('cursor'));
+      const parentLine = newEl ? newEl.closest('.sync-tp-line-words') : null;
+      if(parentLine) parentLine.classList.add('cursor');
+      const words = getSyncableWords(d.lyrics || '');
+      const syncedCount = words.filter(w => d.syncedWords[wordKey(w.lineIdx,w.wordIdx)] !== undefined).length;
+      const label = pane.querySelector('.sync-progress-label');
+      if(label) label.textContent = syncedCount + ' / ' + words.length + ' words synced';
+    }
+  }
+
+  // removes whichever line/word was synced most recently (the one immediately before
+  // the current cursor) and moves the cursor back onto it
+  function undoLastSync(d){
+    if(wordSyncMode){
+      const words = getSyncableWords(d.lyrics || '');
+      if(!words.length) return;
+      let prevKey;
+      if(wordSyncCursorKey === null){
+        const last = words[words.length - 1];
+        prevKey = wordKey(last.lineIdx, last.wordIdx);
+      } else {
+        const pos = words.findIndex(w => wordKey(w.lineIdx,w.wordIdx) === wordSyncCursorKey);
+        if(pos <= 0) return;
+        const prevW = words[pos - 1];
+        prevKey = wordKey(prevW.lineIdx, prevW.wordIdx);
+      }
+      if(!d.syncedWords || d.syncedWords[prevKey] === undefined) return;
+      delete d.syncedWords[prevKey];
+      d.updated = Date.now();
+      persist();
+      wordSyncCursorKey = prevKey;
+      renderSyncPane(d);
+    } else {
+      const indices = getSyncableLineIndices(d.lyrics || '');
+      if(!indices.length) return;
+      let prevIdx;
+      if(syncCursorIdx === null){
+        prevIdx = indices[indices.length - 1];
+      } else {
+        const pos = indices.indexOf(Number(syncCursorIdx));
+        if(pos <= 0) return; // nothing before the current cursor to undo
+        prevIdx = indices[pos - 1];
+      }
+      if(d.syncedTimes[prevIdx] === undefined) return;
+      delete d.syncedTimes[prevIdx];
+      d.updated = Date.now();
+      persist();
+      syncCursorIdx = prevIdx;
+      renderSyncPane(d);
+    }
+  }
+
+  // Space bar times the next line/word whenever Sync mode is open and focus isn't in
+  // a text field: holding down = start, letting go = end. e.repeat is ignored so the
+  // OS's key-repeat (which fires many keydowns while a key stays down) doesn't restart
+  // the hold on every repeat — only the very first keydown begins it.
   document.addEventListener('keydown', (e)=>{
     if(mode !== 'sync' || screen !== 'editor') return;
     const tag = (document.activeElement && document.activeElement.tagName) || '';
     if(tag === 'INPUT' || tag === 'TEXTAREA') return;
     if(e.code === 'Space' || e.key === ' '){
       e.preventDefault();
+      if(e.repeat) return;
       const d = getActive();
-      if(d) tapSyncLine(d);
+      if(d) beginSyncHold(d);
+    }
+  });
+  document.addEventListener('keyup', (e)=>{
+    if(mode !== 'sync' || screen !== 'editor') return;
+    if(e.code === 'Space' || e.key === ' '){
+      const d = getActive();
+      if(d) endSyncHold(d);
     }
   });
 
@@ -3122,7 +3386,10 @@ Everything saves automatically, right in this file — nothing leaves your brows
         html += '<div class="lyric-line blank"></div>';
       } else {
         if(!sectionOpen){ html += '<div class="lyric-section">'; sectionOpen = true; }
-        html += '<div class="lyric-line" data-idx="' + i + '">' + escapeHtml(line) + '</div>';
+        const wordSpans = trimmed.split(/\s+/).map((w, wi)=>
+          '<span class="lyric-word" data-word-idx="' + wi + '">' + escapeHtml(w) + '</span>'
+        ).join(' ');
+        html += '<div class="lyric-line" data-idx="' + i + '">' + wordSpans + '</div>';
       }
     });
     if(sectionOpen) html += '</div>';
@@ -3184,9 +3451,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
       inner.querySelectorAll('.lyric-line[data-idx]').forEach(el=>{
         el.addEventListener('click', ()=>{
           const idx = el.dataset.idx;
-          const t = d.syncedTimes && d.syncedTimes[idx];
-          if(t !== undefined && sessionAudio.el){
-            sessionAudio.el.currentTime = t;
+          const t = normTime(d.syncedTimes && d.syncedTimes[idx]);
+          if(t && sessionAudio.el){
+            sessionAudio.el.currentTime = t.start;
           }
         });
       });
@@ -3206,15 +3473,50 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const d = getActive();
     if(!d || !d.syncedTimes) return;
     const t = sessionAudio.el.currentTime;
-    const entries = Object.entries(d.syncedTimes).map(([idx,time])=>({idx, time})).sort((a,b)=>a.time-b.time);
+    const entries = Object.entries(d.syncedTimes)
+      .map(([idx,time])=>({idx, time: normTime(time)}))
+      .sort((a,b)=>a.time.start - b.time.start);
     let activeIdx = null;
-    entries.forEach(e=>{ if(e.time <= t) activeIdx = e.idx; });
-    document.querySelectorAll('#read-inner .lyric-line[data-idx]').forEach(el=>{
-      const isActive = el.dataset.idx === activeIdx;
-      el.classList.toggle('active-sync', isActive);
-      if(isActive) el.scrollIntoView({block:'center', behavior:'smooth'});
-    });
+    entries.forEach(e=>{ if(e.time.start <= t) activeIdx = e.idx; });
+
+    // Only touch the DOM / re-scroll when the active line actually changes — doing
+    // this on every timeupdate tick (many times a second) was what fought a person's
+    // own manual scroll attempts, snapping the view back before they could scroll away.
+    if(activeIdx !== syncPrevActiveIdx){
+      syncPrevActiveIdx = activeIdx;
+      document.querySelectorAll('#read-inner .lyric-line[data-idx]').forEach(el=>{
+        el.classList.toggle('active-sync', el.dataset.idx === activeIdx);
+      });
+      if(activeIdx !== null && performance.now() > syncUserScrollUntil){
+        const activeEl = document.querySelector('#read-inner .lyric-line[data-idx="' + activeIdx + '"]');
+        if(activeEl) activeEl.scrollIntoView({block:'center', behavior:'smooth'});
+      }
+    }
+
+    // Apple Music-style progressive word highlight within the active line, whenever
+    // this draft has word-level sync data (falls back to just the line highlight above
+    // if it doesn't).
+    if(activeIdx !== null && d.syncedWords){
+      document.querySelectorAll('#read-inner .lyric-line[data-idx="' + activeIdx + '"] .lyric-word').forEach(wEl=>{
+        const key = wordKey(activeIdx, wEl.dataset.wordIdx);
+        const wt = d.syncedWords[key];
+        wEl.classList.toggle('active-word', !!wt && t >= wt.start && t < wt.end);
+        wEl.classList.toggle('sung-word', !!wt && t >= wt.end);
+      });
+    }
   }
+
+  // While synced lyrics are playing back, a wheel/touch/manual scroll on the read pane
+  // suppresses auto-scroll for a couple seconds so the person can freely scroll around
+  // (e.g. to re-read an earlier line) without the karaoke auto-scroll immediately
+  // yanking them back to the currently-playing line.
+  (function(){
+    const readPane = document.getElementById('read-pane');
+    if(!readPane) return;
+    const markManualScroll = ()=>{ syncUserScrollUntil = performance.now() + 2500; };
+    readPane.addEventListener('wheel', markManualScroll, {passive:true});
+    readPane.addEventListener('touchmove', markManualScroll, {passive:true});
+  })();
 
   // ---------- Spotify/Apple-Music-style lyrics preview (from the note board) ----------
   function openPreview(id){
