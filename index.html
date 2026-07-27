@@ -2356,7 +2356,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   }
   function saveCustomTheme(skipCloudPush){
     safeLS.setItem(CUSTOM_THEME_KEY, JSON.stringify(customTheme));
-    if(!skipCloudPush && account.signedIn) pushSettingsToCloud();
+    if(!skipCloudPush && isOwner()) pushSiteThemeToCloud();
   }
   applyCustomTheme(customTheme);
 
@@ -2393,6 +2393,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   }catch(e){
     console.error('Firebase init failed:', e);
   }
+  loadSiteThemeFromCloud(); // for every visitor, signed in or not -- see function comment
   function googleSignIn(){
     if(!firebaseAuth) return;
     const provider = new firebase.auth.GoogleAuthProvider();
@@ -2409,7 +2410,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
   // Drafts live at users/{uid}/drafts/{draftId}; a draft's cover image (base64) can be
   // sizeable, so each draft is its own Firestore document rather than one big array field
   // (Firestore's 1MB-per-document ceiling is easy to hit with several covers in one doc).
-  // Preferences (theme + auto-correct exceptions) live at users/{uid}/meta/settings.
+  // Auto-correct exceptions live at users/{uid}/meta/settings (per-account preference).
+  // The color theme is NOT per-account -- see siteSettings/theme below.
   let pendingCloudDeletes = []; // draft ids deleted locally, to remove from the cloud on next push
   let cloudPushTimer = null;
 
@@ -2422,6 +2424,14 @@ Everything saves automatically, right in this file — nothing leaves your brows
     return firestoreDb.collection('users').doc(account.uid).collection('meta').doc('settings');
   }
 
+  // Firestore rejects a whole write if any field is `undefined` (not just the one
+  // field) -- running every draft through a JSON round-trip strips those out safely
+  // instead of letting one malformed draft silently kill the sync for every draft.
+  function sanitizeForCloud(obj){
+    try{ return JSON.parse(JSON.stringify(obj)); }
+    catch(e){ return obj; }
+  }
+
   function scheduleCloudPush(){
     if(!account.signedIn || !firestoreDb) return;
     clearTimeout(cloudPushTimer);
@@ -2431,26 +2441,41 @@ Everything saves automatically, right in this file — nothing leaves your brows
   async function pushAllDraftsToCloud(){
     const col = cloudDraftsCollection();
     if(!col) return;
-    try{
-      const results = await Promise.allSettled(drafts.map(d => col.doc(d.id).set(d)));
-      results.forEach((r, i)=>{
-        if(r.status === 'rejected'){
-          console.error('Could not sync "' + (drafts[i].title || 'Untitled') + '" to the cloud (a cover image may be too large):', r.reason);
-        }
-      });
-      if(pendingCloudDeletes.length){
-        const toDelete = pendingCloudDeletes.slice();
-        pendingCloudDeletes = [];
-        await Promise.allSettled(toDelete.map(id => col.doc(id).delete()));
+    // Each write is wrapped individually so one bad draft (oversized cover, stray
+    // undefined field, etc.) can't throw synchronously and cancel every other
+    // draft's sync in the same batch -- that was silently eating ALL sync, not
+    // just the one broken draft.
+    const results = await Promise.allSettled(drafts.map(d => {
+      try{
+        return col.doc(d.id).set(sanitizeForCloud(d));
+      }catch(err){
+        return Promise.reject(err);
       }
-    }catch(e){
-      console.error('Cloud draft sync failed:', e);
+    }));
+    let anyFailed = false;
+    results.forEach((r, i)=>{
+      if(r.status === 'rejected'){
+        anyFailed = true;
+        console.error('Could not sync "' + (drafts[i].title || 'Untitled') + '" to the cloud:', r.reason);
+      }
+    });
+    if(pendingCloudDeletes.length){
+      const toDelete = pendingCloudDeletes.slice();
+      pendingCloudDeletes = [];
+      const delResults = await Promise.allSettled(toDelete.map(id => col.doc(id).delete()));
+      delResults.forEach(r=>{ if(r.status === 'rejected') anyFailed = true; });
+    }
+    if(anyFailed){
+      const firstErr = results.find(r=>r.status==='rejected');
+      showCloudSyncWarning(describeCloudError(firstErr ? firstErr.reason : null));
+    } else {
+      clearCloudSyncWarning();
     }
   }
 
   // Runs once, right after sign-in: pulls down whatever's already saved to this
   // account, merges it with whatever's already local (newer "updated" wins per
-  // draft, nothing already local is dropped), then pushes the merged set back up
+  // draft, nothing already local is dropped), then pushes the merged result back up
   // so the cloud and this device agree.
   async function mergeCloudAndLocalDrafts(){
     const col = cloudDraftsCollection();
@@ -2460,6 +2485,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       snapshot = await col.get();
     }catch(e){
       console.error('Could not load drafts from your account:', e);
+      showCloudSyncWarning(describeCloudError(e));
       return;
     }
     let added = 0, updatedCount = 0;
@@ -2488,16 +2514,18 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const doc = cloudSettingsDoc();
     if(!doc) return;
     try{
-      await doc.set({ customTheme, correctionExceptions });
+      await doc.set({ correctionExceptions });
+      clearCloudSyncWarning();
     }catch(e){
       console.error('Could not save preferences to your account:', e);
+      showCloudSyncWarning(describeCloudError(e));
     }
   }
 
-  // Runs once, right after sign-in: merges cloud theme/exceptions with whatever's
-  // local (exceptions are unioned so neither side loses an entry; theme prefers
-  // whatever's saved to the account if this device is still on the defaults),
-  // then pushes the merged result back up.
+  // Runs once, right after sign-in: merges cloud auto-correct exceptions with
+  // whatever's local (unioned, so neither side loses an entry), then pushes the
+  // merged result back up. The color theme is handled separately (site-wide, not
+  // per-account) -- see loadSiteThemeFromCloud / pushSiteThemeToCloud below.
   async function mergeCloudSettings(){
     const doc = cloudSettingsDoc();
     if(!doc) return;
@@ -2505,12 +2533,6 @@ Everything saves automatically, right in this file — nothing leaves your brows
       const snap = await doc.get();
       if(snap.exists){
         const cloud = snap.data();
-        const localIsDefault = JSON.stringify(customTheme) === JSON.stringify(DEFAULT_THEME);
-        if(cloud.customTheme && localIsDefault){
-          customTheme = { ...DEFAULT_THEME, ...cloud.customTheme };
-          applyCustomTheme(customTheme);
-          saveCustomTheme(true);
-        }
         if(Array.isArray(cloud.correctionExceptions)){
           const seen = new Set(correctionExceptions.map(w=>w.toLowerCase()));
           cloud.correctionExceptions.forEach(w=>{
@@ -2523,8 +2545,80 @@ Everything saves automatically, right in this file — nothing leaves your brows
       await pushSettingsToCloud();
     }catch(e){
       console.error('Could not sync preferences from your account:', e);
+      showCloudSyncWarning(describeCloudError(e));
     }
   }
+
+  // ---------- site-wide theme (set by the owner, visible to every visitor) ----------
+  // Unlike drafts/exceptions, the color theme is site branding, not a personal
+  // preference -- it needs to be readable by ANY visitor (signed in or not, owner
+  // or not) but writable only by the owner. That means it can't live under
+  // users/{uid}/... (only that one uid could ever read it back) -- it lives in its
+  // own top-level, publicly-readable document instead: siteSettings/theme.
+  function siteThemeDocRef(){
+    if(!firestoreDb) return null;
+    return firestoreDb.collection('siteSettings').doc('theme');
+  }
+
+  // Runs on every page load, for every visitor, regardless of sign-in state --
+  // this is what makes the theme show up for logged-out visitors and non-owner
+  // accounts instead of only ever showing for the owner's own session.
+  async function loadSiteThemeFromCloud(){
+    const ref = siteThemeDocRef();
+    if(!ref) return;
+    try{
+      const snap = await ref.get();
+      if(snap.exists){
+        const cloud = snap.data();
+        if(cloud.customTheme){
+          customTheme = { ...DEFAULT_THEME, ...cloud.customTheme };
+          applyCustomTheme(customTheme);
+          safeLS.setItem(CUSTOM_THEME_KEY, JSON.stringify(customTheme)); // cache for instant paint next load
+        }
+      }
+    }catch(e){
+      console.error('Could not load the site theme:', e);
+      // deliberately no visible warning here -- this runs for every visitor including
+      // logged-out ones, and a failure just means "show the last cached theme", not
+      // a broken action the person took
+    }
+  }
+
+  async function pushSiteThemeToCloud(){
+    const ref = siteThemeDocRef();
+    if(!ref) return;
+    try{
+      await ref.set({ customTheme, updated: Date.now() });
+      clearCloudSyncWarning();
+    }catch(e){
+      console.error('Could not publish the site theme:', e);
+      showCloudSyncWarning(describeCloudError(e));
+    }
+  }
+
+  // Turns a raw Firestore error into a one-line hint that's actually actionable,
+  // instead of a generic "something went wrong" the person can't act on.
+  function describeCloudError(err){
+    const code = err && err.code;
+    if(code === 'permission-denied') return "permission denied -- the Firestore security rules aren't published yet, or don't allow this account.";
+    if(code === 'unavailable') return 'the cloud service is unreachable right now -- check your connection.';
+    if(code === 'not-found') return "the Firestore database hasn't been created for this project yet.";
+    return (err && err.message) ? err.message : 'an unknown error occurred.';
+  }
+
+  let cloudSyncWarningDismissed = false;
+  function showCloudSyncWarning(reason){
+    const el = document.getElementById('cloud-sync-warning');
+    if(!el) return;
+    const span = el.querySelector('span');
+    if(span) span.innerHTML = '\u26a0 <b>Cloud sync problem:</b> ' + escapeHtml(reason) + ' Your changes are still saved on this device, but won\'t reach your other devices until this is fixed.';
+    if(!cloudSyncWarningDismissed) el.classList.add('show');
+  }
+  function clearCloudSyncWarning(){
+    const el = document.getElementById('cloud-sync-warning');
+    if(el) el.classList.remove('show');
+  }
+
 
   // ---------- persistence ----------
   function loadDrafts(){
