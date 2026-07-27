@@ -1355,8 +1355,8 @@
     font-family: var(--sans);
     font-size: 11.5px;
     font-weight:600;
-    padding: 6px 12px;
-    border-radius: var(--radius);
+    padding: 6px 14px;
+    border-radius: 20px;
     cursor:pointer;
     flex-shrink:0;
     white-space: nowrap;
@@ -2723,6 +2723,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const menuScreen = document.getElementById('menu-screen');
     const topbar = document.getElementById('topbar');
     const canvas = document.getElementById('canvas-wrap');
+    const audioSlot = document.getElementById('audio-bar-slot');
 
     const hintBar = document.getElementById('tag-hint-bar');
 
@@ -2730,6 +2731,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       menuScreen.style.display = 'block';
       topbar.style.display = 'none';
       canvas.style.display = 'none';
+      audioSlot.style.display = 'none';
       if(hintBar) hintBar.style.display = 'none';
       renderMenu();
       return;
@@ -2738,6 +2740,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     menuScreen.style.display = 'none';
     topbar.style.display = 'flex';
     canvas.style.display = 'block';
+    audioSlot.style.display = 'block';
     if(hintBar) hintBar.style.display = (mode === 'edit') ? 'flex' : 'none';
 
     document.getElementById('title-input').value = d.title;
