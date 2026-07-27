@@ -1802,6 +1802,38 @@
   table.admin-table tr.admin-row-clickable:hover td{ color: var(--ink); background: rgba(236,228,211,0.04); }
   .admin-row-title{ color: var(--ink); font-weight:600; }
   .admin-empty-row td{ color: var(--ink-faint); text-align:center; padding: 20px; }
+  .admin-color-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 14px;
+  }
+  .admin-color-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-family: var(--sans);
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    cursor:pointer;
+  }
+  .admin-color-row input[type="color"]{
+    -webkit-appearance:none; appearance:none;
+    width: 34px; height:24px;
+    border:1px solid var(--line);
+    border-radius: 4px;
+    background:none;
+    padding:0;
+    cursor:pointer;
+  }
+  .admin-color-row input[type="color"]::-webkit-color-swatch-wrapper{ padding:2px; }
+  .admin-color-row input[type="color"]::-webkit-color-swatch{ border:none; border-radius:2px; }
+  .admin-date-cell{ cursor:pointer; }
+  .admin-date-cell:hover{ color: var(--gold) !important; }
   .admin-actions-row{
     display:flex;
     flex-wrap:wrap;
@@ -2182,6 +2214,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
   const EXCEPTIONS_KEY = 'manuscript_correction_exceptions_v1';
   const APP_PASSWORD = 'PASSW0RDF0RV1PS';
   const OWNER_EMAIL = 'jscaylum@gmail.com';
+  const BANNED_KEY = 'manuscript_banned_emails_v1';
+  const CUSTOM_THEME_KEY = 'manuscript_custom_theme_v1';
 
   // Some sandboxed/preview environments block localStorage entirely (reads/writes throw).
   // This wrapper falls back to an in-memory store so the UI never silently breaks —
@@ -2234,6 +2268,60 @@ Everything saves automatically, right in this file — nothing leaves your brows
   let account = { signedIn: false, email: null, name: null, photo: null };
   function isOwner(){ return account.signedIn && account.email === OWNER_EMAIL; }
 
+  // ---------- access control (owner-maintained ban list) ----------
+  // NOTE: same caveat as the account object above — this list lives in THIS
+  // browser's storage only. There's no shared backend yet, so it can't stop a
+  // banned person from using the app in a different browser/device; it only
+  // blocks sign-in on the device where the owner set the ban. Once a real
+  // backend exists, this becomes a Firestore-side check enforced server-side.
+  let bannedEmails = [];
+  try{
+    bannedEmails = JSON.parse(safeLS.getItem(BANNED_KEY) || '[]');
+    if(!Array.isArray(bannedEmails)) bannedEmails = [];
+  }catch(e){ bannedEmails = []; }
+  function saveBannedEmails(){
+    safeLS.setItem(BANNED_KEY, JSON.stringify(bannedEmails));
+  }
+  function isBanned(email){
+    return !!email && bannedEmails.includes(email.toLowerCase());
+  }
+  // If the currently signed-in account is on the ban list, sign them out and
+  // let them know. Called right after auth state changes and right after the
+  // owner adds someone to the list (in case that person is signed in right now).
+  function enforceBanOnCurrentSession(){
+    if(account.signedIn && isBanned(account.email)){
+      googleSignOut();
+      alert('This account has been blocked from signing in here by the site owner.');
+      return true;
+    }
+    return false;
+  }
+
+  // ---------- custom color scheme ----------
+  // Applies as CSS custom-property overrides on :root, so every existing rule
+  // (which already reads var(--gold)/var(--bg)/etc.) picks the new colors up
+  // automatically without needing a separate "theme" stylesheet.
+  const DEFAULT_THEME = { accent: '#f4eee0', bg: '#131210', panel: '#201e1a', ink: '#ece4d3' };
+  let customTheme = { ...DEFAULT_THEME };
+  try{
+    const saved = JSON.parse(safeLS.getItem(CUSTOM_THEME_KEY) || 'null');
+    if(saved && typeof saved === 'object') customTheme = { ...DEFAULT_THEME, ...saved };
+  }catch(e){ customTheme = { ...DEFAULT_THEME }; }
+
+  function applyCustomTheme(theme){
+    const root = document.documentElement.style;
+    root.setProperty('--gold', theme.accent);
+    root.setProperty('--bg', theme.bg);
+    root.setProperty('--bg-raised', theme.panel);
+    root.setProperty('--bg-card', theme.panel);
+    root.setProperty('--paper', theme.panel);
+    root.setProperty('--ink', theme.ink);
+  }
+  function saveCustomTheme(){
+    safeLS.setItem(CUSTOM_THEME_KEY, JSON.stringify(customTheme));
+  }
+  applyCustomTheme(customTheme);
+
   // ---------- Firebase (Google Sign-In) ----------
   const firebaseConfig = {
     apiKey: "AIzaSyDHhg2Oo4I99NYA4NfNAjynAvyUfeb8jT8",
@@ -2251,6 +2339,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       account = user
         ? { signedIn: true, email: user.email, name: user.displayName, photo: user.photoURL }
         : { signedIn: false, email: null, name: null, photo: null };
+      if(enforceBanOnCurrentSession()) return; // googleSignOut() will re-trigger this callback
       renderAccountBox();
     });
   }catch(e){
@@ -2440,6 +2529,16 @@ Everything saves automatically, right in this file — nothing leaves your brows
     return new Date(ts).toLocaleDateString();
   }
 
+  // Full, unambiguous date+time — used wherever an owner-set date should read
+  // as an exact timestamp rather than a rough "3d ago" relative string.
+  function fmtFullDate(ts){
+    if(!ts) return '—';
+    return new Date(ts).toLocaleString(undefined, {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: 'numeric', minute: '2-digit'
+    });
+  }
+
   function wordCount(text){
     const t = text.trim();
     if(!t) return 0;
@@ -2512,7 +2611,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
           '<div class="note-title">' + title + '</div>' +
           '<div class="note-artist">' + artist + '</div>' +
           '<div class="note-snippet">' + snippet + '</div>' +
-          '<div class="' + timeClass + '" data-owner-date="' + d.id + '"' + timeTitle + '>' + timeAgo(d.created || d.updated) + '</div>' +
+          '<div class="' + timeClass + '" data-owner-date="' + d.id + '"' + timeTitle + '>' + (isOwner() ? fmtFullDate(d.created || d.updated) : timeAgo(d.created || d.updated)) + '</div>' +
         '</div>';
       }).join('');
     }
@@ -2549,7 +2648,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   // Placeholder client-side version — once Firebase is wired in, this same
   // action gets sent as a write that Firestore's security rules will check
   // is coming from OWNER_EMAIL before allowing it, server-side.
-  function openOwnerDateEditor(draftId, el){
+  function openOwnerDateEditor(draftId, el, onSaved){
     if(!isOwner()) return;
     const d = drafts.find(x=>x.id===draftId);
     if(!d) return;
@@ -2573,7 +2672,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       if(isNaN(combined.getTime())) return;
       d.created = combined.getTime();
       persist();
-      renderMenu();
+      if(typeof onSaved === 'function') onSaved(); else renderMenu();
     });
   }
 
@@ -3192,8 +3291,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
           '<td>' + escapeHtml(d.artist || '—') + '</td>' +
           '<td>' + wordCount(d.lyrics||'') + '</td>' +
           '<td>' + Object.keys(d.syncedTimes||{}).length + '</td>' +
-          '<td>' + timeAgo(d.created || d.updated) + '</td>' +
-          '<td>' + timeAgo(d.updated) + '</td>' +
+          '<td class="admin-date-cell" data-owner-date="' + d.id + '" title="Click to change this draft\'s date &amp; time">' + fmtFullDate(d.created || d.updated) + '</td>' +
+          '<td>' + fmtFullDate(d.updated) + '</td>' +
         '</tr>';
       });
     }
@@ -3213,6 +3312,35 @@ Everything saves automatically, right in this file — nothing leaves your brows
     html += '</div>';
 
     html += '<div class="admin-section">';
+    html += '<div class="admin-section-title">Appearance</div>';
+    html += '<div class="admin-color-grid">' +
+      '<label class="admin-color-row">Accent<input type="color" id="theme-color-accent" value="' + customTheme.accent + '"></label>' +
+      '<label class="admin-color-row">Background<input type="color" id="theme-color-bg" value="' + customTheme.bg + '"></label>' +
+      '<label class="admin-color-row">Panels<input type="color" id="theme-color-panel" value="' + customTheme.panel + '"></label>' +
+      '<label class="admin-color-row">Text<input type="color" id="theme-color-ink" value="' + customTheme.ink + '"></label>' +
+    '</div>';
+    html += '<div class="admin-actions-row" style="margin-top:12px;">' +
+      '<button class="footer-btn" id="theme-reset-btn" style="flex:none;">Reset to default</button>' +
+    '</div>';
+    html += '<div class="admin-note">Changes apply immediately and are remembered on this device only.</div>';
+    html += '</div>';
+
+    html += '<div class="admin-section">';
+    html += '<div class="admin-section-title">Access control</div>';
+    html += '<div class="admin-actions-row">' +
+      '<button class="admin-danger-btn" id="admin-ban-btn">Ban an email</button>' +
+    '</div>';
+    if(bannedEmails.length){
+      html += '<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;">' +
+        bannedEmails.map(em => '<span class="exception-chip">' + escapeHtml(em) + '<button data-unban="' + escapeHtml(em) + '" title="Unban">×</button></span>').join('') +
+        '</div>';
+    } else {
+      html += '<div class="admin-note">No one is banned. A banned email is signed out immediately and can\'t sign back in on this device.</div>';
+    }
+    html += '<div class="admin-note">This list lives in this browser only — it isn\'t enforced anywhere else, since drafts have no shared server yet. Treat it as a local access switch, not real moderation.</div>';
+    html += '</div>';
+
+    html += '<div class="admin-section">';
     html += '<div class="admin-section-title">Danger zone</div>';
     html += '<div class="admin-actions-row">' +
       '<button class="admin-danger-btn" id="admin-clear-all-btn">Delete all drafts</button>' +
@@ -3227,6 +3355,12 @@ Everything saves automatically, right in this file — nothing leaves your brows
       row.addEventListener('click', ()=>{
         closeAdminPanel();
         selectDraft(row.dataset.adminOpen);
+      });
+    });
+    content.querySelectorAll('[data-owner-date]').forEach(cell=>{
+      cell.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        openOwnerDateEditor(cell.dataset.ownerDate, cell, renderAdminContent);
       });
     });
     const clearBtn = document.getElementById('admin-clear-all-btn');
@@ -3244,6 +3378,52 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const exportAllBtn = document.getElementById('admin-export-all-btn');
     if(exportAllBtn) exportAllBtn.addEventListener('click', ()=>{
       document.getElementById('export-btn').click();
+    });
+
+    // -- appearance wiring --
+    const accentEl = document.getElementById('theme-color-accent');
+    const bgEl = document.getElementById('theme-color-bg');
+    const panelEl = document.getElementById('theme-color-panel');
+    const inkEl = document.getElementById('theme-color-ink');
+    [['accent',accentEl],['bg',bgEl],['panel',panelEl],['ink',inkEl]].forEach(([key, el])=>{
+      if(!el) return;
+      el.addEventListener('input', ()=>{
+        customTheme[key] = el.value;
+        applyCustomTheme(customTheme);
+        saveCustomTheme();
+      });
+    });
+    const themeResetBtn = document.getElementById('theme-reset-btn');
+    if(themeResetBtn) themeResetBtn.addEventListener('click', ()=>{
+      customTheme = { ...DEFAULT_THEME };
+      applyCustomTheme(customTheme);
+      saveCustomTheme();
+      renderAdminContent();
+    });
+
+    // -- access control wiring --
+    const banBtn = document.getElementById('admin-ban-btn');
+    if(banBtn) banBtn.addEventListener('click', ()=>{
+      const input = prompt('Email address to ban. That account will be signed out immediately and blocked from signing back in on this device:');
+      if(!input) return;
+      const email = input.trim().toLowerCase();
+      if(!email) return;
+      if(email === OWNER_EMAIL.toLowerCase()){
+        alert('The owner account can\'t be banned.');
+        return;
+      }
+      if(!bannedEmails.includes(email)) bannedEmails.push(email);
+      saveBannedEmails();
+      enforceBanOnCurrentSession();
+      renderAdminContent();
+    });
+    content.querySelectorAll('[data-unban]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const email = btn.dataset.unban;
+        bannedEmails = bannedEmails.filter(e=>e!==email);
+        saveBannedEmails();
+        renderAdminContent();
+      });
     });
   }
 
@@ -3611,7 +3791,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     im: "i'm",
     ive: "i've",
     ill: "i'll",
-    youre: "your",
+    youre: "you're",
     youve: "you've",
     youll: "you'll",
     theyre: "they're",
