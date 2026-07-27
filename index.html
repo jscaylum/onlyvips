@@ -1336,7 +1336,7 @@
     font-size: 11.5px;
     color: var(--ink-dim);
   }
-  .audio-bar button{
+  .audio-bar button:not(.audio-upload-btn){
     background:none; border: 1px solid var(--line);
     color: var(--ink-dim);
     border-radius: 50%;
@@ -1345,7 +1345,7 @@
     display:flex; align-items:center; justify-content:center;
     flex-shrink:0;
   }
-  .audio-bar button:hover{ border-color: var(--gold-dim); color: var(--gold); }
+  .audio-bar button:not(.audio-upload-btn):hover{ border-color: var(--gold-dim); color: var(--gold); }
   .audio-bar button svg{ width:13px; height:13px; fill:currentColor; }
   .audio-bar input[type="range"]{ flex:1; accent-color: var(--gold); }
   .audio-upload-btn{
@@ -1359,6 +1359,7 @@
     border-radius: var(--radius);
     cursor:pointer;
     flex-shrink:0;
+    white-space: nowrap;
   }
   .audio-upload-btn:hover{ background: rgba(236,228,211,0.08); }
   .audio-time{ font-variant-numeric: tabular-nums; flex-shrink:0; }
@@ -2540,7 +2541,10 @@ Everything saves automatically, right in this file — nothing leaves your brows
   }
 
   function wordCount(text){
-    const t = text.trim();
+    const lyricOnly = text.split('\n')
+      .filter(line => !/^\s*\[.+\]\s*$/.test(line))
+      .join(' ');
+    const t = lyricOnly.trim();
     if(!t) return 0;
     return t.split(/\s+/).filter(Boolean).length;
   }
@@ -3164,8 +3168,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
     }
 
     const rawLines = lyrics.split('\n');
+    const lyricLineCount = rawLines.filter(l => l.trim() && !/^\[.+\]$/.test(l.trim())).length;
     let html = '<div class="read-header">' + readHeaderRow(d) +
-        '<div class="read-stats">' + wordCount(lyrics) + ' words · ' + rawLines.filter(l=>l.trim()).length + ' lines</div>' +
+        '<div class="read-stats">' + wordCount(lyrics) + ' words · ' + lyricLineCount + ' lines</div>' +
         syncControlHtml +
       '</div>';
 
