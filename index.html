@@ -2114,6 +2114,14 @@
   </div>
 </div>
 
+<div id="history-modal">
+  <div class="help-backdrop" id="history-backdrop"></div>
+  <div class="help-panel">
+    <button class="help-close" id="history-close" title="Close">×</button>
+    <div id="history-content"></div>
+  </div>
+</div>
+
 <div id="app">
 
   <aside id="sidebar">
@@ -2167,6 +2175,8 @@
         <button class="mode-btn" data-mode="sync" id="sync-mode-btn" style="display:none;">Sync</button>
         <button class="mode-btn" data-mode="read">Read</button>
       </div>
+      <button class="topbar-icon-btn" id="history-btn" title="See past versions of this draft">🕓 History</button>
+      <button class="topbar-icon-btn" id="scrap-toggle-btn" title="Set aside without deleting — kept out of the main list, but never lost">🗑 Scrap</button>
       <div id="save-indicator">saved</div>
     </div>
 
@@ -2234,6 +2244,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
         </div>
       </div>
       <div class="note-grid" id="note-grid"></div>
+      <div class="scrapped-toggle-row" id="scrapped-toggle-row" style="display:none;">
+        <button class="scrapped-toggle-link" id="scrapped-toggle-link"></button>
+      </div>
     </div>
   </main>
 
