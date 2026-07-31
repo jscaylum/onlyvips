@@ -988,6 +988,23 @@
   }
   #back-to-menu:hover{ border-color: var(--ink-faint); color: var(--ink); }
 
+  .topbar-btn{
+    background:none;
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 12px;
+    padding: 7px 13px;
+    border-radius: var(--radius);
+    cursor:pointer;
+    flex-shrink:0;
+    white-space: nowrap;
+    transition: all .15s ease;
+  }
+  .topbar-btn:hover{ border-color: var(--gold-dim); color: var(--gold); }
+  .topbar-btn.active{ border-color: var(--teal); color: var(--teal); background: rgba(163,173,158,0.1); }
+
   /* fly-note transition overlay */
   .fly-note{
     position:fixed;
@@ -1027,11 +1044,167 @@
     z-index:2;
   }
   .note-card:hover .note-icon-btn{ opacity:1; }
-  .note-preview-btn{ right: 40px; }
+  .note-preview-btn{ right: 70px; }
+  .note-scrap-btn{ right: 40px; }
   .note-del-btn{ right: 10px; }
-  .note-preview-btn svg{ width:13px; height:13px; fill:currentColor; }
+  .note-preview-btn svg, .note-scrap-btn svg{ width:13px; height:13px; fill:currentColor; }
   .note-preview-btn:hover{ color: var(--gold); background: rgba(236,228,211,0.12); }
+  .note-scrap-btn:hover{ color: var(--teal); background: rgba(163,173,158,0.15); }
   .note-del-btn:hover{ color: var(--danger); background: rgba(193,88,74,0.15); }
+
+  /* ---------- scrapped drafts (set aside without deleting) ---------- */
+  .note-card.scrapped{ opacity: 0.6; }
+  .note-card.scrapped:hover{ opacity: 0.92; }
+  .note-card.scrapped .note-icon-btn{ opacity: 1; } /* always visible here, not just on hover — this is the pile you're actively managing */
+  .scrapped-toggle-row{
+    margin-top: 22px;
+    text-align:center;
+  }
+  .scrapped-toggle-link{
+    background:none;
+    border:none;
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor:pointer;
+    padding: 4px;
+  }
+  .scrapped-toggle-link:hover{ color: var(--ink-dim); }
+
+  /* ---------- playlist sectioning (optional EP/album-style grouping) ---------- */
+  #note-grid.grouped{ display:block; }
+  .collection-section{ margin-bottom: 40px; }
+  .collection-section:last-child{ margin-bottom: 0; }
+  .collection-header{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .collection-name{
+    font-family: var(--serif);
+    font-weight:700;
+    font-size: 20px;
+    color: var(--ink);
+  }
+  .collection-count{
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+  .collection-actions{
+    margin-left:auto;
+    display:flex;
+    gap:5px;
+  }
+  .collection-action-btn{
+    background:none;
+    border: 1px solid var(--line);
+    color: var(--ink-faint);
+    width: 24px; height:24px;
+    border-radius:50%;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 12px;
+    line-height:1;
+    flex-shrink:0;
+    transition: all .15s ease;
+  }
+  .collection-action-btn:hover{ border-color: var(--gold-dim); color: var(--gold); }
+  .collection-section .note-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 26px;
+  }
+  .collection-empty{
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+    padding: 10px 2px 4px;
+    grid-column: 1 / -1;
+  }
+
+  /* reorder arrows — top-left corner, mirrors the existing top-right icon cluster */
+  .note-move-btns{
+    position:absolute;
+    top: 10px; left: 10px;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    opacity:0;
+    transition: opacity .15s ease;
+    z-index:2;
+  }
+  .note-card:hover .note-move-btns{ opacity:1; }
+  .note-card.scrapped .note-move-btns{ display:none; }
+  .note-move-btn{
+    width:18px; height:14px;
+    border:none;
+    border-radius: 3px;
+    background: rgba(20,21,27,0.6);
+    color: var(--ink-faint);
+    font-size: 8px;
+    line-height:1;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .note-move-btn:hover{ color: var(--gold); background: rgba(236,228,211,0.15); }
+
+  .note-collection-chip{
+    align-self:flex-start;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--ink-faint);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.3px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    cursor:pointer;
+    margin-top: 10px;
+    transition: all .15s ease;
+  }
+  .note-collection-chip:hover{ border-color: var(--gold-dim); color: var(--gold); }
+
+  .collection-picker-menu{
+    position: fixed;
+    z-index: 700;
+    background: linear-gradient(180deg, var(--bg-raised), var(--bg));
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    padding: 6px;
+    min-width: 190px;
+    max-height: 260px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap: 2px;
+  }
+  .collection-picker-item{
+    text-align:left;
+    background:none;
+    border:none;
+    color: var(--ink-dim);
+    font-family: var(--sans);
+    font-size: 12.5px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor:pointer;
+  }
+  .collection-picker-item:hover{ background: rgba(236,228,211,0.07); color: var(--ink); }
+  .collection-picker-item.current{ color: var(--gold); font-weight:600; }
+  .collection-picker-item.collection-picker-new{
+    border-top: 1px solid var(--line);
+    margin-top: 4px;
+    padding-top: 10px;
+    color: var(--teal);
+  }
 
   /* ---------- lyrics preview modal (Spotify/Apple Music style) ---------- */
   #preview-modal{
@@ -2152,6 +2325,7 @@
     <div id="topbar" style="display:none;">
       <button id="menu-btn">☰</button>
       <button id="back-to-menu">← Menu</button>
+      <button class="topbar-btn" id="scrap-toggle-btn" title="Set aside without deleting — kept out of the main list, but never lost">🗑 Scrap</button>
       <div class="cover-thumb" id="cover-thumb" title="Add a cover image">
         <span id="cover-placeholder">+</span>
         <img id="cover-img" style="display:none;" alt="">
@@ -2227,13 +2401,19 @@ Everything saves automatically, right in this file — nothing leaves your brows
       <div class="menu-header">
         <div class="menu-header-row">
           <div>
-            <h1>Your drafts</h1>
-            <p>Pick a note to keep writing, or start something new. Everything here lives only in this browser.</p>
+            <h1 id="menu-title">Your drafts</h1>
+            <p id="menu-subtitle">Pick a note to keep writing, or start something new. Everything here lives only in this browser.</p>
           </div>
-          <button class="help-btn" id="open-help-btn" title="Tips for this page"><span class="help-mark">?</span> Help</button>
+          <div style="display:flex; gap:10px; flex-shrink:0;">
+            <button class="help-btn" id="new-collection-btn" title="Group drafts into an EP, album, or any collection you like — totally optional"><span class="help-mark">+</span> Collection</button>
+            <button class="help-btn" id="open-help-btn" title="Tips for this page"><span class="help-mark">?</span> Help</button>
+          </div>
         </div>
       </div>
       <div class="note-grid" id="note-grid"></div>
+      <div class="scrapped-toggle-row" id="scrapped-toggle-row" style="display:none;">
+        <button class="scrapped-toggle-link" id="scrapped-toggle-link"></button>
+      </div>
     </div>
   </main>
 
@@ -2287,6 +2467,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   let activeId = null;
   let mode = 'edit';
   let screen = 'title'; // 'title' | 'menu' | 'editor'
+  let showingScrapped = false; // whether the menu screen is showing the scrap pile instead of the main note board
   let saveTimeout = null;
   let sessionAudio = { draftId: null, url: null, el: null }; // audio is session-only, never persisted
   let syncPlaybackDraftId = null;
@@ -2514,7 +2695,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const doc = cloudSettingsDoc();
     if(!doc) return;
     try{
-      await doc.set({ correctionExceptions });
+      await doc.set({ correctionExceptions, collections });
       clearCloudSyncWarning();
     }catch(e){
       console.error('Could not save preferences to your account:', e);
@@ -2540,6 +2721,14 @@ Everything saves automatically, right in this file — nothing leaves your brows
           });
           saveExceptions(true);
           renderExceptionChips();
+        }
+        if(Array.isArray(cloud.collections)){
+          const seenIds = new Set(collections.map(c=>c.id));
+          cloud.collections.forEach(c=>{
+            if(c && c.id && !seenIds.has(c.id)){ collections.push(c); seenIds.add(c.id); }
+          });
+          saveCollections(true);
+          if(screen === 'menu') renderMenu();
         }
       }
       await pushSettingsToCloud();
@@ -2708,6 +2897,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       lyrics: '',
       cover: null,
       syncedTimes: {},
+      collectionId: null,
       created: Date.now(),
       updated: Date.now()
     };
@@ -2750,6 +2940,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   function showMenu(){
     flushPendingSave();
     screen = 'menu';
+    showingScrapped = false;
     renderAll();
   }
 
@@ -2816,7 +3007,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   function renderList(){
     const list = document.getElementById('draft-list');
     const query = document.getElementById('search-input').value.trim().toLowerCase();
-    const sorted = [...drafts].sort((a,b)=>b.updated-a.updated);
+    const sorted = drafts.filter(d=>!d.scrapped).sort((a,b)=>b.updated-a.updated);
     const filtered = query
       ? sorted.filter(d => (d.title||'').toLowerCase().includes(query) || (d.artist||'').toLowerCase().includes(query) || (d.lyrics||'').toLowerCase().includes(query))
       : sorted;
@@ -2856,40 +3047,126 @@ Everything saves automatically, right in this file — nothing leaves your brows
     return line;
   }
 
+  // Builds one note card's HTML. Shared by the flat grid, the grouped/collection
+  // sections, and the scrapped-pile view. `allowOrganize` hides the reorder
+  // arrows and collection chip for scrapped cards, where organizing doesn't apply.
+  function renderNoteCardHtml(d, allowOrganize){
+    const title = escapeHtml(d.title || 'Untitled');
+    const artist = escapeHtml(d.artist || 'No artist yet');
+    const snippet = escapeHtml(firstLyricSnippet(d.lyrics)) || '<em style="opacity:.6">Nothing written yet…</em>';
+    const coverHtml = d.cover ? '<img class="note-cover-thumb" src="' + d.cover + '" alt="">' : '';
+    const timeClass = isOwner() ? 'note-time owner-editable' : 'note-time';
+    const timeTitle = isOwner() ? ' title="Owner: click to edit creation date"' : '';
+    const scrapIcon = d.scrapped
+      ? '<svg viewBox="0 0 24 24"><path d="M12,5C7,5,2.73,8.11,1,12.5,2.73,16.89,7,20,12,20s9.27-3.11,11-7.5C21.27,8.11,17,5,12,5ZM4,4,20,20l-1.41,1.41L2.59,5.41Z"/></svg>'
+      : '<svg viewBox="0 0 24 24"><path d="M6,7H18V19a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2ZM9,4h6l1,2H8ZM4,6H20V8H4Z"/></svg>';
+
+    const moveButtonsHtml = allowOrganize
+      ? '<div class="note-move-btns">' +
+          '<button class="note-move-btn" data-move-up="' + d.id + '" title="Move up">▲</button>' +
+          '<button class="note-move-btn" data-move-down="' + d.id + '" title="Move down">▼</button>' +
+        '</div>'
+      : '';
+    const collectionObj = d.collectionId ? collections.find(c=>c.id===d.collectionId) : null;
+    const chipHtml = allowOrganize
+      ? '<button class="note-collection-chip" data-collection-chip="' + d.id + '" title="Move to a different collection">' +
+          (collectionObj ? '📁 ' + escapeHtml(collectionObj.name) : '📂 Unsorted') +
+        '</button>'
+      : '';
+
+    return '<div class="note-card' + (d.scrapped ? ' scrapped' : '') + '" data-id="' + d.id + '">' +
+      moveButtonsHtml +
+      '<button class="note-icon-btn note-preview-btn" data-preview="' + d.id + '" title="Preview lyrics"><svg viewBox="0 0 24 24"><path d="M12,5C7,5,2.73,8.11,1,12.5,2.73,16.89,7,20,12,20s9.27-3.11,11-7.5C21.27,8.11,17,5,12,5Zm0,12.5A5,5,0,1,1,17,12.5,5,5,0,0,1,12,17.5Zm0-8A3,3,0,1,0,15,12.5,3,3,0,0,0,12,9.5Z"/></svg></button>' +
+      '<button class="note-icon-btn note-scrap-btn" data-scrap-toggle="' + d.id + '" title="' + (d.scrapped ? 'Restore to your main list' : 'Scrap — set aside without deleting') + '">' + scrapIcon + '</button>' +
+      '<button class="note-icon-btn note-del-btn" data-del="' + d.id + '" title="Delete draft">×</button>' +
+      coverHtml +
+      '<div class="note-title">' + title + '</div>' +
+      '<div class="note-artist">' + artist + '</div>' +
+      '<div class="note-snippet">' + snippet + '</div>' +
+      chipHtml +
+      '<div class="' + timeClass + '" data-owner-date="' + d.id + '"' + timeTitle + '>' + (isOwner() ? fmtFullDate(d.created || d.updated) : timeAgo(d.created || d.updated)) + '</div>' +
+    '</div>';
+  }
+
+  // The Unsorted "section" always exists (it's just "drafts with no collectionId")
+  // and always carries the "+ New draft" card, so a fresh draft always has an
+  // obvious home even when several collections are in use.
+  function renderUnsortedSectionHtml(unsortedDrafts){
+    const cardsHtml = '<div class="note-card new-note" id="note-new"><div class="plus">+</div><div>New draft</div></div>' +
+      unsortedDrafts.map(d => renderNoteCardHtml(d, true)).join('');
+    return '<div class="collection-section" data-collection="unsorted">' +
+      '<div class="collection-header"><span class="collection-name">Unsorted</span><span class="collection-count">(' + unsortedDrafts.length + ')</span></div>' +
+      '<div class="note-grid">' + cardsHtml + '</div>' +
+    '</div>';
+  }
+
+  function renderCollectionSectionHtml(col, colDrafts){
+    const actionsHtml =
+      '<div class="collection-actions">' +
+        '<button class="collection-action-btn" data-col-up="' + col.id + '" title="Move section up">↑</button>' +
+        '<button class="collection-action-btn" data-col-down="' + col.id + '" title="Move section down">↓</button>' +
+        '<button class="collection-action-btn" data-col-rename="' + col.id + '" title="Rename">✎</button>' +
+        '<button class="collection-action-btn" data-col-delete="' + col.id + '" title="Delete collection (tracks move back to Unsorted)">×</button>' +
+      '</div>';
+    const bodyHtml = colDrafts.length
+      ? colDrafts.map(d => renderNoteCardHtml(d, true)).join('')
+      : '<div class="collection-empty">No tracks here yet — tap a card\'s 📂 tag to move one in.</div>';
+    return '<div class="collection-section" data-collection="' + col.id + '">' +
+      '<div class="collection-header"><span class="collection-name">' + escapeHtml(col.name) + '</span><span class="collection-count">(' + colDrafts.length + ')</span>' + actionsHtml + '</div>' +
+      '<div class="note-grid">' + bodyHtml + '</div>' +
+    '</div>';
+  }
+
   function renderMenu(){
     const grid = document.getElementById('note-grid');
-    const sorted = [...drafts].sort((a,b)=>b.updated-a.updated);
+    const titleEl = document.getElementById('menu-title');
+    const subtitleEl = document.getElementById('menu-subtitle');
+    const toggleRow = document.getElementById('scrapped-toggle-row');
+    const toggleLink = document.getElementById('scrapped-toggle-link');
+    const newColBtn = document.getElementById('new-collection-btn');
 
-    let html = '<div class="note-card new-note" id="note-new"><div class="plus">+</div><div>New draft</div></div>';
+    const scrappedDrafts = drafts.filter(d=>d.scrapped);
+    const activeDrafts = drafts.filter(d=>!d.scrapped);
 
-    if(sorted.length === 0){
-      html += '<div class="menu-empty">No drafts yet — the note above starts your first one.</div>';
+    if(titleEl) titleEl.textContent = showingScrapped ? 'Scrapped drafts' : 'Your drafts';
+    if(subtitleEl) subtitleEl.textContent = showingScrapped
+      ? 'Set aside, not deleted. Restore one to bring it back to your main list, or delete it for good.'
+      : 'Pick a note to keep writing, or start something new. Group tracks into a collection below if you like — totally optional.';
+    if(newColBtn) newColBtn.style.display = showingScrapped ? 'none' : '';
+
+    grid.classList.remove('grouped');
+
+    if(showingScrapped){
+      const sorted = sortDraftsForSection(scrappedDrafts);
+      grid.innerHTML = sorted.length
+        ? sorted.map(d => renderNoteCardHtml(d, false)).join('')
+        : '<div class="menu-empty">Nothing scrapped right now.</div>';
+    } else if(collections.length === 0){
+      // no collections created yet -- same flat grid as before, unaffected by this feature
+      const sorted = sortDraftsForSection(activeDrafts);
+      let html = '<div class="note-card new-note" id="note-new"><div class="plus">+</div><div>New draft</div></div>';
+      html += sorted.length
+        ? sorted.map(d => renderNoteCardHtml(d, true)).join('')
+        : '<div class="menu-empty">No drafts yet — the note above starts your first one.</div>';
+      grid.innerHTML = html;
     } else {
-      html += sorted.map(d => {
-        const title = escapeHtml(d.title || 'Untitled');
-        const artist = escapeHtml(d.artist || 'No artist yet');
-        const snippet = escapeHtml(firstLyricSnippet(d.lyrics)) || '<em style="opacity:.6">Nothing written yet…</em>';
-        const coverHtml = d.cover ? '<img class="note-cover-thumb" src="' + d.cover + '" alt="">' : '';
-        const timeClass = isOwner() ? 'note-time owner-editable' : 'note-time';
-        const timeTitle = isOwner() ? ' title="Owner: click to edit creation date"' : '';
-        return '<div class="note-card" data-id="' + d.id + '">' +
-          '<button class="note-icon-btn note-preview-btn" data-preview="' + d.id + '" title="Preview lyrics"><svg viewBox="0 0 24 24"><path d="M12,5C7,5,2.73,8.11,1,12.5,2.73,16.89,7,20,12,20s9.27-3.11,11-7.5C21.27,8.11,17,5,12,5Zm0,12.5A5,5,0,1,1,17,12.5,5,5,0,0,1,12,17.5Zm0-8A3,3,0,1,0,15,12.5,3,3,0,0,0,12,9.5Z"/></svg></button>' +
-          '<button class="note-icon-btn note-del-btn" data-del="' + d.id + '" title="Delete draft">×</button>' +
-          coverHtml +
-          '<div class="note-title">' + title + '</div>' +
-          '<div class="note-artist">' + artist + '</div>' +
-          '<div class="note-snippet">' + snippet + '</div>' +
-          '<div class="' + timeClass + '" data-owner-date="' + d.id + '"' + timeTitle + '>' + (isOwner() ? fmtFullDate(d.created || d.updated) : timeAgo(d.created || d.updated)) + '</div>' +
-        '</div>';
-      }).join('');
+      grid.classList.add('grouped');
+      const sortedCollections = collections.slice().sort((a,b)=>(a.order||0)-(b.order||0));
+      const unsortedDrafts = sortDraftsForSection(activeDrafts.filter(d=>!d.collectionId));
+      let html = renderUnsortedSectionHtml(unsortedDrafts);
+      sortedCollections.forEach(col=>{
+        const colDrafts = sortDraftsForSection(activeDrafts.filter(d=>d.collectionId===col.id));
+        html += renderCollectionSectionHtml(col, colDrafts);
+      });
+      grid.innerHTML = html;
     }
 
-    grid.innerHTML = html;
-
-    document.getElementById('note-new').addEventListener('click', ()=> newDraft());
+    const newBtn = document.getElementById('note-new');
+    if(newBtn) newBtn.addEventListener('click', ()=> newDraft());
     grid.querySelectorAll('.note-card[data-id]').forEach(card=>{
       card.addEventListener('click', (e)=>{
         if(e.target.closest('[data-owner-date]') && isOwner()) return; // handled separately
+        if(e.target.closest('.note-collection-chip, .note-move-btn')) return; // handled separately, and shouldn't open the draft
         openDraftWithAnimation(card.dataset.id, card);
       });
     });
@@ -2902,6 +3179,33 @@ Everything saves automatically, right in this file — nothing leaves your brows
         openPreview(el.dataset.preview);
       });
     });
+    grid.querySelectorAll('[data-scrap-toggle]').forEach(el=>{
+      el.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        setDraftScrapped(el.dataset.scrapToggle); // toggle
+      });
+    });
+    grid.querySelectorAll('[data-move-up]').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); moveDraftInSection(el.dataset.moveUp, -1); });
+    });
+    grid.querySelectorAll('[data-move-down]').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); moveDraftInSection(el.dataset.moveDown, 1); });
+    });
+    grid.querySelectorAll('[data-collection-chip]').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); openCollectionPicker(el, el.dataset.collectionChip); });
+    });
+    grid.querySelectorAll('[data-col-up]').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); moveCollection(el.dataset.colUp, -1); });
+    });
+    grid.querySelectorAll('[data-col-down]').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); moveCollection(el.dataset.colDown, 1); });
+    });
+    grid.querySelectorAll('[data-col-rename]').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); renameCollection(el.dataset.colRename); });
+    });
+    grid.querySelectorAll('[data-col-delete]').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); deleteCollection(el.dataset.colDelete); });
+    });
     if(isOwner()){
       grid.querySelectorAll('[data-owner-date]').forEach(el=>{
         el.addEventListener('click', (e)=>{
@@ -2910,6 +3214,35 @@ Everything saves automatically, right in this file — nothing leaves your brows
         });
       });
     }
+
+    if(toggleRow && toggleLink){
+      if(showingScrapped || scrappedDrafts.length > 0){
+        toggleRow.style.display = 'block';
+        toggleLink.textContent = showingScrapped
+          ? '← Back to your drafts'
+          : ('🗑 ' + scrappedDrafts.length + ' scrapped draft' + (scrappedDrafts.length === 1 ? '' : 's') + ' — view');
+      } else {
+        toggleRow.style.display = 'none';
+      }
+    }
+  }
+
+  // Sets (or toggles, when `scrapped` is left undefined) a draft's scrapped state.
+  // Scrapping just sets it aside — it's filtered out of the sidebar and the main
+  // note board, but the draft itself is left completely intact and is never deleted.
+  function setDraftScrapped(id, scrapped){
+    const d = drafts.find(x=>x.id===id);
+    if(!d) return;
+    d.scrapped = (scrapped === undefined) ? !d.scrapped : scrapped;
+    d.updated = Date.now();
+    persist();
+    // if the draft that's open in the editor just got scrapped, drop back to the
+    // menu rather than leaving the person in an editor for a draft that no
+    // longer shows up in the sidebar
+    if(activeId === id && d.scrapped && screen === 'editor'){
+      screen = 'menu';
+    }
+    renderAll();
   }
 
   // Owner-only: override a draft's "created" timestamp to a custom date/time.
@@ -3015,6 +3348,15 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
     renderCoverThumb(d);
     renderAudioBar(d);
+
+    const scrapBtn = document.getElementById('scrap-toggle-btn');
+    if(scrapBtn){
+      scrapBtn.textContent = d.scrapped ? '↩ Restore' : '🗑 Scrap';
+      scrapBtn.title = d.scrapped
+        ? 'Restore this draft to your main list'
+        : 'Set aside without deleting — kept out of the main list, but never lost';
+      scrapBtn.classList.toggle('active', !!d.scrapped);
+    }
 
     const syncBtn = document.getElementById('sync-mode-btn');
     const hasAudioForThisDraft = sessionAudio.draftId === d.id;
@@ -4073,6 +4415,17 @@ Everything saves automatically, right in this file — nothing leaves your brows
   document.getElementById('back-to-menu').addEventListener('click', showMenu);
   document.getElementById('search-input').addEventListener('input', renderList);
 
+  document.getElementById('scrap-toggle-btn').addEventListener('click', ()=>{
+    const d = getActive();
+    if(!d) return;
+    setDraftScrapped(d.id); // toggle
+  });
+  document.getElementById('scrapped-toggle-link').addEventListener('click', ()=>{
+    showingScrapped = !showingScrapped;
+    renderMenu();
+  });
+  document.getElementById('new-collection-btn').addEventListener('click', createCollection);
+
   document.querySelectorAll('.mode-btn').forEach(b=>{
     b.addEventListener('click', ()=>{
       mode = b.dataset.mode;
@@ -4138,6 +4491,178 @@ Everything saves automatically, right in this file — nothing leaves your brows
       updateGutter();
       scheduleSave();
     });
+  });
+
+  // ---------- playlist sectioning (optional EP/album-style grouping, plus manual reordering) ----------
+  const COLLECTIONS_KEY = 'manuscript_collections_v1';
+  let collections = [];
+  try{
+    collections = JSON.parse(safeLS.getItem(COLLECTIONS_KEY) || '[]');
+    if(!Array.isArray(collections)) collections = [];
+  }catch(e){ collections = []; }
+
+  function saveCollections(skipCloudPush){
+    safeLS.setItem(COLLECTIONS_KEY, JSON.stringify(collections));
+    if(!skipCloudPush && account.signedIn) pushSettingsToCloud();
+  }
+
+  function uidCollection(){ return 'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6); }
+
+  // Sorts a list of drafts belonging to one "section" (a collection, or the
+  // Unsorted pile). If nobody's manually reordered anything in that section yet,
+  // falls back to the normal most-recently-updated-first order. The moment any
+  // draft in the section has a manualOrder, sorting switches to manual mode for
+  // the whole section — drafts without a manualOrder (e.g. one just moved in)
+  // sort to the end, most-recent first, until they're explicitly repositioned.
+  function sortDraftsForSection(list){
+    const anyManual = list.some(d => d.manualOrder !== undefined);
+    if(!anyManual) return list.slice().sort((a,b)=>b.updated-a.updated);
+    return list.slice().sort((a,b)=>{
+      const ao = a.manualOrder !== undefined ? a.manualOrder : Infinity;
+      const bo = b.manualOrder !== undefined ? b.manualOrder : Infinity;
+      if(ao !== bo) return ao - bo;
+      return b.updated - a.updated;
+    });
+  }
+
+  // Swaps a draft with its neighbor within its own section (collection, or
+  // Unsorted) and locks in manual ordering for every draft in that section.
+  function moveDraftInSection(id, dir){
+    const d = drafts.find(x=>x.id===id);
+    if(!d) return;
+    const sectionKey = d.collectionId || null;
+    const sectionDrafts = drafts.filter(x=>!x.scrapped && (x.collectionId||null) === sectionKey);
+    const ordered = sortDraftsForSection(sectionDrafts);
+    const idx = ordered.findIndex(x=>x.id===id);
+    const newIdx = idx + dir;
+    if(idx === -1 || newIdx < 0 || newIdx >= ordered.length) return;
+    const tmp = ordered[idx];
+    ordered[idx] = ordered[newIdx];
+    ordered[newIdx] = tmp;
+    ordered.forEach((x,i)=>{ x.manualOrder = i; });
+    persist();
+    renderMenu();
+  }
+
+  // Moves a draft into a different collection (or back to Unsorted when
+  // collectionId is null/omitted), placing it at the end of that section.
+  function moveDraftToCollection(id, collectionId){
+    const d = drafts.find(x=>x.id===id);
+    if(!d) return;
+    d.collectionId = collectionId || null;
+    const sectionKey = collectionId || null;
+    const sectionDrafts = drafts.filter(x=>!x.scrapped && x.id!==id && (x.collectionId||null) === sectionKey);
+    const maxOrder = sectionDrafts.reduce((m,x)=> x.manualOrder !== undefined ? Math.max(m,x.manualOrder) : m, -1);
+    d.manualOrder = maxOrder + 1;
+    d.updated = Date.now();
+    persist();
+    renderAll();
+  }
+
+  function createCollection(){
+    const name = prompt('Name this collection (e.g. "Heat Mirage EP", "Summer demos"):');
+    if(!name || !name.trim()) return;
+    collections.push({ id: uidCollection(), name: name.trim(), order: collections.length, created: Date.now() });
+    saveCollections();
+    renderAll();
+  }
+
+  function renameCollection(id){
+    const col = collections.find(c=>c.id===id);
+    if(!col) return;
+    const name = prompt('Rename collection:', col.name);
+    if(!name || !name.trim()) return;
+    col.name = name.trim();
+    saveCollections();
+    renderMenu();
+  }
+
+  function deleteCollection(id){
+    const col = collections.find(c=>c.id===id);
+    if(!col) return;
+    const memberCount = drafts.filter(d=>d.collectionId===id).length;
+    const msg = memberCount
+      ? 'Delete "' + col.name + '"? Its ' + memberCount + ' track' + (memberCount===1?'':'s') + ' will move back to Unsorted — nothing gets deleted.'
+      : 'Delete "' + col.name + '"?';
+    if(!confirm(msg)) return;
+    collections = collections.filter(c=>c.id!==id);
+    drafts.forEach(d=>{ if(d.collectionId === id) d.collectionId = null; });
+    saveCollections();
+    persist();
+    renderAll();
+  }
+
+  function moveCollection(id, dir){
+    const sorted = collections.slice().sort((a,b)=>(a.order||0)-(b.order||0));
+    const idx = sorted.findIndex(c=>c.id===id);
+    const newIdx = idx + dir;
+    if(idx === -1 || newIdx < 0 || newIdx >= sorted.length) return;
+    const tmp = sorted[idx];
+    sorted[idx] = sorted[newIdx];
+    sorted[newIdx] = tmp;
+    sorted.forEach((c,i)=>{ c.order = i; });
+    saveCollections();
+    renderMenu();
+  }
+
+  // Small floating dropdown, opened from a note card's collection chip, for
+  // jumping the draft straight into a different collection (or back to Unsorted)
+  // without needing to drag anything.
+  let closeCollectionPickerFn = null;
+  function closeCollectionPicker(){
+    if(closeCollectionPickerFn){ closeCollectionPickerFn(); closeCollectionPickerFn = null; }
+  }
+  function openCollectionPicker(anchorEl, draftId){
+    closeCollectionPicker();
+    const d = drafts.find(x=>x.id===draftId);
+    if(!d) return;
+
+    const menu = document.createElement('div');
+    menu.className = 'collection-picker-menu';
+    const rect = anchorEl.getBoundingClientRect();
+    menu.style.left = Math.min(rect.left, window.innerWidth - 210) + 'px';
+    menu.style.top = (rect.bottom + 6) + 'px';
+
+    let itemsHtml = '<button class="collection-picker-item' + (!d.collectionId ? ' current' : '') + '" data-pick="">📂 Unsorted</button>';
+    collections.slice().sort((a,b)=>(a.order||0)-(b.order||0)).forEach(c=>{
+      itemsHtml += '<button class="collection-picker-item' + (d.collectionId===c.id ? ' current' : '') + '" data-pick="' + c.id + '">📁 ' + escapeHtml(c.name) + '</button>';
+    });
+    itemsHtml += '<button class="collection-picker-item collection-picker-new" data-pick-new="1">＋ New collection…</button>';
+    menu.innerHTML = itemsHtml;
+    document.body.appendChild(menu);
+
+    menu.querySelectorAll('[data-pick]').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        moveDraftToCollection(draftId, btn.dataset.pick || null);
+        closeCollectionPicker();
+      });
+    });
+    const newBtn = menu.querySelector('[data-pick-new]');
+    if(newBtn) newBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      closeCollectionPicker();
+      const name = prompt('Name this collection (e.g. "Heat Mirage EP", "Summer demos"):');
+      if(!name || !name.trim()) return;
+      const col = { id: uidCollection(), name: name.trim(), order: collections.length, created: Date.now() };
+      collections.push(col);
+      saveCollections();
+      moveDraftToCollection(draftId, col.id);
+    });
+
+    // clicking anywhere outside the menu closes it; the timeout keeps the click
+    // that opened it from immediately closing it again
+    const onDocClick = (e)=>{
+      if(!menu.contains(e.target)) closeCollectionPicker();
+    };
+    setTimeout(()=> document.addEventListener('click', onDocClick), 0);
+    closeCollectionPickerFn = ()=>{
+      document.removeEventListener('click', onDocClick);
+      menu.remove();
+    };
+  }
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape') closeCollectionPicker();
   });
 
   // ---------- correction exceptions (protect names/words from auto-correction) ----------
