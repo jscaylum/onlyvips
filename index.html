@@ -22,7 +22,9 @@
     --paper: #1b1916;
     --rule-line: #2b2822;
     --margin-red: #4a4438;
-    --radius: 2px;
+    --radius: 10px;
+    --radius-lg: 20px;
+    --shadow-soft: 0 12px 34px rgba(0,0,0,0.32);
     --serif: 'Anton', 'Arial Narrow', sans-serif;
     --hand: 'Kalam', cursive;
     --sans: 'Inter', -apple-system, sans-serif;
@@ -77,7 +79,7 @@
   #sidebar{
     width: 280px;
     min-width: 280px;
-    background: var(--bg-raised);
+    background: linear-gradient(180deg, var(--bg-raised), var(--bg));
     border-right: 1px solid var(--line);
     display:flex;
     flex-direction:column;
@@ -257,13 +259,15 @@
 
   .mode-toggle{
     display:flex;
+    gap: 2px;
+    padding: 3px;
+    background: rgba(255,255,255,0.04);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    overflow:hidden;
+    border-radius: 12px;
     flex-shrink:0;
   }
   .mode-btn{
-    background: var(--bg);
+    background: transparent;
     border:none;
     color: var(--ink-faint);
     font-family: var(--mono);
@@ -271,11 +275,13 @@
     letter-spacing: 0.8px;
     text-transform:uppercase;
     padding: 8px 16px;
+    border-radius: 9px;
     cursor:pointer;
-    transition: all .15s ease;
+    transition: background .18s ease, color .18s ease, transform .1s ease;
   }
-  .mode-btn.active{ background: var(--gold); color: var(--paper); font-weight:600; }
-  .mode-btn:not(.active):hover{ color: var(--ink); background: var(--bg-card); }
+  .mode-btn.active{ background: var(--gold); color: var(--paper); font-weight:600; box-shadow: 0 3px 10px rgba(0,0,0,0.3); }
+  .mode-btn:not(.active):hover{ color: var(--ink); background: rgba(255,255,255,0.05); }
+  .mode-btn:active{ transform: scale(0.94); }
 
   #save-indicator{
     font-family: var(--mono);
@@ -860,12 +866,12 @@
     position:relative;
     background: var(--bg-card);
     border: 1px solid var(--line);
-    border-radius: 2px;
+    border-radius: 14px;
     padding: 22px 20px 18px;
     min-height: 150px;
     cursor:pointer;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    box-shadow: var(--shadow-soft);
+    transition: transform .18s cubic-bezier(.25,.8,.4,1), box-shadow .18s ease, border-color .18s ease;
     display:flex;
     flex-direction:column;
   }
@@ -882,12 +888,12 @@
   .note-card::after{
     content:'';
     position:absolute;
-    right:0; bottom:0;
+    right:2px; bottom:2px;
     width:0; height:0;
     border-style: solid;
-    border-width: 0 0 18px 18px;
+    border-width: 0 0 16px 16px;
     border-color: transparent transparent var(--bg) transparent;
-    opacity: .55;
+    opacity: .5;
   }
   .note-card:nth-child(3n+1){ transform: rotate(-0.6deg); }
   .note-card:nth-child(3n+2){ transform: rotate(0.5deg); }
@@ -937,7 +943,7 @@
     width: 100%;
     height: 90px;
     object-fit: cover;
-    border-radius: 2px;
+    border-radius: 8px;
     margin-bottom: 12px;
     flex-shrink:0;
   }
@@ -1011,7 +1017,7 @@
     z-index: 999;
     background: var(--bg-card);
     border: 1px solid var(--gold-dim);
-    border-radius: 2px;
+    border-radius: 14px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.5);
     pointer-events:none;
     overflow:hidden;
@@ -1176,7 +1182,9 @@
     z-index: 700;
     background: linear-gradient(180deg, var(--bg-raised), var(--bg));
     border: 1px solid var(--line);
-    border-radius: 6px;
+    border-radius: 14px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     box-shadow: 0 16px 40px rgba(0,0,0,0.5);
     padding: 6px;
     min-width: 190px;
@@ -1194,7 +1202,7 @@
     font-family: var(--sans);
     font-size: 12.5px;
     padding: 8px 10px;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor:pointer;
   }
   .collection-picker-item:hover{ background: rgba(236,228,211,0.07); color: var(--ink); }
@@ -1219,14 +1227,14 @@
   .preview-backdrop{
     position:absolute; inset:0;
     background: rgba(8,8,12,0.72);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
   .preview-panel{
     position:relative;
     background: linear-gradient(180deg, var(--bg-raised), var(--bg));
     border: 1px solid var(--line);
-    border-radius: 6px;
+    border-radius: var(--radius-lg);
     width:100%;
     max-width: 620px;
     max-height: 78vh;
@@ -1471,7 +1479,7 @@
     position:relative;
     width: 42px; height:42px;
     flex-shrink:0;
-    border-radius: 4px;
+    border-radius: 10px;
     border: 1.5px dashed var(--line);
     display:flex; align-items:center; justify-content:center;
     cursor:pointer;
@@ -1762,6 +1770,24 @@
     background:none; border:none; color:var(--ink-faint);
     cursor:pointer; font-size:16px; line-height:1;
   }
+  #cloud-sync-warning{
+    display:none;
+    align-items:center;
+    gap: 10px;
+    padding: 9px 24px;
+    background: rgba(193,88,74,0.14);
+    border-bottom: 1px solid var(--danger);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 12.5px;
+  }
+  #cloud-sync-warning.show{ display:flex; }
+  #cloud-sync-warning b{ color: var(--danger); }
+  #cloud-sync-warning .sw-dismiss{
+    margin-left:auto;
+    background:none; border:none; color:var(--ink-faint);
+    cursor:pointer; font-size:16px; line-height:1;
+  }
 
   /* ---------- account / sign-in ---------- */
   .account-box{
@@ -1814,7 +1840,7 @@
     color: var(--paper);
     background: var(--gold);
     padding: 2px 6px;
-    border-radius: 3px;
+    border-radius: 6px;
     flex-shrink:0;
   }
   .account-signout{
@@ -1879,14 +1905,14 @@
   .admin-backdrop{
     position:absolute; inset:0;
     background: rgba(8,8,12,0.75);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
   .admin-panel{
     position:relative;
     background: linear-gradient(180deg, var(--bg-raised), var(--bg));
     border: 1px solid var(--gold-dim);
-    border-radius: 6px;
+    border-radius: var(--radius-lg);
     width:100%;
     max-width: 760px;
     max-height: 86vh;
@@ -1924,7 +1950,7 @@
     color: var(--paper);
     background: var(--gold);
     padding: 2px 7px;
-    border-radius: 3px;
+    border-radius: 6px;
   }
   .admin-sub{
     font-family: var(--mono);
@@ -2085,14 +2111,14 @@
   .help-backdrop{
     position:absolute; inset:0;
     background: rgba(8,8,12,0.72);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
   }
   .help-panel{
     position:relative;
     background: linear-gradient(180deg, var(--bg-raised), var(--bg));
     border: 1px solid var(--line);
-    border-radius: 6px;
+    border-radius: var(--radius-lg);
     width:100%;
     max-width: 660px;
     max-height: 82vh;
@@ -2205,6 +2231,30 @@
     display:none;
     background:none; border:none; color:var(--ink); font-size:20px; cursor:pointer;
     width:32px; height:32px; align-items:center; justify-content:center; flex-shrink:0;
+  }
+
+  /* ---------- keyboard focus + tactile press feedback ----------
+     Several elements set outline:none (text inputs, close buttons) with no
+     replacement focus indicator, so keyboard navigation had no visible focus
+     state at all. This restores one everywhere, styled as a clean accent ring
+     rather than the mismatched browser default. */
+  :focus-visible{
+    outline: 2px solid var(--gold-dim);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  #title-input:focus-visible, #artist-input:focus-visible, #lyrics-input:focus-visible,
+  .search-box input:focus-visible, #helper-word-input:focus-visible, #lock-input:focus-visible{
+    outline: 2px solid var(--gold-dim);
+    outline-offset: 2px;
+  }
+  button:focus-visible{ outline-offset: 3px; }
+
+  button:active, .note-icon-btn:active, .collection-action-btn:active, .note-move-btn:active,
+  .topbar-btn:active, .footer-btn:active, .help-btn:active, .account-btn:active,
+  .sync-ctrl-btn:active, .fix-btn:active, .admin-btn:active, .read-style-btn:active,
+  .scrapped-toggle-link:active, .note-collection-chip:active{
+    transform: scale(0.94);
   }
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -2321,6 +2371,10 @@
     <div id="storage-warning">
       <span>⚠ <b>Your browser is blocking local saving</b> — drafts will disappear when you refresh. Sign in above to save to your account instead, or check your browser's cookie/storage settings.</span>
       <button class="sw-dismiss" id="storage-warning-dismiss" title="Dismiss">×</button>
+    </div>
+    <div id="cloud-sync-warning">
+      <span></span>
+      <button class="sw-dismiss" id="cloud-sync-warning-dismiss" title="Dismiss">×</button>
     </div>
     <div id="topbar" style="display:none;">
       <button id="menu-btn">☰</button>
@@ -2874,6 +2928,10 @@ Everything saves automatically, right in this file — nothing leaves your brows
   document.getElementById('storage-warning-dismiss').addEventListener('click', ()=>{
     storageWarningDismissed = true;
     updateStorageWarning();
+  });
+  document.getElementById('cloud-sync-warning-dismiss').addEventListener('click', ()=>{
+    cloudSyncWarningDismissed = true;
+    clearCloudSyncWarning();
   });
 
   function showSaved(){
