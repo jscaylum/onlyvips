@@ -2393,7 +2393,7 @@
       <div class="mode-toggle">
         <button class="mode-btn active" data-mode="edit">Write</button>
         <button class="mode-btn" data-mode="sync" id="sync-mode-btn" style="display:none;">Sync</button>
-        <button class="mode-btn" data-mode="read">Read</button>
+        <button class="mode-btn" data-mode="read">Emulation</button>
       </div>
       <div id="save-indicator">saved</div>
     </div>
@@ -3756,7 +3756,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
     const allDone = wordSyncMode ? (wordSyncCursorKey === null && words.length > 0) : (syncCursorIdx === null && indices.length > 0);
     if(allDone){
-      html += '<div class="sync-tp-done">✓ Every ' + (wordSyncMode ? 'word' : 'line') + ' is synced. Play it back in Read mode to check it, or tap any ' + (wordSyncMode ? 'word' : 'line') + ' above to re-sync it.</div>';
+      html += '<div class="sync-tp-done">✓ Every ' + (wordSyncMode ? 'word' : 'line') + ' is synced. Play it back in Emulation mode to check it, or tap any ' + (wordSyncMode ? 'word' : 'line') + ' above to re-sync it.</div>';
     }
     html += '</div>';
 
