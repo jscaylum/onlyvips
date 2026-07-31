@@ -139,6 +139,27 @@
   .search-box input:focus{ border-color: var(--ink-faint); }
   .search-box input::placeholder{ color: var(--ink-faint); }
 
+  .sort-row{
+    display:flex;
+    gap:6px;
+    margin: 0 16px 10px;
+  }
+  .sort-chip{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    color: var(--ink-faint);
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 4px 9px;
+    border-radius: var(--radius);
+    cursor:pointer;
+    transition: all .12s ease;
+  }
+  .sort-chip:hover{ border-color: var(--gold-dim); color: var(--gold); }
+  .sort-chip.active{ background: var(--gold); color: var(--paper); border-color: var(--gold); }
+
   #draft-list{
     flex:1;
     overflow-y:auto;
@@ -2353,6 +2374,12 @@
       <input type="text" id="search-input" placeholder="Search drafts…">
     </div>
 
+    <div class="sort-row" id="sort-row">
+      <button class="sort-chip" data-sort="recent" title="Sort by most recently updated">Recent</button>
+      <button class="sort-chip" data-sort="title" title="Sort by title, A–Z">Title</button>
+      <button class="sort-chip" data-sort="artist" title="Sort by artist name, A–Z">Artist</button>
+    </div>
+
     <div id="draft-list"></div>
 
     <div class="sidebar-footer" style="flex-direction:column; gap:8px;">
@@ -2483,6 +2510,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   const OWNER_EMAIL = 'jscaylum@gmail.com';
   const BANNED_KEY = 'manuscript_banned_emails_v1';
   const CUSTOM_THEME_KEY = 'manuscript_custom_theme_v1';
+  const SIDEBAR_SORT_KEY = 'manuscript_sidebar_sort_v1';
 
   // Some sandboxed/preview environments block localStorage entirely (reads/writes throw).
   // This wrapper falls back to an in-memory store so the UI never silently breaks —
@@ -2503,6 +2531,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
       catch(e){ storageAvailable = false; delete memoryStore[key]; }
     }
   };
+
+  let sidebarSortMode = safeLS.getItem(SIDEBAR_SORT_KEY) || 'recent';
 
   // Detect up front (not just on first failed write) so we can warn immediately.
   function detectStorage(){
@@ -3062,10 +3092,39 @@ Everything saves automatically, right in this file — nothing leaves your brows
     return t.split(/\s+/).filter(Boolean).length;
   }
 
+  function sortDraftsForList(list){
+    if(sidebarSortMode === 'title'){
+      return list.slice().sort((a,b)=>{
+        const at = (a.title||'').toLowerCase(), bt = (b.title||'').toLowerCase();
+        if(!at && !bt) return b.updated-a.updated;
+        if(!at) return 1;
+        if(!bt) return -1;
+        return at.localeCompare(bt) || (b.updated-a.updated);
+      });
+    }
+    if(sidebarSortMode === 'artist'){
+      return list.slice().sort((a,b)=>{
+        const aa = (a.artist||'').toLowerCase(), ba = (b.artist||'').toLowerCase();
+        if(!aa && !ba) return b.updated-a.updated;
+        if(!aa) return 1;
+        if(!ba) return -1;
+        return aa.localeCompare(ba) || (b.updated-a.updated);
+      });
+    }
+    return list.slice().sort((a,b)=>b.updated-a.updated);
+  }
+
+  function renderSortRow(){
+    document.querySelectorAll('#sort-row .sort-chip').forEach(el=>{
+      el.classList.toggle('active', el.dataset.sort === sidebarSortMode);
+    });
+  }
+
   function renderList(){
     const list = document.getElementById('draft-list');
     const query = document.getElementById('search-input').value.trim().toLowerCase();
-    const sorted = drafts.filter(d=>!d.scrapped).sort((a,b)=>b.updated-a.updated);
+    renderSortRow();
+    const sorted = sortDraftsForList(drafts.filter(d=>!d.scrapped));
     const filtered = query
       ? sorted.filter(d => (d.title||'').toLowerCase().includes(query) || (d.artist||'').toLowerCase().includes(query) || (d.lyrics||'').toLowerCase().includes(query))
       : sorted;
@@ -4472,6 +4531,14 @@ Everything saves automatically, right in this file — nothing leaves your brows
   document.getElementById('new-draft-btn').addEventListener('click', newDraft);
   document.getElementById('back-to-menu').addEventListener('click', showMenu);
   document.getElementById('search-input').addEventListener('input', renderList);
+
+  document.getElementById('sort-row').addEventListener('click', (e)=>{
+    const btn = e.target.closest('.sort-chip');
+    if(!btn) return;
+    sidebarSortMode = btn.dataset.sort;
+    safeLS.setItem(SIDEBAR_SORT_KEY, sidebarSortMode);
+    renderList();
+  });
 
   document.getElementById('scrap-toggle-btn').addEventListener('click', ()=>{
     const d = getActive();
