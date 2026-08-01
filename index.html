@@ -1282,6 +1282,30 @@
     padding-bottom: 10px;
     border-bottom: 1px dashed var(--line);
   }
+  .collection-header[draggable="true"]{ cursor: grab; }
+  .collection-header[draggable="true"]:active{ cursor: grabbing; }
+  .collection-drag-handle{
+    color: var(--ink-faint);
+    font-size: 14px;
+    line-height:1;
+    user-select:none;
+  }
+  .collection-type-badge{
+    font-family: var(--mono);
+    font-size: 9.5px;
+    font-weight:700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 8px;
+    border: 1px solid var(--gold-dim);
+    color: var(--gold);
+    background: rgba(244,238,224,0.06);
+  }
+  .collection-section.dragging{ opacity: 0.4; }
+  .note-card.dragging{ opacity: 0.35; }
+  .note-card[draggable="true"]{ cursor: grab; }
+  .note-card[draggable="true"]:active{ cursor: grabbing; }
   .collection-name{
     font-family: var(--serif);
     font-weight:700;
@@ -1403,6 +1427,92 @@
     padding-top: 10px;
     color: var(--teal);
   }
+
+  /* ---------- collection create/rename modal (name + EP/album/etc type) ---------- */
+  #collection-modal{
+    position:fixed; inset:0;
+    z-index: 900;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding: 20px;
+  }
+  #collection-modal.open{ display:flex; }
+  .collection-modal-backdrop{
+    position:absolute; inset:0;
+    background: rgba(8,8,12,0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .collection-modal-panel{
+    position:relative; z-index:1;
+    width:100%; max-width: 360px;
+    background: linear-gradient(180deg, var(--bg-raised), var(--bg));
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+  .collection-modal-title{
+    font-family: var(--serif);
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .collection-modal-label{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--ink-faint);
+    margin-bottom: 6px;
+    display:block;
+  }
+  #collection-name-input{
+    width:100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 11px;
+    font-family: var(--sans);
+    font-size: 14px;
+    color: var(--ink);
+    outline:none;
+    margin-bottom: 16px;
+  }
+  #collection-name-input:focus{ border-color: var(--gold-dim); }
+  .collection-type-row{
+    display:flex; flex-wrap:wrap; gap:6px;
+    margin-bottom: 22px;
+  }
+  .collection-type-chip{
+    background:none;
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 11px;
+    border-radius: 14px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .collection-type-chip:hover{ border-color: var(--gold-dim); color: var(--gold); }
+  .collection-type-chip.active{ border-color: var(--gold); color: var(--gold); background: rgba(244,238,224,0.08); }
+  .collection-modal-actions{ display:flex; justify-content:flex-end; gap:8px; }
+  .collection-modal-cancel, .collection-modal-save{
+    font-family: var(--sans);
+    font-weight:600;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 20px;
+    cursor:pointer;
+    border: 1px solid var(--line);
+    background:none;
+    color: var(--ink-dim);
+  }
+  .collection-modal-cancel:hover{ color: var(--ink); }
+  .collection-modal-save{ background: var(--gold); color: var(--bg-card); border-color: var(--gold); }
+  .collection-modal-save:hover{ opacity:0.9; }
 
   /* ---------- lyrics preview modal (Spotify/Apple Music style) ---------- */
   #preview-modal{
@@ -2511,6 +2621,27 @@
   </div>
 </div>
 
+<div id="collection-modal">
+  <div class="collection-modal-backdrop" id="collection-modal-backdrop"></div>
+  <div class="collection-modal-panel">
+    <div class="collection-modal-title" id="collection-modal-title">New collection</div>
+    <label class="collection-modal-label" for="collection-name-input">Name</label>
+    <input type="text" id="collection-name-input" placeholder='e.g. "Heat Mirage EP", "Summer demos"' maxlength="80">
+    <label class="collection-modal-label">Type</label>
+    <div class="collection-type-row">
+      <button class="collection-type-chip" data-type="playlist">Playlist</button>
+      <button class="collection-type-chip" data-type="ep">EP</button>
+      <button class="collection-type-chip" data-type="album">Album</button>
+      <button class="collection-type-chip" data-type="mixtape">Mixtape</button>
+      <button class="collection-type-chip" data-type="singles">Singles</button>
+    </div>
+    <div class="collection-modal-actions">
+      <button class="collection-modal-cancel" id="collection-modal-cancel-btn">Cancel</button>
+      <button class="collection-modal-save" id="collection-modal-save-btn">Save</button>
+    </div>
+  </div>
+</div>
+
 <div id="admin-modal">
   <div class="admin-backdrop" id="admin-backdrop"></div>
   <div class="admin-panel">
@@ -3419,7 +3550,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
         '</button>'
       : '';
 
-    return '<div class="note-card' + (d.scrapped ? ' scrapped' : '') + '" data-id="' + d.id + '">' +
+    return '<div class="note-card' + (d.scrapped ? ' scrapped' : '') + '" data-id="' + d.id + '" draggable="' + (allowOrganize ? 'true' : 'false') + '">' +
       moveButtonsHtml +
       '<button class="note-icon-btn note-preview-btn" data-preview="' + d.id + '" title="Preview lyrics"><svg viewBox="0 0 24 24"><path d="M12,5C7,5,2.73,8.11,1,12.5,2.73,16.89,7,20,12,20s9.27-3.11,11-7.5C21.27,8.11,17,5,12,5Zm0,12.5A5,5,0,1,1,17,12.5,5,5,0,0,1,12,17.5Zm0-8A3,3,0,1,0,15,12.5,3,3,0,0,0,12,9.5Z"/></svg></button>' +
       '<button class="note-icon-btn note-scrap-btn" data-scrap-toggle="' + d.id + '" title="' + (d.scrapped ? 'Restore to your main list' : 'Scrap — set aside without deleting') + '">' + scrapIcon + '</button>' +
@@ -3455,9 +3586,14 @@ Everything saves automatically, right in this file — nothing leaves your brows
       '</div>';
     const bodyHtml = colDrafts.length
       ? colDrafts.map(d => renderNoteCardHtml(d, true)).join('')
-      : '<div class="collection-empty">No tracks here yet — tap a card\'s 📂 tag to move one in.</div>';
+      : '<div class="collection-empty">No tracks here yet — tap a card\'s 📂 tag to move one in, or drag a card here.</div>';
     return '<div class="collection-section" data-collection="' + col.id + '">' +
-      '<div class="collection-header"><span class="collection-name">' + escapeHtml(col.name) + '</span><span class="collection-count">(' + colDrafts.length + ')</span>' + actionsHtml + '</div>' +
+      '<div class="collection-header" draggable="true" data-collection-drag="' + col.id + '">' +
+        '<span class="collection-drag-handle" title="Drag to reorder collections">⠿</span>' +
+        '<span class="collection-name">' + escapeHtml(col.name) + '</span>' +
+        '<span class="collection-type-badge">' + collectionTypeLabel(col.type) + '</span>' +
+        '<span class="collection-count">(' + colDrafts.length + ')</span>' + actionsHtml +
+      '</div>' +
       '<div class="note-grid">' + bodyHtml + '</div>' +
     '</div>';
   }
@@ -3570,6 +3706,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
         toggleRow.style.display = 'none';
       }
     }
+
+    if(!showingScrapped) wireDragAndDrop(grid);
   }
 
   // Sets (or toggles, when `scrapped` is left undefined) a draft's scrapped state.
@@ -5016,6 +5154,18 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
   function uidCollection(){ return 'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6); }
 
+  const COLLECTION_TYPES = [
+    { id:'playlist', label:'Playlist' },
+    { id:'ep', label:'EP' },
+    { id:'album', label:'Album' },
+    { id:'mixtape', label:'Mixtape' },
+    { id:'singles', label:'Singles' }
+  ];
+  function collectionTypeLabel(type){
+    const t = COLLECTION_TYPES.find(x=>x.id===type);
+    return t ? t.label : 'Playlist';
+  }
+
   // Sorts a list of drafts belonging to one "section" (a collection, or the
   // Unsorted pile). If nobody's manually reordered anything in that section yet,
   // falls back to the normal most-recently-updated-first order. The moment any
@@ -5068,22 +5218,65 @@ Everything saves automatically, right in this file — nothing leaves your brows
   }
 
   function createCollection(){
-    const name = prompt('Name this collection (e.g. "Heat Mirage EP", "Summer demos"):');
-    if(!name || !name.trim()) return;
-    collections.push({ id: uidCollection(), name: name.trim(), order: collections.length, created: Date.now() });
-    saveCollections();
-    renderAll();
+    openCollectionModal({ mode:'create' });
   }
 
   function renameCollection(id){
     const col = collections.find(c=>c.id===id);
     if(!col) return;
-    const name = prompt('Rename collection:', col.name);
-    if(!name || !name.trim()) return;
-    col.name = name.trim();
-    saveCollections();
-    renderMenu();
+    openCollectionModal({ mode:'rename', collection: col });
   }
+
+  // ---------- collection create/rename modal (name + EP/album/playlist/etc type) ----------
+  let collectionModalState = null;
+  function openCollectionModal({ mode, collection, onCreated }){
+    collectionModalState = { mode, collectionId: collection ? collection.id : null, onCreated: onCreated || null };
+    document.getElementById('collection-modal-title').textContent = mode === 'rename' ? 'Rename collection' : 'New collection';
+    const nameInput = document.getElementById('collection-name-input');
+    nameInput.value = collection ? collection.name : '';
+    const chosenType = collection ? (collection.type || 'playlist') : 'playlist';
+    document.querySelectorAll('.collection-type-chip').forEach(chip=>{
+      chip.classList.toggle('active', chip.dataset.type === chosenType);
+    });
+    document.getElementById('collection-modal').classList.add('open');
+    nameInput.focus();
+    nameInput.select();
+  }
+  function closeCollectionModal(){
+    document.getElementById('collection-modal').classList.remove('open');
+    collectionModalState = null;
+  }
+  function saveCollectionModal(){
+    if(!collectionModalState) return;
+    const name = document.getElementById('collection-name-input').value.trim();
+    if(!name) return;
+    const activeChip = document.querySelector('.collection-type-chip.active');
+    const type = activeChip ? activeChip.dataset.type : 'playlist';
+    if(collectionModalState.mode === 'rename'){
+      const col = collections.find(c=>c.id===collectionModalState.collectionId);
+      if(col){ col.name = name; col.type = type; saveCollections(); renderMenu(); }
+    } else {
+      const col = { id: uidCollection(), name, type, order: collections.length, created: Date.now() };
+      collections.push(col);
+      saveCollections();
+      if(collectionModalState.onCreated) collectionModalState.onCreated(col);
+      else renderAll();
+    }
+    closeCollectionModal();
+  }
+  document.querySelectorAll('.collection-type-chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      document.querySelectorAll('.collection-type-chip').forEach(c=>c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+  document.getElementById('collection-modal-cancel-btn').addEventListener('click', closeCollectionModal);
+  document.getElementById('collection-modal-backdrop').addEventListener('click', closeCollectionModal);
+  document.getElementById('collection-modal-save-btn').addEventListener('click', saveCollectionModal);
+  document.getElementById('collection-name-input').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ e.preventDefault(); saveCollectionModal(); }
+    if(e.key === 'Escape'){ closeCollectionModal(); }
+  });
 
   function deleteCollection(id){
     const col = collections.find(c=>c.id===id);
@@ -5112,6 +5305,130 @@ Everything saves automatically, right in this file — nothing leaves your brows
     saveCollections();
     renderMenu();
   }
+
+  // ---------- drag-and-drop organizing (an alternative to the ▲▼ arrows and the
+  // 📂 chip — those still work, this is purely an added convenience) ----------
+  // Finds which sibling a dragged element should land before, based on cursor Y
+  // vs. each candidate's vertical midpoint. Returns null to mean "drop at the end".
+  function getDragAfterElement(container, y, selector){
+    const candidates = [...container.children].filter(el => el.matches && el.matches(selector));
+    return candidates.reduce((closest, child)=>{
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      if(offset < 0 && offset > closest.offset) return { offset, element: child };
+      return closest;
+    }, { offset: -Infinity, element: null }).element;
+  }
+
+  // After a card drop, the DOM inside sectionGrid already reflects the desired
+  // order (dragover live-reordered it) — read that order back into manualOrder,
+  // and reassign the moved draft's collectionId if it landed in a new section.
+  function commitCardOrderFromDOM(sectionGrid, targetCollectionId, movedId){
+    const movedDraft = drafts.find(x=>x.id===movedId);
+    if(movedDraft) movedDraft.collectionId = targetCollectionId;
+    [...sectionGrid.querySelectorAll('.note-card[data-id]')].forEach((el,i)=>{
+      const d = drafts.find(x=>x.id===el.dataset.id);
+      if(d) d.manualOrder = i;
+    });
+    if(movedDraft) movedDraft.updated = Date.now();
+    persist();
+    renderMenu();
+  }
+
+  // Same idea for whole collection sections — read the post-drop DOM order and
+  // persist it as each collection's `order`. Unsorted is never draggable, so it's
+  // filtered out here regardless of where it visually sits.
+  function commitCollectionOrderFromDOM(gridEl){
+    [...gridEl.querySelectorAll('.collection-section[data-collection]')]
+      .map(el => el.dataset.collection)
+      .filter(id => id !== 'unsorted')
+      .forEach((id,i)=>{
+        const c = collections.find(x=>x.id===id);
+        if(c) c.order = i;
+      });
+    saveCollections();
+    renderMenu();
+  }
+
+  function wireDragAndDrop(grid){
+    const grouped = grid.classList.contains('grouped');
+    // In flat (no-collections) mode #note-grid IS the one card grid; in grouped
+    // mode it's just the outer wrapper and each section has its own nested one.
+    const cardGrids = grouped ? [...grid.querySelectorAll('.collection-section .note-grid')] : [grid];
+
+    cardGrids.forEach(sectionGrid=>{
+      sectionGrid.querySelectorAll('.note-card[data-id][draggable="true"]').forEach(card=>{
+        card.addEventListener('dragstart', (e)=>{
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('application/x-manuscript-draft', card.dataset.id);
+          // deferred so the browser's drag-ghost snapshot is taken before the fade
+          setTimeout(()=> card.classList.add('dragging'), 0);
+        });
+        card.addEventListener('dragend', ()=>{
+          card.classList.remove('dragging');
+          renderMenu();
+        });
+      });
+      sectionGrid.addEventListener('dragover', (e)=>{
+        if(!e.dataTransfer.types.includes('application/x-manuscript-draft')) return;
+        e.preventDefault();
+        const dragCard = grid.querySelector('.note-card.dragging');
+        if(!dragCard) return;
+        const afterEl = getDragAfterElement(sectionGrid, e.clientY, '.note-card[data-id]:not(.dragging)');
+        if(afterEl == null) sectionGrid.appendChild(dragCard);
+        else sectionGrid.insertBefore(dragCard, afterEl);
+      });
+      sectionGrid.addEventListener('drop', (e)=>{
+        if(!e.dataTransfer.types.includes('application/x-manuscript-draft')) return;
+        e.preventDefault();
+        const id = e.dataTransfer.getData('application/x-manuscript-draft');
+        if(!id) return;
+        const sectionEl = sectionGrid.closest('.collection-section');
+        const key = sectionEl ? sectionEl.dataset.collection : null;
+        const targetCollectionId = (key && key !== 'unsorted') ? key : null;
+        commitCardOrderFromDOM(sectionGrid, targetCollectionId, id);
+      });
+    });
+
+    if(!grouped) return; // no sections to reorder in flat mode
+
+    grid.querySelectorAll('[data-collection-drag]').forEach(handle=>{
+      handle.addEventListener('dragstart', (e)=>{
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('application/x-manuscript-collection', handle.dataset.collectionDrag);
+        const sec = handle.closest('.collection-section');
+        setTimeout(()=>{ if(sec) sec.classList.add('dragging'); }, 0);
+      });
+      handle.addEventListener('dragend', ()=>{
+        const sec = handle.closest('.collection-section');
+        if(sec) sec.classList.remove('dragging');
+        renderMenu();
+      });
+    });
+  }
+
+  // The outer #note-grid element itself is never replaced by renderMenu() (only
+  // its innerHTML is), so its listeners are bound exactly once here rather than
+  // inside wireDragAndDrop() — binding there on every render would stack a fresh
+  // duplicate listener each time the menu re-renders.
+  (function wireCollectionReorderOnce(){
+    const grid = document.getElementById('note-grid');
+    if(!grid) return;
+    grid.addEventListener('dragover', (e)=>{
+      if(!e.dataTransfer.types.includes('application/x-manuscript-collection')) return;
+      e.preventDefault();
+      const dragSection = grid.querySelector('.collection-section.dragging');
+      if(!dragSection) return;
+      const afterEl = getDragAfterElement(grid, e.clientY, '.collection-section[data-collection]:not([data-collection="unsorted"]):not(.dragging)');
+      if(afterEl == null) grid.appendChild(dragSection);
+      else grid.insertBefore(dragSection, afterEl);
+    });
+    grid.addEventListener('drop', (e)=>{
+      if(!e.dataTransfer.types.includes('application/x-manuscript-collection')) return;
+      e.preventDefault();
+      commitCollectionOrderFromDOM(grid);
+    });
+  })();
 
   // Small floating dropdown, opened from a note card's collection chip, for
   // jumping the draft straight into a different collection (or back to Unsorted)
@@ -5150,12 +5467,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     if(newBtn) newBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
       closeCollectionPicker();
-      const name = prompt('Name this collection (e.g. "Heat Mirage EP", "Summer demos"):');
-      if(!name || !name.trim()) return;
-      const col = { id: uidCollection(), name: name.trim(), order: collections.length, created: Date.now() };
-      collections.push(col);
-      saveCollections();
-      moveDraftToCollection(draftId, col.id);
+      openCollectionModal({ mode:'create', onCreated: (col)=> moveDraftToCollection(draftId, col.id) });
     });
 
     // clicking anywhere outside the menu closes it; the timeout keeps the click
