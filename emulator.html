@@ -317,28 +317,39 @@
   #fullscreen-np.tab-queue #np-lyrics-panel{ display:none; }
   #fullscreen-np.tab-queue #np-queue-panel{ display:block; }
 
-  .np-lyric-section{ margin-bottom: 8px; }
+  .np-lyric-section{ margin-bottom: 8px; margin-top: 26px; }
+  .np-lyric-section:first-child{ margin-top: 0; }
   .np-section-tag{
-    font-size: 11px; font-weight:600; color: rgba(255,255,255,0.3);
-    text-transform:uppercase; letter-spacing:1.2px; margin: 18px 0 6px;
+    /* Apple Music's Lyrics tab doesn't print section labels — this is kept as an
+       invisible spacer so section breaks still get the extra breathing room a
+       label would have implied, without showing the [Verse]/[Chorus] text. */
+    height: 0;
+    overflow:hidden;
   }
   .np-lyric-line{
     font-size: 30px; font-weight:700; line-height:1.32; letter-spacing:-0.2px;
-    color: rgba(255,255,255,0.38);
+    color: rgba(255,255,255,0.28);
     margin-bottom: 12px;
-    transition: color .25s ease, transform .25s ease;
+    transition: color .35s ease, transform .35s ease, opacity .35s ease;
     position:relative;
     cursor: default;
+    transform-origin: left center;
   }
   .np-lyric-line.blank{ height:20px; }
   .np-lyric-line.clickable{ cursor:pointer; }
-  .np-lyric-line.clickable:hover{ color: rgba(255,255,255,0.7); }
-  .np-lyric-line.active-sync{ color:#fff; transform: scale(1.02); transform-origin: left center; }
-  .np-word{ transition: color .12s ease, opacity .12s ease; }
-  .np-lyric-line.active-sync .np-word.active-word{ color: var(--accent); }
-  .np-lyric-line.active-sync .np-word.sung-word{ opacity:0.55; }
+  .np-lyric-line.clickable:hover{ color: rgba(255,255,255,0.6); }
+  .np-lyric-line.active-sync{ color: rgba(255,255,255,0.42); transform: scale(1.035); }
+  .np-word{ transition: color .1s linear; }
+  .np-lyric-line.active-sync .np-word.sung-word{ color: #ffffff; }
+  .np-lyric-line.active-sync .np-word.active-word{ color: #ffffff; text-shadow: 0 0 18px rgba(255,255,255,0.5); }
   .np-line-fill-wrap{ position:relative; display:inline-block; }
-  .np-line-fill{ position:absolute; top:0; left:0; right:0; color: var(--accent); clip-path: inset(0 calc(100% - var(--wipe,0%)) 0 0); pointer-events:none; }
+  .np-line-fill{
+    position:absolute; top:0; left:0; right:0;
+    color: #ffffff;
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(var(--wipe,0%) - 6%), transparent var(--wipe,0%));
+    mask-image: linear-gradient(90deg, #000 calc(var(--wipe,0%) - 6%), transparent var(--wipe,0%));
+    pointer-events:none;
+  }
 
   #np-no-lyrics{ color: rgba(255,255,255,0.4); font-size:14px; padding-top:20px; }
 
@@ -748,10 +759,31 @@
 
   function wireAudioElement(el){
     el.volume = Number(document.getElementById('mini-volume').value || 0.9);
-    el.addEventListener('timeupdate', () => { refreshTransportUI(); updateSyncHighlight(); });
-    el.addEventListener('play', refreshTransportUI);
-    el.addEventListener('pause', refreshTransportUI);
-    el.addEventListener('ended', () => { nextTrack(true); });
+    el.addEventListener('play', () => { refreshTransportUI(); startSmoothLoop(); });
+    el.addEventListener('pause', () => { refreshTransportUI(); updateSyncHighlight(); stopSmoothLoop(); });
+    el.addEventListener('seeked', () => { refreshTransportUI(); updateSyncHighlight(); });
+    el.addEventListener('ended', () => { stopSmoothLoop(); nextTrack(true); });
+  }
+
+  // Karaoke-style word/line highlighting needs to sweep continuously, not in the
+  // ~4-times-a-second steps that the audio element's 'timeupdate' event fires at
+  // — that stepping is what made the sync look choppy instead of smooth like
+  // Apple Music's actual lyrics view. Runs every animation frame only while a
+  // track is actually playing, and stops itself the instant it's paused.
+  let smoothLoopHandle = null;
+  function startSmoothLoop(){
+    if(smoothLoopHandle) return;
+    const tick = () => {
+      const el = sessionAudio.el;
+      if(!el || el.paused){ smoothLoopHandle = null; return; }
+      refreshTransportUI();
+      updateSyncHighlight();
+      smoothLoopHandle = requestAnimationFrame(tick);
+    };
+    smoothLoopHandle = requestAnimationFrame(tick);
+  }
+  function stopSmoothLoop(){
+    if(smoothLoopHandle){ cancelAnimationFrame(smoothLoopHandle); smoothLoopHandle = null; }
   }
 
   document.getElementById('load-audio-btn').addEventListener('click', () => {
