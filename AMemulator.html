@@ -26,25 +26,29 @@
 <style>
   :root{
     --font-apple: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Helvetica, Arial, sans-serif;
-    --bg: #000000;
-    --sidebar-bg: #0c0c0e;
+    --bg: #09090b;
+    --sidebar-bg: #0d0d10;
     --panel: rgba(255,255,255,0.06);
     --panel-border: rgba(255,255,255,0.09);
-    --text: #ffffff;
-    --text-dim: rgba(255,255,255,0.46);
-    --text-faint: rgba(255,255,255,0.24);
-    --accent: #fa233b; /* Apple Music red */
-    --row-hover: rgba(255,255,255,0.05);
-    --row-active: rgba(250,35,59,0.14);
+    --text: #f5f5f7;
+    --text-dim: rgba(245,245,247,0.76);
+    --text-faint: rgba(245,245,247,0.42);
+    --accent: #ff375f;
+    --row-hover: rgba(255,255,255,0.06);
+    --row-active: rgba(255,55,95,0.16);
   }
   *{ box-sizing:border-box; margin:0; padding:0; }
   html,body{ height:100%; }
   body{
     font-family: var(--font-apple);
-    background: var(--bg);
+    background:
+      radial-gradient(circle at top left, rgba(255,55,95,0.18), transparent 20%),
+      radial-gradient(circle at top right, rgba(255,255,255,0.04), transparent 24%),
+      var(--bg);
     color: var(--text);
     overflow:hidden;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
   button{ font-family: inherit; }
   ::-webkit-scrollbar{ width:9px; height:9px; }
@@ -57,50 +61,73 @@
 
   /* ---------- sidebar ---------- */
   #sidebar{
-    width: 260px;
+    width: 280px;
     flex-shrink:0;
-    background: var(--sidebar-bg);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.015)),
+      var(--sidebar-bg);
     border-right: 1px solid rgba(255,255,255,0.07);
     display:flex;
     flex-direction:column;
     padding: 18px 12px 12px;
+    box-shadow: inset -1px 0 0 rgba(255,255,255,0.04);
   }
   .brand-row{
     display:flex; align-items:center; gap:9px;
     padding: 4px 8px 18px;
+    margin-bottom: 4px;
   }
   .brand-dot{
-    width:26px; height:26px; border-radius:7px;
-    background: linear-gradient(135deg, #fa5c7c, #fa233b);
+    width:28px; height:28px; border-radius:8px;
+    background: linear-gradient(135deg, #ff6d85, #ff375f);
     display:flex; align-items:center; justify-content:center;
     font-size:14px;
+    box-shadow: 0 10px 24px rgba(255,55,95,0.28);
   }
   .brand-name{ font-weight:700; font-size:15.5px; letter-spacing:-0.2px; }
+  .am-nav-list{ display:flex; flex-direction:column; gap:4px; }
+  .am-nav-btn{
+    width:100%; display:flex; align-items:center; gap:10px; padding:10px 12px;
+    border:none; border-radius:10px; background:transparent; color:var(--text-dim);
+    cursor:pointer; font-size:13px; font-weight:600; text-align:left;
+    transition: background .15s ease, color .15s ease;
+  }
+  .am-nav-btn:hover{ background:rgba(255,255,255,0.05); color:#fff; }
+  .am-nav-btn.active{ background:rgba(255,55,95,0.16); color:#fff; }
+  .am-nav-btn svg{ width:16px; height:16px; fill:currentColor; flex-shrink:0; }
+  .am-nav-cta{
+    margin-top:auto; display:flex; align-items:center; gap:8px; padding:10px 12px;
+    border:1px solid rgba(255,255,255,0.12); border-radius:10px; color:var(--text-dim);
+    font-size:12px; font-weight:700; background: rgba(255,255,255,0.04);
+  }
   .exit-link{
     margin-left:auto;
     font-size:11px;
     color: var(--text-faint);
     text-decoration:none;
     border:1px solid rgba(255,255,255,0.14);
-    border-radius:6px;
-    padding:4px 7px;
+    border-radius:7px;
+    padding:4px 8px;
     white-space:nowrap;
+    background: rgba(255,255,255,0.02);
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
   }
   .exit-link:hover{ color: var(--text); border-color: rgba(255,255,255,0.3); }
 
   #search-wrap{ padding: 0 8px 16px; }
   #search-input{
     width:100%;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid transparent;
-    border-radius: 8px;
-    padding: 8px 10px 8px 30px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 9px 12px 9px 32px;
     font-size: 13px;
     color: var(--text);
     outline:none;
-    transition: background .15s ease, border-color .15s ease;
+    transition: background .15s ease, border-color .15s ease, box-shadow .15s ease;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
   }
-  #search-input:focus{ background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); }
+  #search-input:focus{ background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.18); box-shadow: 0 0 0 3px rgba(255,55,95,0.12); }
   #search-input::placeholder{ color: var(--text-faint); }
   #search-wrap{ position:relative; }
   #search-wrap svg{
@@ -115,17 +142,21 @@
   }
   .side-nav-item{
     display:flex; align-items:center; gap:10px;
-    padding: 7px 12px;
-    border-radius:6px;
+    padding: 8px 12px;
+    border-radius:8px;
     font-size:13.5px;
     color: var(--text-dim);
     cursor:pointer;
     user-select:none;
-    transition: background .15s ease, color .15s ease;
+    transition: background .15s ease, color .15s ease, transform .12s ease;
   }
   .side-nav-item svg{ width:16px; height:16px; fill:currentColor; flex-shrink:0; }
   .side-nav-item:hover{ background: var(--row-hover); color: var(--text); }
-  .side-nav-item.active{ background: var(--row-active); color: var(--accent); }
+  .side-nav-item.active{
+    background: linear-gradient(180deg, rgba(255,55,95,0.26), rgba(255,55,95,0.14));
+    color: var(--accent);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  }
 
   #song-list-nav{ flex:1; overflow-y:auto; margin-top:4px; }
   .side-song-item{
@@ -138,8 +169,9 @@
   .side-song-item:hover{ background: var(--row-hover); }
   .side-song-item.playing{ background: var(--row-active); }
   .side-song-cover{
-    width:28px; height:28px; border-radius:4px; object-fit:cover; flex-shrink:0;
+    width:30px; height:30px; border-radius:6px; object-fit:cover; flex-shrink:0;
     background: rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
   }
   .side-song-text{ min-width:0; }
   .side-song-title{
@@ -157,20 +189,68 @@
   #main{
     flex:1; min-width:0;
     overflow-y:auto;
-    padding: 34px 40px 60px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent 220px);
+    padding: 38px 44px 68px;
+    background:
+      radial-gradient(circle at top left, rgba(255,55,95,0.1), transparent 24%),
+      linear-gradient(180deg, rgba(255,255,255,0.04), transparent 210px),
+      linear-gradient(180deg, #0b0b0e, #080809);
   }
-  #main h1{ font-size: 30px; font-weight:800; letter-spacing:-0.5px; margin-bottom: 4px; }
-  #main .lib-sub{ color: var(--text-faint); font-size:13px; margin-bottom: 26px; }
+  #main h1{ font-size: 31px; font-weight:800; letter-spacing:-0.55px; margin-bottom: 4px; }
+  #main .lib-sub{ color: var(--text-faint); font-size:13px; margin-bottom: 24px; }
+  #library-body{ max-width: 980px; }
 
-  table.song-table{ width:100%; border-collapse:collapse; }
+  .am-hero{
+    display:grid; grid-template-columns: 1.3fr 0.9fr; gap:18px;
+    padding: 20px; margin-bottom: 24px;
+    border:1px solid rgba(255,255,255,0.06);
+    border-radius: 24px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .am-hero-copy h2{
+    font-size: 28px; font-weight: 800; letter-spacing: -0.6px; margin-bottom: 8px;
+  }
+  .am-hero-copy p{
+    color: var(--text-dim); font-size: 13px; line-height: 1.7; max-width: 540px;
+  }
+  .am-hero-stats{
+    display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap:10px;
+  }
+  .am-stat{
+    padding: 14px; border-radius: 16px; background: rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.06);
+  }
+  .am-stat-label{ font-size:11px; text-transform:uppercase; color: var(--text-faint); letter-spacing:0.4px; }
+  .am-stat-value{ font-size:22px; font-weight: 700; margin-top:6px; }
+
+  .am-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap:16px; }
+  .am-card{
+    position:relative; display:flex; flex-direction:column; gap:10px;
+    padding: 14px; border-radius: 18px; cursor:pointer;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
+    border:1px solid rgba(255,255,255,0.05); transition: transform .15s ease, border-color .15s ease, background .15s ease;
+  }
+  .am-card:hover{ transform: translateY(-2px); border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); }
+  .am-card.playing{ border-color: rgba(255,55,95,0.45); background: rgba(255,55,95,0.12); }
+  .am-card-cover{
+    width:100%; aspect-ratio:1/1; border-radius:12px; object-fit:cover; overflow:hidden;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .am-card-title{ font-size:14px; font-weight:700; }
+  .am-card-artist{ font-size:12px; color: var(--text-faint); margin-top:2px; }
+  .am-card-meta{ display:flex; justify-content:space-between; align-items:center; color: var(--text-faint); font-size:11px; }
+  .am-card-badge{ padding:2px 6px; border-radius:999px; background: rgba(255,255,255,0.06); }
+  @media (max-width: 880px){ .am-hero{ grid-template-columns: 1fr; } }
+
+  table.song-table{ width:100%; border-collapse:separate; border-spacing:0 2px; }
   table.song-table thead th{
     text-align:left;
     font-size:11px;
     text-transform:uppercase;
     letter-spacing:0.4px;
     color: var(--text-faint);
-    font-weight:600;
+    font-weight:700;
     padding: 0 12px 10px;
     border-bottom: 1px solid rgba(255,255,255,0.08);
   }
@@ -178,13 +258,14 @@
   table.song-table thead th.dur-col{ width:70px; text-align:right; }
   table.song-table tbody tr{
     cursor:pointer;
-    border-radius:6px;
-    transition: background .12s ease;
+    border-radius:10px;
+    transition: background .12s ease, transform .12s ease;
   }
-  table.song-table tbody tr:hover{ background: var(--row-hover); }
+  table.song-table tbody tr:hover{ background: rgba(255,255,255,0.06); }
   table.song-table tbody tr.playing td{ color: var(--accent); }
+  table.song-table tbody tr.playing{ box-shadow: inset 0 0 0 1px rgba(255,55,95,0.2); }
   table.song-table td{
-    padding: 9px 12px;
+    padding: 10px 12px;
     font-size: 13.5px;
     color: var(--text-dim);
     border-bottom: 1px solid rgba(255,255,255,0.04);
@@ -193,11 +274,11 @@
   }
   td.num-col{ color: var(--text-faint); font-variant-numeric: tabular-nums; }
   td.title-col{ display:flex; align-items:center; gap:11px; color: var(--text); font-weight:600; }
-  .row-cover{ width:36px; height:36px; border-radius:5px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; }
+  .row-cover{ width:38px; height:38px; border-radius:7px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
   .row-title-wrap{ min-width:0; }
   .row-title-wrap .row-artist{ font-weight:400; color: var(--text-faint); font-size:12px; margin-top:1px; }
   td.dur-col{ text-align:right; font-variant-numeric: tabular-nums; color: var(--text-faint); }
-  .row-cover-wrap{ position:relative; width:36px; height:36px; flex-shrink:0; border-radius:5px; overflow:hidden; }
+  .row-cover-wrap{ position:relative; width:38px; height:38px; flex-shrink:0; border-radius:7px; overflow:hidden; box-shadow: 0 6px 16px rgba(0,0,0,0.3); }
   .row-hover-play{
     position:absolute; inset:0;
     background: rgba(0,0,0,0.45);
@@ -235,17 +316,18 @@
   #mini-player{
     display:none;
     flex-shrink:0;
-    height: 78px;
-    border-top: 1px solid rgba(255,255,255,0.09);
-    background: rgba(16,16,16,0.9);
-    -webkit-backdrop-filter: blur(24px) saturate(1.5);
-    backdrop-filter: blur(24px) saturate(1.5);
+    height: 92px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    background: linear-gradient(180deg, rgba(22,22,24,0.96), rgba(10,10,10,0.96));
+    -webkit-backdrop-filter: blur(26px) saturate(1.5);
+    backdrop-filter: blur(26px) saturate(1.5);
     align-items:center;
-    padding: 0 16px;
+    padding: 0 18px;
     gap: 18px;
     transform: translateY(100%);
     opacity: 0;
     transition: transform .38s cubic-bezier(.32,.72,.35,1), opacity .3s ease;
+    box-shadow: 0 -14px 40px rgba(0,0,0,0.45);
   }
   #mini-player.visible{ display:flex; }
   #mini-player.has-track{ transform: translateY(0); opacity:1; }
@@ -261,14 +343,14 @@
   .mini-btn:hover{ opacity:1; }
   .mini-btn:active{ transform: scale(0.9); }
   .mini-btn svg{ width:16px; height:16px; fill:currentColor; }
-  .mini-play-btn{ width:30px; height:30px; }
-  .mini-play-btn svg{ width:26px; height:26px; }
+  .mini-play-btn{ width:34px; height:34px; border-radius:50%; background: rgba(255,255,255,0.08); }
+  .mini-play-btn svg{ width:24px; height:24px; }
   .mini-scrub-row{ display:flex; align-items:center; gap:8px; width:100%; }
   .mini-time{ font-size:10.5px; color: var(--text-faint); width:34px; font-variant-numeric: tabular-nums; }
   .mini-time.right{ text-align:left; }
-  .mini-scrub-track{ position:relative; flex:1; height:3px; border-radius:2px; background: rgba(255,255,255,0.2); cursor:pointer; }
-  .mini-scrub-fill{ position:absolute; top:0; left:0; height:100%; width:0%; border-radius:2px; background:#fff; }
-  .mini-scrub-dot{ position:absolute; top:50%; left:0%; width:9px; height:9px; border-radius:50%; background:#fff; transform:translate(-50%,-50%); opacity:0; transition: opacity .15s; }
+  .mini-scrub-track{ position:relative; flex:1; height:4px; border-radius:999px; background: rgba(255,255,255,0.2); cursor:pointer; }
+  .mini-scrub-fill{ position:absolute; top:0; left:0; height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg, #fff, #f1f1f1); }
+  .mini-scrub-dot{ position:absolute; top:50%; left:0%; width:10px; height:10px; border-radius:50%; background:#fff; transform:translate(-50%,-50%); opacity:0; transition: opacity .15s; box-shadow:0 2px 8px rgba(0,0,0,0.35); }
   .mini-scrub-track:hover .mini-scrub-dot{ opacity:1; }
 
   .mini-right{ width:230px; flex-shrink:0; display:flex; align-items:center; justify-content:flex-end; gap:14px; }
@@ -283,7 +365,9 @@
     display:none;
     position:fixed; inset:0;
     z-index:50;
-    background:#000;
+    background:
+      radial-gradient(circle at top left, rgba(255,55,95,0.17), transparent 24%),
+      linear-gradient(180deg, rgba(0,0,0,0.82), rgba(0,0,0,0.98));
     flex-direction:column;
   }
   #fullscreen-np.visible{ display:flex; }
@@ -457,7 +541,7 @@
     <!-- ---------- sidebar ---------- -->
     <div id="sidebar">
       <div class="brand-row">
-        <div class="brand-dot">🎵</div>
+        <div class="brand-dot"></div>
         <div class="brand-name">Music</div>
         <a class="exit-link" href="index.html">Exit</a>
       </div>
@@ -465,17 +549,33 @@
         <svg viewBox="0 0 24 24"><path d="M15.5,14h-0.79l-0.28-0.27C15.41,12.59,16,11.11,16,9.5C16,5.91,13.09,3,9.5,3S3,5.91,3,9.5S5.91,16,9.5,16c1.61,0,3.09-0.59,4.23-1.57l0.27,0.28v0.79l5,4.99L20.49,19L15.5,14z M9.5,14C7.01,14,5,11.99,5,9.5S7.01,5,9.5,5S14,7.01,14,9.5S11.99,14,9.5,14z"/></svg>
         <input id="search-input" placeholder="Search">
       </div>
-      <div class="side-nav-item active">
-        <svg viewBox="0 0 24 24"><path d="M12 3l9 8h-3v9h-5v-6H11v6H6v-9H3l9-8z"/></svg>
-        Songs
+      <div class="am-nav-list">
+        <button class="am-nav-btn" type="button">
+          <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 20.49 21.49 19 15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          Search
+        </button>
+        <button class="am-nav-btn" type="button">
+          <svg viewBox="0 0 24 24"><path d="M12 3 3 12h3v9h6v-6h3v6h6v-9h3L12 3z"/></svg>
+          Home
+        </button>
+        <button class="am-nav-btn active" type="button">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H6V6h12v13z"/></svg>
+          New
+        </button>
+        <button class="am-nav-btn" type="button">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93V4.07c4.21.45 7.5 3.97 7.5 8.43 0 4.46-3.29 7.98-7.5 8.43z"/></svg>
+          Radio
+        </button>
       </div>
-      <div class="side-section-title">Library</div>
-      <div id="song-list-nav"></div>
+      <div class="am-nav-cta">
+        <svg viewBox="0 0 24 24" style="width:13px;height:13px;fill:currentColor;"><path d="M12 4a8 8 0 0 0-8 8 8 8 0 0 0 8 8 8 8 0 0 0 8-8 8 8 0 0 0-8-8zm0 2a6 6 0 0 1 6 6 6 6 0 0 1-6 6 6 6 0 0 1-6-6 6 6 0 0 1 6-6zm-1 2v4.5l3.5 2.1 1-1.73-2.5-1.43V8h-2z"/></svg>
+        Open in Music
+      </div>
     </div>
 
     <!-- ---------- main library ---------- -->
     <div id="main">
-      <h1>Songs</h1>
+      <h1>New</h1>
       <div class="lib-sub" id="lib-sub"></div>
       <div id="library-body"></div>
     </div>
@@ -674,35 +774,34 @@
       body.innerHTML = '<div id="empty-library">No songs match your search.</div>';
       return;
     }
-    let html = '<table class="song-table"><thead><tr>' +
-      '<th class="num-col">#</th><th>Title</th><th>Synced lines</th><th class="dur-col">Time</th>' +
-      '</tr></thead><tbody>';
-    filtered.forEach((d, i) => {
-      const idx = drafts.indexOf(d);
-      const synced = Object.keys(d.syncedTimes || {}).length;
-      const isPlaying = idx === currentIdx;
-      const loaded = sessionAudio.draftId === d.id;
-      const dur = loaded && sessionAudio.el && sessionAudio.el.duration ? fmtTime(sessionAudio.el.duration) : '--:--';
-      const isPlayingAudio = isPlaying && sessionAudio.el && !sessionAudio.el.paused;
-      html += '<tr class="' + (isPlaying ? 'playing' : '') + (isPlaying && !isPlayingAudio ? ' row-paused' : '') + '" data-idx="' + idx + '">' +
-        '<td class="num-col">' + (i+1) + '</td>' +
-        '<td class="title-col">' +
-          '<div class="row-cover-wrap">' +
-            (d.cover ? '<img class="row-cover" src="' + d.cover + '">' : '<div class="row-cover"></div>') +
-            '<div class="row-hover-play"><svg viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg></div>' +
-            '<div class="row-eq"><span></span><span></span><span></span></div>' +
-          '</div>' +
-          '<div class="row-title-wrap"><div>' + escapeHtml(d.title || 'Untitled') + '</div>' +
-          '<div class="row-artist">' + escapeHtml(d.artist || 'Unknown Artist') + '</div></div>' +
-        '</td>' +
-        '<td>' + synced + '</td>' +
-        '<td class="dur-col">' + dur + '</td>' +
-      '</tr>';
-    });
-    html += '</tbody></table>';
-    body.innerHTML = html;
-    body.querySelectorAll('tbody tr').forEach(row => {
-      row.addEventListener('click', () => playTrack(Number(row.dataset.idx)));
+    const featured = filtered[0];
+    const syncedTotal = filtered.reduce((sum, d) => sum + Object.keys(d.syncedTimes || {}).length, 0);
+    body.innerHTML =
+      '<div class="am-hero">' +
+        '<div class="am-hero-copy">' +
+          '<h2>Browse manuscript drafts</h2>' +
+          '<p>Apple Music-inspired browsing, but every card is drawn from your Manuscript lyric drafts. Tap any draft to open its synced lyrics and preview playback.</p>' +
+        '</div>' +
+        '<div class="am-hero-stats">' +
+          '<div class="am-stat"><div class="am-stat-label">Drafts</div><div class="am-stat-value">' + filtered.length + '</div></div>' +
+          '<div class="am-stat"><div class="am-stat-label">Synced lines</div><div class="am-stat-value">' + syncedTotal + '</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="am-grid">' + filtered.map((d, i) => {
+        const idx = drafts.indexOf(d);
+        const synced = Object.keys(d.syncedTimes || {}).length;
+        const isPlaying = idx === currentIdx;
+        const loaded = sessionAudio.draftId === d.id;
+        const dur = loaded && sessionAudio.el && sessionAudio.el.duration ? fmtTime(sessionAudio.el.duration) : '--:--';
+        return '<div class="am-card' + (isPlaying ? ' playing' : '') + '" data-idx="' + idx + '">' +
+          '<img class="am-card-cover" src="' + (d.cover || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect fill="%230d0d10" width="100%" height="100%"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23ffffff" font-family="Arial" font-size="64">♪</text></svg>') + '" alt="">' +
+          '<div class="am-card-title">' + escapeHtml(d.title || 'Untitled') + '</div>' +
+          '<div class="am-card-artist">' + escapeHtml(d.artist || 'Unknown Artist') + '</div>' +
+          '<div class="am-card-meta"><span class="am-card-badge">' + synced + ' synced</span><span>' + dur + '</span></div>' +
+        '</div>';
+      }).join('') + '</div>';
+    body.querySelectorAll('.am-card').forEach(card => {
+      card.addEventListener('click', () => playTrack(Number(card.dataset.idx)));
     });
   }
 
