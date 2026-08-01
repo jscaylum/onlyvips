@@ -1032,14 +1032,16 @@
     const lyricsPanel = document.getElementById('np-lyrics-panel');
     const queuePanel = document.getElementById('np-queue-panel');
     const showingQueue = tab === 'queue';
-    // crossfade: fade the outgoing panel out, swap which one is in the flow,
+    const outgoing = showingQueue ? lyricsPanel : queuePanel;
+    const incoming = showingQueue ? queuePanel : lyricsPanel;
+    // crossfade: fade the outgoing panel out, prime the incoming one at opacity 0
+    // (harmless while it's still display:none), swap which one is in the flow,
     // then fade the incoming one in — instead of an instant display swap
-    (showingQueue ? lyricsPanel : queuePanel).style.opacity = '0';
+    outgoing.style.opacity = '0';
+    incoming.style.opacity = '0';
     setTimeout(() => {
       document.getElementById('fullscreen-np').classList.toggle('tab-queue', showingQueue);
-      requestAnimationFrame(() => {
-        (showingQueue ? queuePanel : lyricsPanel).style.opacity = '1';
-      });
+      requestAnimationFrame(() => { incoming.style.opacity = '1'; });
     }, 180);
     document.getElementById('np-tab-lyrics').classList.toggle('active', tab === 'lyrics');
     document.getElementById('np-tab-queue').classList.toggle('active', tab === 'queue');
