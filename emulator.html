@@ -92,13 +92,15 @@
   #search-input{
     width:100%;
     background: rgba(255,255,255,0.08);
-    border: none;
+    border: 1px solid transparent;
     border-radius: 8px;
     padding: 8px 10px 8px 30px;
     font-size: 13px;
     color: var(--text);
     outline:none;
+    transition: background .15s ease, border-color .15s ease;
   }
+  #search-input:focus{ background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); }
   #search-input::placeholder{ color: var(--text-faint); }
   #search-wrap{ position:relative; }
   #search-wrap svg{
@@ -119,6 +121,7 @@
     color: var(--text-dim);
     cursor:pointer;
     user-select:none;
+    transition: background .15s ease, color .15s ease;
   }
   .side-nav-item svg{ width:16px; height:16px; fill:currentColor; flex-shrink:0; }
   .side-nav-item:hover{ background: var(--row-hover); color: var(--text); }
@@ -130,6 +133,7 @@
     padding: 6px 12px;
     border-radius:6px;
     cursor:pointer;
+    transition: background .15s ease;
   }
   .side-song-item:hover{ background: var(--row-hover); }
   .side-song-item.playing{ background: var(--row-active); }
@@ -175,6 +179,7 @@
   table.song-table tbody tr{
     cursor:pointer;
     border-radius:6px;
+    transition: background .12s ease;
   }
   table.song-table tbody tr:hover{ background: var(--row-hover); }
   table.song-table tbody tr.playing td{ color: var(--accent); }
@@ -184,6 +189,7 @@
     color: var(--text-dim);
     border-bottom: 1px solid rgba(255,255,255,0.04);
     vertical-align:middle;
+    transition: color .15s ease;
   }
   td.num-col{ color: var(--text-faint); font-variant-numeric: tabular-nums; }
   td.title-col{ display:flex; align-items:center; gap:11px; color: var(--text); font-weight:600; }
@@ -191,14 +197,30 @@
   .row-title-wrap{ min-width:0; }
   .row-title-wrap .row-artist{ font-weight:400; color: var(--text-faint); font-size:12px; margin-top:1px; }
   td.dur-col{ text-align:right; font-variant-numeric: tabular-nums; color: var(--text-faint); }
-  .row-play-icon{
-    width:26px; height:26px; border-radius:50%;
-    background: var(--accent);
-    display:none; align-items:center; justify-content:center; flex-shrink:0;
+  .row-cover-wrap{ position:relative; width:36px; height:36px; flex-shrink:0; border-radius:5px; overflow:hidden; }
+  .row-hover-play{
+    position:absolute; inset:0;
+    background: rgba(0,0,0,0.45);
+    display:flex; align-items:center; justify-content:center;
+    opacity:0; transition: opacity .15s ease;
   }
-  tr.playing .row-play-icon{ display:flex; }
-  tr.playing .row-cover{ display:none; }
-  .row-play-icon svg{ width:11px; height:11px; fill:#fff; }
+  tr:hover .row-hover-play{ opacity:1; }
+  tr.playing .row-hover-play{ display:none; }
+  .row-hover-play svg{ width:13px; height:13px; fill:#fff; }
+  .row-eq{
+    position:absolute; inset:0;
+    display:none;
+    align-items:flex-end; justify-content:center; gap:3px;
+    background: rgba(0,0,0,0.55);
+    padding-bottom: 8px;
+  }
+  tr.playing .row-eq{ display:flex; }
+  .row-eq span{ width:3px; background: var(--accent); border-radius:1px; height:60%; transform-origin: bottom; animation: eqBounce 0.9s ease-in-out infinite; }
+  .row-eq span:nth-child(1){ animation-delay: -0.6s; }
+  .row-eq span:nth-child(2){ animation-delay: -0.2s; }
+  .row-eq span:nth-child(3){ animation-delay: -0.9s; }
+  tr.playing.row-paused .row-eq span{ animation-play-state: paused; transform: scaleY(0.4); }
+  @keyframes eqBounce{ 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
 
   #empty-library{
     color: var(--text-faint);
@@ -221,17 +243,21 @@
     align-items:center;
     padding: 0 16px;
     gap: 18px;
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform .38s cubic-bezier(.32,.72,.35,1), opacity .3s ease;
   }
-  #mini-player.has-track{ display:flex; }
+  #mini-player.visible{ display:flex; }
+  #mini-player.has-track{ transform: translateY(0); opacity:1; }
   .mini-track-info{ display:flex; align-items:center; gap:10px; width:230px; flex-shrink:0; min-width:0; }
-  .mini-cover{ width:52px; height:52px; border-radius:6px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; cursor:pointer; }
+  .mini-cover{ width:52px; height:52px; border-radius:6px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; cursor:pointer; transition: opacity .25s ease; }
   .mini-text{ min-width:0; }
   .mini-title{ font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .mini-artist{ font-size:11.5px; color: var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
   .mini-center{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; max-width: 620px; margin: 0 auto; }
   .mini-transport-buttons{ display:flex; align-items:center; gap: 22px; }
-  .mini-btn{ background:none; border:none; cursor:pointer; color:#fff; opacity:0.82; display:flex; align-items:center; justify-content:center; padding:0; }
+  .mini-btn{ background:none; border:none; cursor:pointer; color:#fff; opacity:0.82; display:flex; align-items:center; justify-content:center; padding:0; transition: opacity .15s ease, transform .1s ease; }
   .mini-btn:hover{ opacity:1; }
   .mini-btn:active{ transform: scale(0.9); }
   .mini-btn svg{ width:16px; height:16px; fill:currentColor; }
@@ -248,7 +274,7 @@
   .mini-right{ width:230px; flex-shrink:0; display:flex; align-items:center; justify-content:flex-end; gap:14px; }
   .mini-vol-row{ display:flex; align-items:center; gap:6px; width:100px; }
   .mini-vol-row input[type="range"]{ width:100%; accent-color:#fff; }
-  .mini-expand-btn{ background:none; border:none; cursor:pointer; color: var(--text-dim); display:flex; }
+  .mini-expand-btn{ background:none; border:none; cursor:pointer; color: var(--text-dim); display:flex; transition: color .15s ease; }
   .mini-expand-btn:hover{ color:#fff; }
   .mini-expand-btn svg{ width:15px; height:15px; fill:currentColor; }
 
@@ -260,25 +286,39 @@
     background:#000;
     flex-direction:column;
   }
-  #fullscreen-np.open{ display:flex; }
+  #fullscreen-np.visible{ display:flex; }
+  #fullscreen-np.open #np-panel-inner{
+    transform: translateY(0);
+    opacity:1;
+  }
+  #np-panel-inner{
+    position:absolute; inset:0;
+    display:flex; flex-direction:column;
+    transform: translateY(28px);
+    opacity:0;
+    transition: transform .42s cubic-bezier(.32,.72,.35,1), opacity .32s ease;
+  }
   #np-backdrop{
     position:absolute; inset:0;
     background-size:cover; background-position:center;
     filter: blur(70px) saturate(1.5) brightness(0.55);
     opacity:0;
-    transition: opacity .5s ease;
+    transition: opacity .5s ease, background-image .5s ease;
   }
   #np-backdrop.has-cover{ opacity: 0.9; }
   #np-scrim{ position:absolute; inset:0; background: rgba(0,0,0,0.35); }
   #np-top-row{ position:relative; z-index:2; display:flex; align-items:center; padding: 18px 26px 0; }
-  .np-close-btn{ background:none; border:none; color: rgba(255,255,255,0.7); cursor:pointer; padding:6px; }
+  .np-close-btn{ background:none; border:none; color: rgba(255,255,255,0.7); cursor:pointer; padding:6px; transition: color .15s ease, transform .12s ease; }
   .np-close-btn:hover{ color:#fff; }
+  .np-close-btn:active{ transform: scale(0.88); }
   .np-close-btn svg{ width:19px; height:19px; fill:currentColor; }
   .np-tabs{ margin-left:auto; display:flex; gap:6px; background: rgba(255,255,255,0.08); border-radius:8px; padding:3px; }
   .np-tab-btn{
     background:none; border:none; cursor:pointer; color: rgba(255,255,255,0.55);
     font-size:12px; font-weight:600; padding: 6px 14px; border-radius:6px;
+    transition: color .15s ease, background .15s ease;
   }
+  .np-tab-btn:hover{ color: rgba(255,255,255,0.85); }
   .np-tab-btn.active{ background: rgba(255,255,255,0.16); color:#fff; }
 
   #np-body{
@@ -296,6 +336,7 @@
     object-fit:cover;
     box-shadow: 0 30px 60px rgba(0,0,0,0.55);
     background: rgba(255,255,255,0.06);
+    transition: opacity .28s ease, transform .28s ease;
   }
   #np-cover-placeholder{
     width:320px; height:320px; border-radius:14px;
@@ -303,7 +344,9 @@
     background: rgba(255,255,255,0.06);
     border: 1px solid rgba(255,255,255,0.1);
     font-size:48px; color: rgba(255,255,255,0.24);
+    transition: opacity .28s ease;
   }
+  #np-title, #np-artist{ transition: opacity .25s ease; }
   #np-title{ font-size:22px; font-weight:800; margin-top:22px; text-align:center; letter-spacing:-0.3px; }
   #np-artist{ font-size:14px; color: rgba(255,255,255,0.55); margin-top:4px; text-align:center; }
 
@@ -312,6 +355,7 @@
     overflow-y:auto;
     padding: 10px 4px 40px;
     scroll-behavior:smooth;
+    transition: opacity .22s ease;
   }
   #np-queue-panel{ display:none; }
   #fullscreen-np.tab-queue #np-lyrics-panel{ display:none; }
@@ -368,7 +412,7 @@
   .np-scrub-dot{ position:absolute; top:50%; left:0%; width:11px; height:11px; border-radius:50%; background:#fff; transform:translate(-50%,-50%); box-shadow:0 1px 4px rgba(0,0,0,0.4); }
   .np-time-row{ display:flex; justify-content:space-between; font-size:10.5px; color: rgba(255,255,255,0.45); margin-top:7px; max-width:620px; margin-left:auto; margin-right:auto; }
   .np-transport-buttons{ display:flex; align-items:center; justify-content:center; gap:34px; margin-top:14px; }
-  .np-transport-btn{ background:none; border:none; cursor:pointer; color:#fff; width:38px; height:38px; display:flex; align-items:center; justify-content:center; padding:0; opacity:0.85; }
+  .np-transport-btn{ background:none; border:none; cursor:pointer; color:#fff; width:38px; height:38px; display:flex; align-items:center; justify-content:center; padding:0; opacity:0.85; transition: opacity .15s ease, transform .1s ease; }
   .np-transport-btn:hover{ opacity:1; }
   .np-transport-btn:active{ transform: scale(0.92); }
   .np-transport-btn svg{ width:22px; height:22px; fill:currentColor; }
@@ -475,6 +519,7 @@
 
 <!-- ---------- fullscreen now playing ---------- -->
 <div id="fullscreen-np">
+ <div id="np-panel-inner">
   <div id="np-backdrop"></div>
   <div id="np-scrim"></div>
   <div id="np-top-row">
@@ -518,6 +563,7 @@
       <button class="np-transport-btn" id="np-fwd" title="Forward 10s"><svg viewBox="0 0 24 24"><path d="M12,5V1l5,5l-5,5V7c-3.31,0-6,2.69-6,6s2.69,6,6,6s6-2.69,6-6h2c0,4.42-3.58,8-8,8s-8-3.58-8-8S7.58,5,12,5z"/></svg></button>
     </div>
   </div>
+ </div>
 </div>
 
 <script>
@@ -637,11 +683,15 @@
       const isPlaying = idx === currentIdx;
       const loaded = sessionAudio.draftId === d.id;
       const dur = loaded && sessionAudio.el && sessionAudio.el.duration ? fmtTime(sessionAudio.el.duration) : '--:--';
-      html += '<tr class="' + (isPlaying ? 'playing' : '') + '" data-idx="' + idx + '">' +
+      const isPlayingAudio = isPlaying && sessionAudio.el && !sessionAudio.el.paused;
+      html += '<tr class="' + (isPlaying ? 'playing' : '') + (isPlaying && !isPlayingAudio ? ' row-paused' : '') + '" data-idx="' + idx + '">' +
         '<td class="num-col">' + (i+1) + '</td>' +
         '<td class="title-col">' +
-          (d.cover ? '<img class="row-cover" src="' + d.cover + '">' : '<div class="row-cover"></div>') +
-          '<div class="row-play-icon"><svg viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg></div>' +
+          '<div class="row-cover-wrap">' +
+            (d.cover ? '<img class="row-cover" src="' + d.cover + '">' : '<div class="row-cover"></div>') +
+            '<div class="row-hover-play"><svg viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg></div>' +
+            '<div class="row-eq"><span></span><span></span><span></span></div>' +
+          '</div>' +
           '<div class="row-title-wrap"><div>' + escapeHtml(d.title || 'Untitled') + '</div>' +
           '<div class="row-artist">' + escapeHtml(d.artist || 'Unknown Artist') + '</div></div>' +
         '</td>' +
@@ -662,9 +712,19 @@
     currentIdx = idx;
     const d = drafts[currentIdx];
 
-    document.getElementById('mini-player').classList.add('has-track');
-    document.getElementById('mini-cover').src = d.cover || '';
-    document.getElementById('mini-cover').style.visibility = d.cover ? 'visible' : 'hidden';
+    const mp = document.getElementById('mini-player');
+    if(!mp.classList.contains('visible')){
+      mp.classList.add('visible');
+      void mp.offsetHeight; // force reflow so has-track's transform actually transitions in
+      requestAnimationFrame(() => mp.classList.add('has-track'));
+    }
+    const miniCover = document.getElementById('mini-cover');
+    miniCover.style.opacity = '0';
+    setTimeout(() => {
+      miniCover.src = d.cover || '';
+      miniCover.style.visibility = d.cover ? 'visible' : 'hidden';
+      miniCover.style.opacity = '1';
+    }, 140);
     document.getElementById('mini-title').textContent = d.title || 'Untitled';
     document.getElementById('mini-artist').textContent = d.artist || 'Unknown Artist';
 
@@ -683,18 +743,31 @@
   function renderNowPlayingInfo(){
     const d = getActive();
     if(!d) return;
-    document.getElementById('np-title').textContent = d.title || 'Untitled';
-    document.getElementById('np-artist').textContent = d.artist || 'Unknown Artist';
+    const titleEl = document.getElementById('np-title');
+    const artistEl = document.getElementById('np-artist');
     const cover = document.getElementById('np-cover');
     const placeholder = document.getElementById('np-cover-placeholder');
     const backdrop = document.getElementById('np-backdrop');
-    if(d.cover){
-      cover.src = d.cover; cover.style.display = 'block'; placeholder.style.display = 'none';
-      backdrop.style.backgroundImage = 'url(' + d.cover + ')'; backdrop.classList.add('has-cover');
-    } else {
-      cover.style.display = 'none'; placeholder.style.display = 'flex';
-      backdrop.classList.remove('has-cover');
-    }
+
+    // fade the outgoing art/text out, swap content, fade back in — avoids the
+    // jarring instant pop when skipping tracks
+    [titleEl, artistEl, cover, placeholder, backdrop].forEach(el => el.style.opacity = '0');
+    setTimeout(() => {
+      titleEl.textContent = d.title || 'Untitled';
+      artistEl.textContent = d.artist || 'Unknown Artist';
+      if(d.cover){
+        cover.src = d.cover; cover.style.display = 'block'; placeholder.style.display = 'none';
+        backdrop.style.backgroundImage = 'url(' + d.cover + ')'; backdrop.classList.add('has-cover');
+      } else {
+        cover.style.display = 'none'; placeholder.style.display = 'flex';
+        backdrop.classList.remove('has-cover');
+      }
+      requestAnimationFrame(() => {
+        titleEl.style.opacity = '1'; artistEl.style.opacity = '1';
+        cover.style.opacity = '1'; placeholder.style.opacity = '1';
+        backdrop.style.opacity = backdrop.classList.contains('has-cover') ? '0.9' : '0';
+      });
+    }, 160);
     renderQueuePanel();
   }
 
@@ -817,6 +890,9 @@
     document.getElementById('np-time-elapsed').textContent = elapsed;
     document.getElementById('np-time-remaining').textContent = remaining;
     document.getElementById('np-play-icon').innerHTML = playIcon;
+
+    const playingRow = document.querySelector('table.song-table tr.playing');
+    if(playingRow) playingRow.classList.toggle('row-paused', !playing);
   }
 
   function togglePlay(){
@@ -929,20 +1005,42 @@
   }
 
   // ---------- fullscreen now-playing open/close + tabs ----------
+  // display:none can't be transitioned, so opening needs two steps: make it
+  // display:flex (still visually at its closed transform/opacity), force a
+  // reflow, then add the class that animates it to open — otherwise the browser
+  // collapses the "closed → open" change into a single frame and nothing slides.
   function openFullscreen(){
     if(!getActive()) return;
-    document.getElementById('fullscreen-np').classList.add('open');
+    const el = document.getElementById('fullscreen-np');
+    el.classList.add('visible');
+    void el.offsetHeight; // force reflow so the next class change transitions
+    el.classList.add('open');
   }
   function closeFullscreen(){
-    document.getElementById('fullscreen-np').classList.remove('open');
+    const el = document.getElementById('fullscreen-np');
+    el.classList.remove('open');
+    setTimeout(() => { if(!el.classList.contains('open')) el.classList.remove('visible'); }, 450);
   }
   document.getElementById('mini-expand').addEventListener('click', openFullscreen);
   document.getElementById('mini-cover').addEventListener('click', openFullscreen);
   document.getElementById('np-close').addEventListener('click', closeFullscreen);
+  document.getElementById('np-scrim').addEventListener('click', closeFullscreen);
 
   function setTab(tab){
+    if(tab === npTab) return;
     npTab = tab;
-    document.getElementById('fullscreen-np').classList.toggle('tab-queue', tab === 'queue');
+    const lyricsPanel = document.getElementById('np-lyrics-panel');
+    const queuePanel = document.getElementById('np-queue-panel');
+    const showingQueue = tab === 'queue';
+    // crossfade: fade the outgoing panel out, swap which one is in the flow,
+    // then fade the incoming one in — instead of an instant display swap
+    (showingQueue ? lyricsPanel : queuePanel).style.opacity = '0';
+    setTimeout(() => {
+      document.getElementById('fullscreen-np').classList.toggle('tab-queue', showingQueue);
+      requestAnimationFrame(() => {
+        (showingQueue ? queuePanel : lyricsPanel).style.opacity = '1';
+      });
+    }, 180);
     document.getElementById('np-tab-lyrics').classList.toggle('active', tab === 'lyrics');
     document.getElementById('np-tab-queue').classList.toggle('active', tab === 'queue');
   }
