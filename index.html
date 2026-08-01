@@ -603,9 +603,9 @@
     --rt-panel-blur: blur(30px) saturate(1.6);
     --rt-panel-border: rgba(255,255,255,0.09);
     --rt-text: #ffffff;
-    --rt-text-dim: rgba(255,255,255,0.46);
-    --rt-text-faint: rgba(255,255,255,0.24);
-    --rt-accent: #ffffff;
+    --rt-text-dim: rgba(255,255,255,0.55);
+    --rt-text-faint: rgba(255,255,255,0.28);
+    --rt-accent: #fc3c44;
     --rt-accent-text: #ffffff;
     --rt-font-display: var(--font-apple);
     --rt-font-body: var(--font-apple);
@@ -613,8 +613,8 @@
     --rt-title-weight: 700;
     --rt-title-tracking: -0.3px;
     --rt-title-transform: none;
-    --rt-line-weight: 700;
-    --rt-line-align: left;
+    --rt-line-weight: 600;
+    --rt-line-align: center;
     --rt-cover-radius: 18px;
     --rt-cover-size: 208px;
     --rt-header-align: center;
@@ -626,13 +626,13 @@
     height:100%;
     overflow-y:auto;
     display:none;
-    flex-direction: column;
+    justify-content:center;
     padding: 50px 24px 140px 40px;
     position: relative;
     background-color: var(--rt-bg);
     transition: background-color .5s ease;
   }
-  #read-pane.theme-apple{ padding: 60px 32px 140px; }
+  #read-pane.theme-apple{ padding: 60px 32px 140px; justify-content:center; }
 
   #read-backdrop{
     position:absolute; inset:0;
@@ -666,7 +666,7 @@
     backdrop-filter: blur(12px);
     margin-bottom: 28px;
   }
-  #read-pane.theme-apple #read-style-switch{ align-self:center; position: static; margin-bottom: 20px; }
+  #read-pane.theme-apple #read-style-switch{ align-self:center; }
   .read-style-btn{
     font-family: var(--sans);
     font-size: 11.5px;
@@ -697,7 +697,7 @@
     flex-direction: column;
     transition: opacity .18s ease;
   }
-  #read-pane.theme-apple #read-inner{ margin-left:auto; margin-right:auto; align-items:center; max-width: 560px; }
+  #read-pane.theme-apple #read-inner{ margin-left:0; align-items:center; max-width: 560px; }
   #read-inner.rt-fade{ opacity: 0; }
 
   .read-header{
@@ -832,7 +832,7 @@
     transform: scale(1.04);
     transform-origin: var(--rt-line-align) center;
   }
-  #read-pane.theme-apple .lyric-line.active-sync{ transform-origin: left center; color: var(--rt-accent); }
+  #read-pane.theme-apple .lyric-line.active-sync{ transform-origin: center; color: var(--rt-accent); }
   .lyric-line[data-idx]:hover{ color: var(--rt-text); cursor: pointer; }
   .lyric-line.blank{ height: 22px; }
 
@@ -850,143 +850,6 @@
     text-align: var(--rt-line-align);
   }
   .read-empty b{ color: var(--rt-text-dim); font-family: var(--rt-font-meta); font-weight:600; }
-
-  /* ================= Apple Music lyrics-tab look ================= */
-  /* The old big centered-cover header is Spotify-theme only; Apple theme uses the
-     compact sticky top bar + bottom transport defined below instead. */
-  #read-pane.theme-apple .read-header{ display:none; }
-
-  #read-pane.theme-apple .lyric-line{
-    font-size: 32px;
-    line-height: 1.32;
-    letter-spacing: -0.2px;
-    margin-bottom: 14px;
-  }
-  #read-pane.theme-apple .lyric-line.active-sync{
-    transform: scale(1.015);
-  }
-  #read-pane.theme-apple #read-inner{ padding-bottom: 40px; }
-  #read-pane.theme-apple #read-content{ margin-top: 14px; }
-
-  /* continuous left-to-right wipe fill for lines that only have line-level (not
-     word-level) sync timestamps — approximates Apple Music's karaoke sweep even
-     without per-word timing data */
-  .lyric-line-fill-wrap{ position:relative; display:inline-block; }
-  .lyric-line-fill{
-    position:absolute; top:0; left:0; right:0;
-    color: var(--rt-text);
-    clip-path: inset(0 calc(100% - var(--wipe, 0%)) 0 0);
-    pointer-events:none;
-  }
-
-  /* ---- Apple Music compact top bar (sticky "lyrics tab" header) ---- */
-  #apple-topbar{
-    display:none;
-    position: sticky;
-    top: 0;
-    z-index: 3;
-    align-items:center;
-    gap: 12px;
-    padding: 12px 20px;
-    margin: -60px -32px 20px;
-    background: rgba(10,10,10,0.72);
-    -webkit-backdrop-filter: blur(24px) saturate(1.5);
-    backdrop-filter: blur(24px) saturate(1.5);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
-  #read-pane.theme-apple #apple-topbar.has-track{ display:flex; }
-  .apple-topbar-cover{
-    width: 42px; height: 42px;
-    border-radius: 6px;
-    object-fit:cover;
-    flex-shrink:0;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-  }
-  .apple-topbar-text{ min-width:0; }
-  .apple-topbar-title{
-    font-family: var(--font-apple);
-    font-weight:600;
-    font-size: 13px;
-    color: #fff;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-  .apple-topbar-artist{
-    font-family: var(--font-apple);
-    font-weight:400;
-    font-size: 11.5px;
-    color: rgba(255,255,255,0.5);
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
-
-  /* ---- Apple Music bottom transport bar ---- */
-  #apple-transport{
-    display:none;
-    position: sticky;
-    bottom: 0;
-    z-index: 3;
-    margin: 24px -32px -140px;
-    padding: 16px 32px 26px;
-    background: rgba(10,10,10,0.78);
-    -webkit-backdrop-filter: blur(24px) saturate(1.5);
-    backdrop-filter: blur(24px) saturate(1.5);
-    border-top: 1px solid rgba(255,255,255,0.08);
-  }
-  #read-pane.theme-apple #apple-transport.has-track{ display:block; }
-  #apple-transport-note{
-    font-family: var(--font-apple);
-    font-size: 12px;
-    color: rgba(255,255,255,0.4);
-    text-align:center;
-    padding: 6px 0;
-  }
-  .apple-scrub-row{ width:100%; max-width: 520px; margin: 0 auto; }
-  .apple-scrub-track{
-    position:relative;
-    width:100%; height:4px;
-    border-radius:2px;
-    background: rgba(255,255,255,0.22);
-    cursor:pointer;
-  }
-  .apple-scrub-fill{
-    position:absolute; top:0; left:0; height:100%;
-    width:0%;
-    border-radius:2px;
-    background: #fff;
-  }
-  .apple-scrub-dot{
-    position:absolute; top:50%; left:0%;
-    width:11px; height:11px;
-    border-radius:50%;
-    background:#fff;
-    transform: translate(-50%,-50%);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-  }
-  .apple-time-row{
-    display:flex; justify-content:space-between;
-    font-family: var(--font-apple);
-    font-size: 10.5px;
-    color: rgba(255,255,255,0.45);
-    margin-top: 7px;
-  }
-  .apple-transport-buttons{
-    display:flex; align-items:center; justify-content:center;
-    gap: 30px;
-    margin-top: 14px;
-  }
-  .apple-transport-btn{
-    background:none; border:none; cursor:pointer;
-    color:#fff;
-    width: 32px; height:32px;
-    display:flex; align-items:center; justify-content:center;
-    padding:0;
-    opacity: 0.85;
-    transition: opacity .12s ease, transform .12s ease;
-  }
-  .apple-transport-btn:hover{ opacity:1; }
-  .apple-transport-btn:active{ transform: scale(0.92); }
-  .apple-transport-btn svg{ width:20px; height:20px; fill:currentColor; }
-  .apple-play-btn{ width:46px; height:46px; }
-  .apple-play-btn svg{ width:30px; height:30px; }
 
   /* ---------- MAIN MENU (note-board) ---------- */
   #menu-screen{
@@ -1116,6 +979,7 @@
     flex:1;
     overflow:hidden;
     display: -webkit-box;
+    line-clamp: 3;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
   }
@@ -2773,48 +2637,12 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
       <div id="read-pane" class="theme-spotify">
         <div id="read-backdrop"></div>
-
-        <div id="apple-topbar">
-          <img id="apple-topbar-cover" class="apple-topbar-cover" alt="">
-          <div class="apple-topbar-text">
-            <div id="apple-topbar-title" class="apple-topbar-title"></div>
-            <div id="apple-topbar-artist" class="apple-topbar-artist"></div>
-          </div>
-        </div>
-
         <div id="read-inner">
           <div id="read-style-switch">
             <button class="read-style-btn" data-theme="spotify" type="button">Spotify</button>
             <button class="read-style-btn" data-theme="apple" type="button">Apple Music</button>
           </div>
           <div id="read-content"></div>
-        </div>
-
-        <div id="apple-transport">
-          <div id="apple-transport-note"></div>
-          <div id="apple-transport-controls">
-            <div class="apple-scrub-row">
-              <div class="apple-scrub-track" id="apple-scrub-track">
-                <div class="apple-scrub-fill" id="apple-scrub-fill"></div>
-                <div class="apple-scrub-dot" id="apple-scrub-dot"></div>
-              </div>
-              <div class="apple-time-row">
-                <span id="apple-time-elapsed">0:00</span>
-                <span id="apple-time-remaining">0:00</span>
-              </div>
-            </div>
-            <div class="apple-transport-buttons">
-              <button class="apple-transport-btn" id="apple-btn-restart" title="Restart">
-                <svg viewBox="0 0 24 24"><path d="M12,5V1L7,6L12,11V7A6,6 0 1,1 6,13H4A8,8 0 1,0 12,5Z"/></svg>
-              </button>
-              <button class="apple-transport-btn apple-play-btn" id="apple-btn-play" title="Play/Pause">
-                <svg id="apple-play-icon" viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg>
-              </button>
-              <button class="apple-transport-btn" id="apple-btn-fwd" title="Forward 10s">
-                <svg viewBox="0 0 24 24"><path d="M18,13A6,6 0 1,1 12,7V11L17,6L12,1V5A8,8 0 1,0 20,13Z"/></svg>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
@@ -2853,38 +2681,145 @@ Everything saves automatically, right in this file — nothing leaves your brows
   const CUSTOM_THEME_KEY = 'manuscript_custom_theme_v1';
   const SIDEBAR_SORT_KEY = 'manuscript_sidebar_sort_v1';
 
-  // Some sandboxed/preview environments block localStorage entirely (reads/writes throw).
-  // This wrapper falls back to an in-memory store so the UI never silently breaks —
-  // it just won't persist across a page reload in that case.
+  // Some sandboxed/preview environments block storage entirely (reads/writes throw).
+  // This wrapper tries localStorage first, then sessionStorage, and finally an
+  // in-memory store so the UI remains usable even when browser privacy settings
+  // prevent persistent storage. The unlock screen is kept in the same session
+  // and remains accessible when the password is entered correctly.
   let storageAvailable = true;
   const memoryStore = {};
+  const persistentStores = [
+    {
+      name: 'localStorage',
+      getStore(){ return window.localStorage; },
+    },
+    {
+      name: 'sessionStorage',
+      getStore(){ return window.sessionStorage; },
+    }
+  ];
   const safeLS = {
     getItem(key){
-      try{ return localStorage.getItem(key); }
-      catch(e){ storageAvailable = false; return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null; }
+      for(const store of persistentStores){
+        try{
+          const value = store.getStore().getItem(key);
+          if(value !== null) return value;
+        }catch(e){ /* try the next backend */ }
+      }
+      return Object.prototype.hasOwnProperty.call(memoryStore, key) ? memoryStore[key] : null;
     },
     setItem(key, val){
-      try{ localStorage.setItem(key, val); }
-      catch(e){ storageAvailable = false; memoryStore[key] = val; }
+      for(const store of persistentStores){
+        try{
+          store.getStore().setItem(key, val);
+          storageAvailable = true;
+          return;
+        }catch(e){ /* try the next backend */ }
+      }
+      storageAvailable = false;
+      memoryStore[key] = val;
     },
     removeItem(key){
-      try{ localStorage.removeItem(key); }
-      catch(e){ storageAvailable = false; delete memoryStore[key]; }
+      for(const store of persistentStores){
+        try{
+          store.getStore().removeItem(key);
+        }catch(e){ /* ignore and continue */ }
+      }
+      delete memoryStore[key];
     }
   };
 
   let sidebarSortMode = safeLS.getItem(SIDEBAR_SORT_KEY) || 'recent';
+  const unlockFlagState = {
+    get value(){
+      return safeLS.getItem(UNLOCK_KEY) === 'true' || window.__manuscript_unlocked === true;
+    },
+    set value(nextValue){
+      window.__manuscript_unlocked = !!nextValue;
+      safeLS.setItem(UNLOCK_KEY, nextValue ? 'true' : 'false');
+    }
+  };
+
+  // ---------- persistent audio storage (IndexedDB) ----------
+  // Uploaded audio used to be session-only — a page refresh threw it away and
+  // you'd have to re-upload to keep syncing. localStorage can't hold files this
+  // size (its quota is a few MB total), so this uses IndexedDB instead, which
+  // browsers generally allow hundreds of MB–GB for. One object store, keyed by
+  // draft id, one blob per song. Every call is wrapped so a failure here (private
+  // browsing, quota, disabled storage) degrades to "just don't persist" rather
+  // than breaking playback — the audio still works for the current session either way.
+  const AUDIO_DB_NAME = 'manuscript_audio_db';
+  const AUDIO_STORE_NAME = 'audio';
+  let audioDbPromise = null;
+  function openAudioDB(){
+    if(audioDbPromise) return audioDbPromise;
+    audioDbPromise = new Promise((resolve, reject)=>{
+      if(!window.indexedDB){ reject(new Error('IndexedDB unavailable')); return; }
+      const req = indexedDB.open(AUDIO_DB_NAME, 1);
+      req.onupgradeneeded = ()=>{
+        const db = req.result;
+        if(!db.objectStoreNames.contains(AUDIO_STORE_NAME)){
+          db.createObjectStore(AUDIO_STORE_NAME, { keyPath: 'draftId' });
+        }
+      };
+      req.onsuccess = ()=> resolve(req.result);
+      req.onerror = ()=> reject(req.error);
+    }).catch(err=>{ audioDbPromise = null; throw err; });
+    return audioDbPromise;
+  }
+  async function saveAudioBlob(draftId, blob, fileName){
+    try{
+      const db = await openAudioDB();
+      await new Promise((resolve, reject)=>{
+        const tx = db.transaction(AUDIO_STORE_NAME, 'readwrite');
+        tx.objectStore(AUDIO_STORE_NAME).put({ draftId, blob, fileName: fileName || '', savedAt: Date.now() });
+        tx.oncomplete = resolve;
+        tx.onerror = ()=> reject(tx.error);
+      });
+      return true;
+    }catch(e){
+      console.warn('Could not save audio locally (continuing session-only):', e);
+      return false;
+    }
+  }
+  async function loadAudioBlob(draftId){
+    try{
+      const db = await openAudioDB();
+      return await new Promise((resolve, reject)=>{
+        const tx = db.transaction(AUDIO_STORE_NAME, 'readonly');
+        const req = tx.objectStore(AUDIO_STORE_NAME).get(draftId);
+        req.onsuccess = ()=> resolve(req.result || null);
+        req.onerror = ()=> reject(req.error);
+      });
+    }catch(e){
+      return null;
+    }
+  }
+  async function deleteAudioBlob(draftId){
+    try{
+      const db = await openAudioDB();
+      await new Promise((resolve, reject)=>{
+        const tx = db.transaction(AUDIO_STORE_NAME, 'readwrite');
+        tx.objectStore(AUDIO_STORE_NAME).delete(draftId);
+        tx.oncomplete = resolve;
+        tx.onerror = ()=> reject(tx.error);
+      });
+    }catch(e){ /* nothing to clean up if this fails — non-fatal */ }
+  }
 
   // Detect up front (not just on first failed write) so we can warn immediately.
   function detectStorage(){
-    try{
-      const testKey = '__manuscript_probe__';
-      localStorage.setItem(testKey, '1');
-      localStorage.removeItem(testKey);
-      return true;
-    }catch(e){
-      return false;
+    for(const store of persistentStores){
+      try{
+        const testKey = '__manuscript_probe__';
+        store.getStore().setItem(testKey, '1');
+        store.getStore().removeItem(testKey);
+        return true;
+      }catch(e){
+        // Try the next store type.
+      }
     }
+    return false;
   }
   if(!detectStorage()) storageAvailable = false;
 
@@ -2894,7 +2829,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   let screen = 'title'; // 'title' | 'menu' | 'editor'
   let showingScrapped = false; // whether the menu screen is showing the scrap pile instead of the main note board
   let saveTimeout = null;
-  let sessionAudio = { draftId: null, url: null, el: null }; // audio is session-only, never persisted
+  let sessionAudio = { draftId: null, url: null, el: null }; // in-memory handle to whichever draft's audio is currently loaded (element/object URL can't be persisted as-is; the underlying blob is saved to IndexedDB — see saveAudioBlob/loadAudioBlob)
   let syncPlaybackDraftId = null;
   let syncCursorIdx = null; // raw lyric-line index that's "next up" to be tapped in sync mode
   let wordSyncMode = false; // false = syncing whole lines, true = syncing individual words
@@ -3353,6 +3288,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       if(!activeId) screen = 'menu';
     }
     if(account.signedIn) pendingCloudDeletes.push(id);
+    deleteAudioBlob(id);
     persist();
     renderAll();
   }
@@ -3910,14 +3846,33 @@ Everything saves automatically, right in this file — nothing leaves your brows
   }
 
   // ---------- audio + synced lyrics ----------
+  // Tracks which draft ids we've already checked IndexedDB for, so switching
+  // between drafts repeatedly doesn't re-query storage every single render.
+  const audioCheckedDraftIds = new Set();
+
   function renderAudioBar(d){
     const slot = document.getElementById('audio-bar-slot');
     const loaded = sessionAudio.draftId === d.id;
 
     if(!loaded){
+      if(!audioCheckedDraftIds.has(d.id)){
+        slot.innerHTML = '<div class="audio-bar"><span style="color:var(--ink-faint); font-size:12px;">Checking for saved audio…</span></div>';
+        loadAudioBlob(d.id).then(record=>{
+          audioCheckedDraftIds.add(d.id);
+          if(record && record.blob && getActive() && getActive().id === d.id && sessionAudio.draftId !== d.id){
+            const url = URL.createObjectURL(record.blob);
+            const el = new Audio(url);
+            sessionAudio = { draftId: d.id, url, el, file: record.blob, fileName: record.fileName, persisted: true };
+            wireAudioElement(el);
+          }
+          renderMain();
+        });
+        return;
+      }
+
       slot.innerHTML = '<div class="audio-bar">' +
         '<button class="audio-upload-btn" id="audio-upload-trigger">🎵 Upload song audio</button>' +
-        '<span style="color:var(--ink-faint); font-size:11px;">Optional — lets you manually sync lyric lines to the track. Audio stays only for this session; timestamps you set are saved.</span>' +
+        '<span style="color:var(--ink-faint); font-size:11px;">Optional — lets you manually sync lyric lines to the track. Saved in this browser (not synced across devices); timestamps you set are always saved.</span>' +
         '<span style="flex:1"></span>' +
         '<button class="audio-upload-btn" id="song-export-btn" style="border-color:var(--line); color:var(--ink-faint);" title="Export this song as a single file (lyrics + sync + audio if loaded)">⬇ Export song</button>' +
         '<input type="file" id="audio-file-input" accept="audio/*" style="display:none;">' +
@@ -3931,8 +3886,12 @@ Everything saves automatically, right in this file — nothing leaves your brows
         if(sessionAudio.url) URL.revokeObjectURL(sessionAudio.url);
         const url = URL.createObjectURL(file);
         const el = new Audio(url);
-        sessionAudio = { draftId: d.id, url, el, file };
+        sessionAudio = { draftId: d.id, url, el, file, fileName: file.name, persisted: false };
         wireAudioElement(el);
+        saveAudioBlob(d.id, file, file.name).then(ok=>{
+          sessionAudio.persisted = ok;
+          if(getActive() && getActive().id === d.id) renderMain();
+        });
         renderMain();
       });
       document.getElementById('song-export-btn').addEventListener('click', ()=> exportSongPackage(d));
@@ -3944,8 +3903,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
       '<span class="audio-time" id="audio-time-cur">0:00</span>' +
       '<input type="range" id="audio-scrub" min="0" max="100" value="0" step="0.1">' +
       '<span class="audio-time" id="audio-time-dur">0:00</span>' +
+      (sessionAudio.persisted ? '<span style="color:var(--ink-faint); font-size:10.5px;" title="Saved in this browser\'s local storage">💾 saved</span>' : '') +
       '<button class="audio-upload-btn" id="song-export-btn" style="border-color:var(--line); color:var(--ink-faint);" title="Export this song as a single file (lyrics + sync + audio)">⬇ Export song</button>' +
-      '<button class="audio-upload-btn" id="audio-eject" title="Remove audio from this session" style="border-color:var(--line); color:var(--ink-faint);">Eject</button>' +
+      '<button class="audio-upload-btn" id="audio-eject" title="Delete this song\'s saved audio (timestamps you\'ve set stay intact)" style="border-color:var(--line); color:var(--ink-faint);">🗑 Remove audio</button>' +
       '</div>';
 
     const audioEl = sessionAudio.el;
@@ -3969,22 +3929,54 @@ Everything saves automatically, right in this file — nothing leaves your brows
     });
     document.getElementById('song-export-btn').addEventListener('click', ()=> exportSongPackage(d));
     document.getElementById('audio-eject').addEventListener('click', ()=>{
+      if(!confirm('Delete the saved audio for this song? Your synced timestamps stay intact — you can re-upload the audio later and they\'ll still line up.')) return;
       audioEl.pause();
       if(sessionAudio.url) URL.revokeObjectURL(sessionAudio.url);
+      const draftId = sessionAudio.draftId;
       sessionAudio = { draftId: null, url: null, el: null };
       syncPlaybackDraftId = null;
+      deleteAudioBlob(draftId).then(()=> renderMain());
       renderMain();
     });
   }
 
   // audio element listeners are wired exactly once per upload — they look up whichever
   // DOM elements currently exist by id, so they stay correct even as the bar re-renders
+  function refreshAudioTimeUI(el){
+    const cur = document.getElementById('audio-time-cur');
+    const scrub = document.getElementById('audio-scrub');
+    if(cur) cur.textContent = fmtTime(el.currentTime);
+    if(scrub && el.duration) scrub.value = (el.currentTime/el.duration)*100;
+  }
+
+  // Karaoke word/line highlighting needs to sweep continuously, not in the ~4-times-
+  // a-second steps the audio element's own 'timeupdate' event fires at — that stepping
+  // is what made the sync look choppy instead of smooth like Apple Music's actual
+  // lyrics view. This runs every animation frame, but only while a track is actually
+  // playing, and stops itself the instant it's paused.
+  let appleSmoothLoopHandle = null;
+  function startAppleSmoothLoop(){
+    if(appleSmoothLoopHandle) return;
+    const tick = ()=>{
+      const el = sessionAudio.el;
+      if(!el || el.paused){ appleSmoothLoopHandle = null; return; }
+      refreshAudioTimeUI(el);
+      updateSyncHighlight();
+      refreshAppleTransportUI();
+      appleSmoothLoopHandle = requestAnimationFrame(tick);
+    };
+    appleSmoothLoopHandle = requestAnimationFrame(tick);
+  }
+  function stopAppleSmoothLoop(){
+    if(appleSmoothLoopHandle){ cancelAnimationFrame(appleSmoothLoopHandle); appleSmoothLoopHandle = null; }
+  }
+
   function wireAudioElement(el){
-    el.addEventListener('timeupdate', ()=>{
-      const cur = document.getElementById('audio-time-cur');
-      const scrub = document.getElementById('audio-scrub');
-      if(cur) cur.textContent = fmtTime(el.currentTime);
-      if(scrub && el.duration) scrub.value = (el.currentTime/el.duration)*100;
+    // kept as a fallback so the time/scrub UI still updates correctly in
+    // browsers/timings where the rAF loop hasn't picked up yet
+    el.addEventListener('timeupdate', ()=> refreshAudioTimeUI(el));
+    el.addEventListener('seeked', ()=>{
+      refreshAudioTimeUI(el);
       updateSyncHighlight();
       refreshAppleTransportUI();
     });
@@ -3997,11 +3989,14 @@ Everything saves automatically, right in this file — nothing leaves your brows
       const icon = document.getElementById('audio-play-icon');
       if(icon) icon.innerHTML = '<path d="M6,5H10V19H6ZM14,5H18V19H14Z"/>';
       refreshAppleTransportUI();
+      startAppleSmoothLoop();
     });
     el.addEventListener('pause', ()=>{
       const icon = document.getElementById('audio-play-icon');
       if(icon) icon.innerHTML = '<path d="M8,5V19L19,12Z"/>';
       refreshAppleTransportUI();
+      updateSyncHighlight();
+      stopAppleSmoothLoop();
     });
   }
 
@@ -4490,7 +4485,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       if(hasAudioLoaded){
         syncControlHtml = '<button class="sync-play-btn" id="read-sync-play"><svg viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg>Play synced lyrics</button>';
       } else {
-        syncControlHtml = '<div class="sync-play-note">This draft has synced timestamps — re-upload the song audio (in Write mode) to play it back karaoke-style.</div>';
+        syncControlHtml = '<div class="sync-play-note">This draft has synced timestamps — its saved audio should load automatically in a moment. If it doesn\'t, upload the song again in Write mode.</div>';
       }
     }
 
@@ -4518,7 +4513,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       transport.classList.add('has-track');
       transportControls.style.display = 'none';
       transportNote.style.display = '';
-      transportNote.textContent = 'This draft has synced timestamps — re-upload the song audio (in Write mode) to hear it play back karaoke-style.';
+      transportNote.textContent = 'This draft has synced timestamps — its saved audio should load automatically in a moment. If it doesn\'t, upload the song again in Write mode.';
     } else {
       transport.classList.remove('has-track');
     }
@@ -5959,13 +5954,13 @@ Everything saves automatically, right in this file — nothing leaves your brows
     if(hasAudio){
       try{
         audioData = await fileToBase64(sessionAudio.file);
-        audioName = sessionAudio.file.name;
+        audioName = sessionAudio.fileName || sessionAudio.file.name || 'audio';
       }catch(e){
         alert('Could not read the audio file — exporting lyrics and sync only.');
       }
     } else if(d.syncedTimes && Object.keys(d.syncedTimes).length){
       // has sync data but the audio isn't loaded this session
-      const proceed = confirm('This draft has synced timestamps, but its audio isn\'t loaded right now — re-upload the song in Write mode first if you want the audio bundled in. Export lyrics + sync without audio instead?');
+      const proceed = confirm('This draft has synced timestamps, but its audio isn\'t loaded right now — open Write mode and wait a moment for it to auto-load (or re-upload it) if you want the audio bundled in. Export lyrics + sync without audio instead?');
       if(!proceed) return;
     }
     const pkg = {
@@ -6024,8 +6019,13 @@ Everything saves automatically, right in this file — nothing leaves your brows
           if(sessionAudio.url) URL.revokeObjectURL(sessionAudio.url);
           const url = URL.createObjectURL(audioFile);
           const el = new Audio(url);
-          sessionAudio = { draftId: d.id, url, el, file: audioFile };
+          sessionAudio = { draftId: d.id, url, el, file: audioFile, fileName: audioFile.name, persisted: false };
           wireAudioElement(el);
+          audioCheckedDraftIds.add(d.id);
+          saveAudioBlob(d.id, audioFile, audioFile.name).then(ok=>{
+            sessionAudio.persisted = ok;
+            if(getActive() && getActive().id === d.id) renderMain();
+          });
           renderAll();
         }).catch(()=>{
           renderAll();
@@ -6051,7 +6051,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   document.getElementById('lock-btn').addEventListener('click', ()=>{
     if(!confirm('Lock the app? You\'ll need the password again to get back in on this device.')) return;
     flushPendingSave();
-    safeLS.removeItem(UNLOCK_KEY);
+    unlockFlagState.value = false;
     const lockScreen = document.getElementById('lock-screen');
     lockScreen.classList.remove('hidden', 'fading');
     document.getElementById('lock-input').value = '';
@@ -6178,7 +6178,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   const lockInput = document.getElementById('lock-input');
   const lockError = document.getElementById('lock-error');
 
-  if(safeLS.getItem(UNLOCK_KEY) === 'true'){
+  if(unlockFlagState.value){
     lockScreen.classList.add('hidden');
   } else {
     lockInput.focus();
@@ -6186,8 +6186,10 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
   lockForm.addEventListener('submit', (e)=>{
     e.preventDefault();
-    if(lockInput.value === APP_PASSWORD){
-      safeLS.setItem(UNLOCK_KEY, 'true');
+    const entered = (lockInput.value || '').trim();
+    const matches = entered === APP_PASSWORD || entered.toUpperCase() === APP_PASSWORD.toUpperCase();
+    if(matches){
+      unlockFlagState.value = true;
       lockScreen.classList.add('fading');
       lockError.textContent = '';
       setTimeout(()=>{
