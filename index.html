@@ -4491,11 +4491,13 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
     // ---- Apple Music compact top bar (sticky "lyrics tab" header) ----
     const topbar = document.getElementById('apple-topbar');
-    document.getElementById('apple-topbar-cover').src = d.cover || '';
-    document.getElementById('apple-topbar-cover').style.visibility = d.cover ? 'visible' : 'hidden';
-    document.getElementById('apple-topbar-title').textContent = d.title || 'Untitled';
-    document.getElementById('apple-topbar-artist').textContent = d.artist || '';
-    topbar.classList.toggle('has-track', true);
+    const topbarCover = document.getElementById('apple-topbar-cover');
+    const topbarTitle = document.getElementById('apple-topbar-title');
+    const topbarArtist = document.getElementById('apple-topbar-artist');
+    if(topbarCover){ topbarCover.src = d.cover || ''; topbarCover.style.visibility = d.cover ? 'visible' : 'hidden'; }
+    if(topbarTitle){ topbarTitle.textContent = d.title || 'Untitled'; }
+    if(topbarArtist){ topbarArtist.textContent = d.artist || ''; }
+    if(topbar){ topbar.classList.toggle('has-track', true); }
 
     // ---- Apple Music bottom transport bar ----
     const transport = document.getElementById('apple-transport');
@@ -4561,7 +4563,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
   // it's a no-op when the transport bar isn't showing.
   function refreshAppleTransportUI(){
     const transport = document.getElementById('apple-transport');
-    if(!transport.classList.contains('has-track')) return;
+    if(!transport || !transport.classList.contains('has-track')) return;
     const el = sessionAudio.el;
     if(!el) return;
     const fill = document.getElementById('apple-scrub-fill');
@@ -4584,6 +4586,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const playBtn = document.getElementById('apple-btn-play');
     const restartBtn = document.getElementById('apple-btn-restart');
     const fwdBtn = document.getElementById('apple-btn-fwd');
+
+    if(!track || !playBtn || !restartBtn || !fwdBtn) return;
 
     function seekToClientX(clientX){
       const el = sessionAudio.el;
