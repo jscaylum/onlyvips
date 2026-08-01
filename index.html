@@ -3341,8 +3341,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
     syncEmulatorAccessFlag();
   }
 
-  // The emulator (Apple Music / Spotify preview) lives in a separate file
-  // (emulator.html) so it can be reused outside this app's editor shell. It has
+  // The Apple Music-style emulator lives in a separate file
+  // (AMemulator.html) so it can be reused outside this app's editor shell. It has
   // no server to check identity against, so it trusts this flag instead — which
   // this file only ever sets while the real, currently-signed-in Google account
   // is the owner account, and clears the instant that stops being true (sign out,
@@ -4829,8 +4829,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
     html += '<div class="admin-section-title">Preview & emulator</div>';
     html += '<div class="admin-actions-row">' +
       '<button class="footer-btn" id="open-apple-emulator-btn" style="flex:none;">🎵 Apple Music emulator</button>' +
+      '<button class="footer-btn" id="open-spotify-emulator-btn" style="flex:none;">🎧 Spotify emulator</button>' +
     '</div>';
-    html += '<div class="admin-note">Opens a full-screen Apple Music–style preview of your drafts in a new tab, for demoing/screenshots. Owner-only — it checks the same sign-in as this panel.</div>';
+    html += '<div class="admin-note">Opens full-screen Apple Music– or Spotify–style previews of your drafts in new tabs, for demoing/screenshots. Owner-only — they check the same sign-in as this panel.</div>';
     html += '</div>';
 
     html += '<div class="admin-section">';
@@ -4863,7 +4864,14 @@ Everything saves automatically, right in this file — nothing leaves your brows
     if(openEmulatorBtn) openEmulatorBtn.addEventListener('click', ()=>{
       if(!isOwner()) return;
       syncEmulatorAccessFlag();
-      window.open('emulator.html', '_blank');
+      window.open('AMemulator.html', '_blank');
+    });
+
+    const openSpotifyEmulatorBtn = document.getElementById('open-spotify-emulator-btn');
+    if(openSpotifyEmulatorBtn) openSpotifyEmulatorBtn.addEventListener('click', ()=>{
+      if(!isOwner()) return;
+      syncEmulatorAccessFlag();
+      window.open('Semulator.html', '_blank');
     });
     content.querySelectorAll('[data-admin-open]').forEach(row=>{
       row.addEventListener('click', ()=>{
