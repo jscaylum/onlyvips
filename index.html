@@ -278,6 +278,28 @@
   }
   #artist-input::placeholder{ color: var(--ink-faint); }
 
+  #description-bar{
+    display:none;
+    padding: 10px 24px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-raised);
+  }
+  #description-bar.open{ display:block; }
+  #description-input{
+    width:100%;
+    resize:vertical;
+    min-height:38px;
+    max-height:160px;
+    background:none;
+    border:none;
+    outline:none;
+    font-family: var(--sans);
+    font-size: 13px;
+    line-height:1.55;
+    color: var(--ink-dim);
+  }
+  #description-input::placeholder{ color: var(--ink-faint); }
+
   .mode-toggle{
     display:flex;
     gap: 2px;
@@ -581,9 +603,9 @@
     --rt-panel-blur: blur(30px) saturate(1.6);
     --rt-panel-border: rgba(255,255,255,0.09);
     --rt-text: #ffffff;
-    --rt-text-dim: rgba(255,255,255,0.55);
-    --rt-text-faint: rgba(255,255,255,0.28);
-    --rt-accent: #fc3c44;
+    --rt-text-dim: rgba(255,255,255,0.46);
+    --rt-text-faint: rgba(255,255,255,0.24);
+    --rt-accent: #ffffff;
     --rt-accent-text: #ffffff;
     --rt-font-display: var(--font-apple);
     --rt-font-body: var(--font-apple);
@@ -591,8 +613,8 @@
     --rt-title-weight: 700;
     --rt-title-tracking: -0.3px;
     --rt-title-transform: none;
-    --rt-line-weight: 600;
-    --rt-line-align: center;
+    --rt-line-weight: 700;
+    --rt-line-align: left;
     --rt-cover-radius: 18px;
     --rt-cover-size: 208px;
     --rt-header-align: center;
@@ -604,13 +626,13 @@
     height:100%;
     overflow-y:auto;
     display:none;
-    justify-content:center;
+    flex-direction: column;
     padding: 50px 24px 140px 40px;
     position: relative;
     background-color: var(--rt-bg);
     transition: background-color .5s ease;
   }
-  #read-pane.theme-apple{ padding: 60px 32px 140px; justify-content:center; }
+  #read-pane.theme-apple{ padding: 60px 32px 140px; }
 
   #read-backdrop{
     position:absolute; inset:0;
@@ -644,7 +666,7 @@
     backdrop-filter: blur(12px);
     margin-bottom: 28px;
   }
-  #read-pane.theme-apple #read-style-switch{ align-self:center; }
+  #read-pane.theme-apple #read-style-switch{ align-self:center; position: static; margin-bottom: 20px; }
   .read-style-btn{
     font-family: var(--sans);
     font-size: 11.5px;
@@ -675,7 +697,7 @@
     flex-direction: column;
     transition: opacity .18s ease;
   }
-  #read-pane.theme-apple #read-inner{ margin-left:0; align-items:center; max-width: 560px; }
+  #read-pane.theme-apple #read-inner{ margin-left:auto; margin-right:auto; align-items:center; max-width: 560px; }
   #read-inner.rt-fade{ opacity: 0; }
 
   .read-header{
@@ -729,6 +751,15 @@
     font-size: 15px;
     color: var(--rt-text-dim);
     margin-top: 6px;
+  }
+  .read-description{
+    font-family: var(--rt-font-body);
+    font-size: 13px;
+    line-height:1.6;
+    color: var(--rt-text-dim);
+    margin-top: 10px;
+    max-width: 480px;
+    white-space: pre-wrap;
   }
   .read-stats{
     font-family: var(--rt-font-meta);
@@ -791,6 +822,7 @@
     line-height: 1.4;
     color: var(--rt-text-dim);
     text-align: var(--rt-line-align);
+    position: relative;
     transition: color .25s ease, transform .25s ease, opacity .25s ease;
   }
   .lyric-line.faint{ color: var(--rt-text-faint); }
@@ -800,7 +832,7 @@
     transform: scale(1.04);
     transform-origin: var(--rt-line-align) center;
   }
-  #read-pane.theme-apple .lyric-line.active-sync{ transform-origin: center; color: var(--rt-accent); }
+  #read-pane.theme-apple .lyric-line.active-sync{ transform-origin: left center; color: var(--rt-accent); }
   .lyric-line[data-idx]:hover{ color: var(--rt-text); cursor: pointer; }
   .lyric-line.blank{ height: 22px; }
 
@@ -818,6 +850,143 @@
     text-align: var(--rt-line-align);
   }
   .read-empty b{ color: var(--rt-text-dim); font-family: var(--rt-font-meta); font-weight:600; }
+
+  /* ================= Apple Music lyrics-tab look ================= */
+  /* The old big centered-cover header is Spotify-theme only; Apple theme uses the
+     compact sticky top bar + bottom transport defined below instead. */
+  #read-pane.theme-apple .read-header{ display:none; }
+
+  #read-pane.theme-apple .lyric-line{
+    font-size: 32px;
+    line-height: 1.32;
+    letter-spacing: -0.2px;
+    margin-bottom: 14px;
+  }
+  #read-pane.theme-apple .lyric-line.active-sync{
+    transform: scale(1.015);
+  }
+  #read-pane.theme-apple #read-inner{ padding-bottom: 40px; }
+  #read-pane.theme-apple #read-content{ margin-top: 14px; }
+
+  /* continuous left-to-right wipe fill for lines that only have line-level (not
+     word-level) sync timestamps — approximates Apple Music's karaoke sweep even
+     without per-word timing data */
+  .lyric-line-fill-wrap{ position:relative; display:inline-block; }
+  .lyric-line-fill{
+    position:absolute; top:0; left:0; right:0;
+    color: var(--rt-text);
+    clip-path: inset(0 calc(100% - var(--wipe, 0%)) 0 0);
+    pointer-events:none;
+  }
+
+  /* ---- Apple Music compact top bar (sticky "lyrics tab" header) ---- */
+  #apple-topbar{
+    display:none;
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    align-items:center;
+    gap: 12px;
+    padding: 12px 20px;
+    margin: -60px -32px 20px;
+    background: rgba(10,10,10,0.72);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: blur(24px) saturate(1.5);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  #read-pane.theme-apple #apple-topbar.has-track{ display:flex; }
+  .apple-topbar-cover{
+    width: 42px; height: 42px;
+    border-radius: 6px;
+    object-fit:cover;
+    flex-shrink:0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  .apple-topbar-text{ min-width:0; }
+  .apple-topbar-title{
+    font-family: var(--font-apple);
+    font-weight:600;
+    font-size: 13px;
+    color: #fff;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .apple-topbar-artist{
+    font-family: var(--font-apple);
+    font-weight:400;
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.5);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+
+  /* ---- Apple Music bottom transport bar ---- */
+  #apple-transport{
+    display:none;
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+    margin: 24px -32px -140px;
+    padding: 16px 32px 26px;
+    background: rgba(10,10,10,0.78);
+    -webkit-backdrop-filter: blur(24px) saturate(1.5);
+    backdrop-filter: blur(24px) saturate(1.5);
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  #read-pane.theme-apple #apple-transport.has-track{ display:block; }
+  #apple-transport-note{
+    font-family: var(--font-apple);
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    text-align:center;
+    padding: 6px 0;
+  }
+  .apple-scrub-row{ width:100%; max-width: 520px; margin: 0 auto; }
+  .apple-scrub-track{
+    position:relative;
+    width:100%; height:4px;
+    border-radius:2px;
+    background: rgba(255,255,255,0.22);
+    cursor:pointer;
+  }
+  .apple-scrub-fill{
+    position:absolute; top:0; left:0; height:100%;
+    width:0%;
+    border-radius:2px;
+    background: #fff;
+  }
+  .apple-scrub-dot{
+    position:absolute; top:50%; left:0%;
+    width:11px; height:11px;
+    border-radius:50%;
+    background:#fff;
+    transform: translate(-50%,-50%);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+  .apple-time-row{
+    display:flex; justify-content:space-between;
+    font-family: var(--font-apple);
+    font-size: 10.5px;
+    color: rgba(255,255,255,0.45);
+    margin-top: 7px;
+  }
+  .apple-transport-buttons{
+    display:flex; align-items:center; justify-content:center;
+    gap: 30px;
+    margin-top: 14px;
+  }
+  .apple-transport-btn{
+    background:none; border:none; cursor:pointer;
+    color:#fff;
+    width: 32px; height:32px;
+    display:flex; align-items:center; justify-content:center;
+    padding:0;
+    opacity: 0.85;
+    transition: opacity .12s ease, transform .12s ease;
+  }
+  .apple-transport-btn:hover{ opacity:1; }
+  .apple-transport-btn:active{ transform: scale(0.92); }
+  .apple-transport-btn svg{ width:20px; height:20px; fill:currentColor; }
+  .apple-play-btn{ width:46px; height:46px; }
+  .apple-play-btn svg{ width:30px; height:30px; }
 
   /* ---------- MAIN MENU (note-board) ---------- */
   #menu-screen{
@@ -2407,6 +2576,7 @@
       <button id="menu-btn">☰</button>
       <button id="back-to-menu">← Menu</button>
       <button class="topbar-btn" id="scrap-toggle-btn" title="Set aside without deleting — kept out of the main list, but never lost">🗑 Scrap</button>
+      <button class="topbar-btn" id="desc-toggle-btn" title="Add a short description for this song">📝 Description</button>
       <div class="cover-thumb" id="cover-thumb" title="Add a cover image">
         <span id="cover-placeholder">+</span>
         <img id="cover-img" style="display:none;" alt="">
@@ -2423,6 +2593,10 @@
         <button class="mode-btn" data-mode="read">Emulation</button>
       </div>
       <div id="save-indicator">saved</div>
+    </div>
+
+    <div id="description-bar">
+      <textarea id="description-input" placeholder="Add a short description for this song — story, credits, mood… (optional, shown in Emulation mode)" spellcheck="false" rows="2"></textarea>
     </div>
 
     <div id="audio-bar-slot"></div>
@@ -2468,12 +2642,48 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
       <div id="read-pane" class="theme-spotify">
         <div id="read-backdrop"></div>
+
+        <div id="apple-topbar">
+          <img id="apple-topbar-cover" class="apple-topbar-cover" alt="">
+          <div class="apple-topbar-text">
+            <div id="apple-topbar-title" class="apple-topbar-title"></div>
+            <div id="apple-topbar-artist" class="apple-topbar-artist"></div>
+          </div>
+        </div>
+
         <div id="read-inner">
           <div id="read-style-switch">
             <button class="read-style-btn" data-theme="spotify" type="button">Spotify</button>
             <button class="read-style-btn" data-theme="apple" type="button">Apple Music</button>
           </div>
           <div id="read-content"></div>
+        </div>
+
+        <div id="apple-transport">
+          <div id="apple-transport-note"></div>
+          <div id="apple-transport-controls">
+            <div class="apple-scrub-row">
+              <div class="apple-scrub-track" id="apple-scrub-track">
+                <div class="apple-scrub-fill" id="apple-scrub-fill"></div>
+                <div class="apple-scrub-dot" id="apple-scrub-dot"></div>
+              </div>
+              <div class="apple-time-row">
+                <span id="apple-time-elapsed">0:00</span>
+                <span id="apple-time-remaining">0:00</span>
+              </div>
+            </div>
+            <div class="apple-transport-buttons">
+              <button class="apple-transport-btn" id="apple-btn-restart" title="Restart">
+                <svg viewBox="0 0 24 24"><path d="M12,5V1L7,6L12,11V7A6,6 0 1,1 6,13H4A8,8 0 1,0 12,5Z"/></svg>
+              </button>
+              <button class="apple-transport-btn apple-play-btn" id="apple-btn-play" title="Play/Pause">
+                <svg id="apple-play-icon" viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg>
+              </button>
+              <button class="apple-transport-btn" id="apple-btn-fwd" title="Forward 10s">
+                <svg viewBox="0 0 24 24"><path d="M18,13A6,6 0 1,1 12,7V11L17,6L12,1V5A8,8 0 1,0 20,13Z"/></svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2932,10 +3142,12 @@ Everything saves automatically, right in this file — nothing leaves your brows
     if(!d) return;
     const titleEl = document.getElementById('title-input');
     const artistEl = document.getElementById('artist-input');
+    const descriptionEl = document.getElementById('description-input');
     const lyricsEl = document.getElementById('lyrics-input');
     if(!titleEl) return; // not in editor view, nothing to flush
     d.title = titleEl.value;
     d.artist = artistEl.value;
+    d.description = descriptionEl.value;
     d.lyrics = lyricsEl.value;
     d.updated = Date.now();
     persist();
@@ -2982,6 +3194,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       id: uid(),
       title: '',
       artist: '',
+      description: '',
       lyrics: '',
       cover: null,
       syncedTimes: {},
@@ -3058,6 +3271,21 @@ Everything saves automatically, right in this file — nothing leaves your brows
       const adminBtn = document.getElementById('open-admin-btn');
       if(adminBtn) adminBtn.addEventListener('click', openAdminPanel);
     }
+    syncEmulatorAccessFlag();
+  }
+
+  // The emulator (Apple Music / Spotify preview) lives in a separate file
+  // (emulator.html) so it can be reused outside this app's editor shell. It has
+  // no server to check identity against, so it trusts this flag instead — which
+  // this file only ever sets while the real, currently-signed-in Google account
+  // is the owner account, and clears the instant that stops being true (sign out,
+  // switch accounts, etc). Runs every time the account box re-renders.
+  function syncEmulatorAccessFlag(){
+    if(isOwner()){
+      safeLS.setItem('emulator_access', 'true');
+    } else {
+      safeLS.removeItem('emulator_access');
+    }
   }
 
   // ---------- rendering: sidebar ----------
@@ -3126,7 +3354,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     renderSortRow();
     const sorted = sortDraftsForList(drafts.filter(d=>!d.scrapped));
     const filtered = query
-      ? sorted.filter(d => (d.title||'').toLowerCase().includes(query) || (d.artist||'').toLowerCase().includes(query) || (d.lyrics||'').toLowerCase().includes(query))
+      ? sorted.filter(d => (d.title||'').toLowerCase().includes(query) || (d.artist||'').toLowerCase().includes(query) || (d.description||'').toLowerCase().includes(query) || (d.lyrics||'').toLowerCase().includes(query))
       : sorted;
 
     if(filtered.length === 0){
@@ -3461,7 +3689,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
     document.getElementById('title-input').value = d.title;
     document.getElementById('artist-input').value = d.artist;
+    document.getElementById('description-input').value = d.description || '';
     document.getElementById('lyrics-input').value = d.lyrics;
+    document.getElementById('description-bar').classList.toggle('open', !!(d.description && d.description.trim()));
 
     renderCoverThumb(d);
     renderAudioBar(d);
@@ -3618,20 +3848,25 @@ Everything saves automatically, right in this file — nothing leaves your brows
       if(cur) cur.textContent = fmtTime(el.currentTime);
       if(scrub && el.duration) scrub.value = (el.currentTime/el.duration)*100;
       updateSyncHighlight();
+      refreshAppleTransportUI();
     });
     el.addEventListener('loadedmetadata', ()=>{
       const dur = document.getElementById('audio-time-dur');
       if(dur) dur.textContent = fmtTime(el.duration);
+      refreshAppleTransportUI();
     });
     el.addEventListener('play', ()=>{
       const icon = document.getElementById('audio-play-icon');
       if(icon) icon.innerHTML = '<path d="M6,5H10V19H6ZM14,5H18V19H14Z"/>';
+      refreshAppleTransportUI();
     });
     el.addEventListener('pause', ()=>{
       const icon = document.getElementById('audio-play-icon');
       if(icon) icon.innerHTML = '<path d="M8,5V19L19,12Z"/>';
+      refreshAppleTransportUI();
     });
   }
+
 
   document.getElementById('cover-thumb').addEventListener('click', (e)=>{
     if(e.target.id === 'cover-remove') return;
@@ -4091,6 +4326,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     return '<div class="read-header-row">' + artHtml +
       '<div><div class="read-title">' + escapeHtml(d.title || 'Untitled') + '</div>' +
       (d.artist ? '<div class="read-artist">' + escapeHtml(d.artist) + '</div>' : '') +
+      (d.description && d.description.trim() ? '<div class="read-description">' + escapeHtml(d.description) + '</div>' : '') +
       '</div></div>';
   }
 
@@ -4109,6 +4345,8 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const hasSyncData = d.syncedTimes && Object.keys(d.syncedTimes).length > 0;
     const hasAudioLoaded = sessionAudio.draftId === d.id;
 
+    // Spotify theme still uses this inline button/note (its header stays visible);
+    // Apple theme's header is hidden via CSS in favor of the transport bar below.
     let syncControlHtml = '';
     if(hasSyncData){
       if(hasAudioLoaded){
@@ -4116,6 +4354,35 @@ Everything saves automatically, right in this file — nothing leaves your brows
       } else {
         syncControlHtml = '<div class="sync-play-note">This draft has synced timestamps — re-upload the song audio (in Write mode) to play it back karaoke-style.</div>';
       }
+    }
+
+    // ---- Apple Music compact top bar (sticky "lyrics tab" header) ----
+    const topbar = document.getElementById('apple-topbar');
+    document.getElementById('apple-topbar-cover').src = d.cover || '';
+    document.getElementById('apple-topbar-cover').style.visibility = d.cover ? 'visible' : 'hidden';
+    document.getElementById('apple-topbar-title').textContent = d.title || 'Untitled';
+    document.getElementById('apple-topbar-artist').textContent = d.artist || '';
+    topbar.classList.toggle('has-track', true);
+
+    // ---- Apple Music bottom transport bar ----
+    const transport = document.getElementById('apple-transport');
+    const transportControls = document.getElementById('apple-transport-controls');
+    const transportNote = document.getElementById('apple-transport-note');
+    if(hasSyncData && hasAudioLoaded){
+      transport.classList.add('has-track');
+      transportControls.style.display = '';
+      transportNote.style.display = 'none';
+      // Playing (or scrubbing) this draft's audio while its lyrics are open always
+      // drives the karaoke highlight — the transport bar IS the sync-playback control.
+      syncPlaybackDraftId = d.id;
+      refreshAppleTransportUI();
+    } else if(hasSyncData && !hasAudioLoaded){
+      transport.classList.add('has-track');
+      transportControls.style.display = 'none';
+      transportNote.style.display = '';
+      transportNote.textContent = 'This draft has synced timestamps — re-upload the song audio (in Write mode) to hear it play back karaoke-style.';
+    } else {
+      transport.classList.remove('has-track');
     }
 
     if(!lyrics.trim()){
@@ -4156,6 +4423,79 @@ Everything saves automatically, right in this file — nothing leaves your brows
     }
   }
 
+  // Keeps the Apple Music transport bar's scrubber, time labels, and play/pause icon
+  // in sync with whichever audio element is currently loaded. Safe to call often —
+  // it's a no-op when the transport bar isn't showing.
+  function refreshAppleTransportUI(){
+    const transport = document.getElementById('apple-transport');
+    if(!transport.classList.contains('has-track')) return;
+    const el = sessionAudio.el;
+    if(!el) return;
+    const fill = document.getElementById('apple-scrub-fill');
+    const dot = document.getElementById('apple-scrub-dot');
+    const elapsedEl = document.getElementById('apple-time-elapsed');
+    const remainingEl = document.getElementById('apple-time-remaining');
+    const playIcon = document.getElementById('apple-play-icon');
+    const pct = el.duration ? (el.currentTime/el.duration)*100 : 0;
+    if(fill) fill.style.width = pct + '%';
+    if(dot) dot.style.left = pct + '%';
+    if(elapsedEl) elapsedEl.textContent = fmtTime(el.currentTime);
+    if(remainingEl) remainingEl.textContent = '-' + fmtTime((el.duration||0) - el.currentTime);
+    if(playIcon) playIcon.innerHTML = el.paused
+      ? '<path d="M8,5V19L19,12Z"/>'
+      : '<path d="M6,5H10V19H6ZM14,5H18V19H14Z"/>';
+  }
+
+  (function(){
+    const track = document.getElementById('apple-scrub-track');
+    const playBtn = document.getElementById('apple-btn-play');
+    const restartBtn = document.getElementById('apple-btn-restart');
+    const fwdBtn = document.getElementById('apple-btn-fwd');
+
+    function seekToClientX(clientX){
+      const el = sessionAudio.el;
+      if(!el || !el.duration) return;
+      const rect = track.getBoundingClientRect();
+      const frac = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      el.currentTime = frac * el.duration;
+      refreshAppleTransportUI();
+    }
+    let scrubbing = false;
+    track.addEventListener('pointerdown', (e)=>{
+      scrubbing = true;
+      track.setPointerCapture(e.pointerId);
+      seekToClientX(e.clientX);
+    });
+    track.addEventListener('pointermove', (e)=>{ if(scrubbing) seekToClientX(e.clientX); });
+    track.addEventListener('pointerup', ()=>{ scrubbing = false; });
+
+    playBtn.addEventListener('click', ()=>{
+      const d = getActive();
+      const el = sessionAudio.el;
+      if(!d || !el) return;
+      if(el.paused){
+        syncPlaybackDraftId = d.id;
+        el.play();
+      } else {
+        el.pause();
+      }
+    });
+    restartBtn.addEventListener('click', ()=>{
+      const d = getActive();
+      const el = sessionAudio.el;
+      if(!d || !el) return;
+      el.currentTime = 0;
+      syncPlaybackDraftId = d.id;
+      el.play();
+    });
+    fwdBtn.addEventListener('click', ()=>{
+      const el = sessionAudio.el;
+      if(!el) return;
+      el.currentTime = Math.min(el.duration || Infinity, el.currentTime + 10);
+      refreshAppleTransportUI();
+    });
+  })();
+
   function updateSyncHighlight(){
     if(syncPlaybackDraftId !== activeId || mode !== 'read' || !sessionAudio.el) return;
     const d = getActive();
@@ -4175,22 +4515,47 @@ Everything saves automatically, right in this file — nothing leaves your brows
       document.querySelectorAll('#read-inner .lyric-line[data-idx]').forEach(el=>{
         el.classList.toggle('active-sync', el.dataset.idx === activeIdx);
       });
+      // A line's wipe overlay (see below) only makes sense while that line is active —
+      // strip any leftover ones now that the active line has moved on.
+      document.querySelectorAll('#read-inner .lyric-line-fill').forEach(el => el.remove());
       if(activeIdx !== null && performance.now() > syncUserScrollUntil){
         const activeEl = document.querySelector('#read-inner .lyric-line[data-idx="' + activeIdx + '"]');
         if(activeEl) activeEl.scrollIntoView({block:'center', behavior:'smooth'});
       }
     }
 
-    // Apple Music-style progressive word highlight within the active line, whenever
-    // this draft has word-level sync data (falls back to just the line highlight above
-    // if it doesn't).
-    if(activeIdx !== null && d.syncedWords){
-      document.querySelectorAll('#read-inner .lyric-line[data-idx="' + activeIdx + '"] .lyric-word').forEach(wEl=>{
-        const key = wordKey(activeIdx, wEl.dataset.wordIdx);
-        const wt = d.syncedWords[key];
-        wEl.classList.toggle('active-word', !!wt && t >= wt.start && t < wt.end);
-        wEl.classList.toggle('sung-word', !!wt && t >= wt.end);
-      });
+    if(activeIdx !== null){
+      const lineHasWordSync = !!(d.syncedWords && Object.keys(d.syncedWords).some(k => k.split(':')[0] === String(activeIdx)));
+      if(lineHasWordSync){
+        // Apple Music-style progressive word highlight, word-by-word.
+        document.querySelectorAll('#read-inner .lyric-line[data-idx="' + activeIdx + '"] .lyric-word').forEach(wEl=>{
+          const key = wordKey(activeIdx, wEl.dataset.wordIdx);
+          const wt = d.syncedWords[key];
+          wEl.classList.toggle('active-word', !!wt && t >= wt.start && t < wt.end);
+          wEl.classList.toggle('sung-word', !!wt && t >= wt.end);
+        });
+      } else {
+        // No word-level timing for this line — approximate Apple Music's karaoke
+        // sweep with a continuous left-to-right wipe across the whole line, timed
+        // between this line's timestamp and the next one's.
+        const lineEl = document.querySelector('#read-inner .lyric-line[data-idx="' + activeIdx + '"]');
+        if(lineEl){
+          const curPos = entries.findIndex(e => e.idx === activeIdx);
+          const lineStart = entries[curPos].time.start;
+          const nextEntry = entries[curPos + 1];
+          const lineEnd = nextEntry ? nextEntry.time.start : (sessionAudio.el.duration || lineStart + 4);
+          const progress = lineEnd > lineStart ? Math.min(1, Math.max(0, (t - lineStart) / (lineEnd - lineStart))) : 1;
+          let fill = lineEl.querySelector('.lyric-line-fill');
+          if(!fill){
+            fill = document.createElement('span');
+            fill.className = 'lyric-line-fill';
+            fill.setAttribute('aria-hidden', 'true');
+            fill.innerHTML = lineEl.innerHTML;
+            lineEl.appendChild(fill);
+          }
+          fill.style.setProperty('--wipe', (progress * 100) + '%');
+        }
+      }
     }
   }
 
@@ -4324,6 +4689,14 @@ Everything saves automatically, right in this file — nothing leaves your brows
     html += '</div>';
 
     html += '<div class="admin-section">';
+    html += '<div class="admin-section-title">Preview & emulator</div>';
+    html += '<div class="admin-actions-row">' +
+      '<button class="footer-btn" id="open-apple-emulator-btn" style="flex:none;">🎵 Apple Music emulator</button>' +
+    '</div>';
+    html += '<div class="admin-note">Opens a full-screen Apple Music–style preview of your drafts in a new tab, for demoing/screenshots. Owner-only — it checks the same sign-in as this panel.</div>';
+    html += '</div>';
+
+    html += '<div class="admin-section">';
     html += '<div class="admin-section-title">Access control</div>';
     html += '<div class="admin-actions-row">' +
       '<button class="admin-danger-btn" id="admin-ban-btn">Ban an email</button>' +
@@ -4349,6 +4722,12 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
     content.innerHTML = html;
 
+    const openEmulatorBtn = document.getElementById('open-apple-emulator-btn');
+    if(openEmulatorBtn) openEmulatorBtn.addEventListener('click', ()=>{
+      if(!isOwner()) return;
+      syncEmulatorAccessFlag();
+      window.open('emulator.html', '_blank');
+    });
     content.querySelectorAll('[data-admin-open]').forEach(row=>{
       row.addEventListener('click', ()=>{
         closeAdminPanel();
@@ -4523,6 +4902,10 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
   document.getElementById('title-input').addEventListener('input', scheduleSave);
   document.getElementById('artist-input').addEventListener('input', scheduleSave);
+  document.getElementById('description-input').addEventListener('input', scheduleSave);
+  document.getElementById('desc-toggle-btn').addEventListener('click', ()=>{
+    document.getElementById('description-bar').classList.toggle('open');
+  });
   document.getElementById('lyrics-input').addEventListener('input', ()=>{ updateGutter(); scheduleSave(); });
   document.getElementById('lyrics-input').addEventListener('scroll', function(){
     document.getElementById('line-gutter').scrollTop = this.scrollTop;
@@ -5278,6 +5661,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
       version: 1,
       title: d.title || '',
       artist: d.artist || '',
+      description: d.description || '',
       lyrics: d.lyrics || '',
       cover: d.cover || null,
       syncedTimes: d.syncedTimes || {},
@@ -5310,6 +5694,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
         id: uid(),
         title: pkg.title || '',
         artist: pkg.artist || '',
+        description: pkg.description || '',
         lyrics: pkg.lyrics || '',
         cover: pkg.cover || null,
         syncedTimes: pkg.syncedTimes || {},
