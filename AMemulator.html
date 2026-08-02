@@ -61,7 +61,7 @@
 
   /* ---------- sidebar ---------- */
   #sidebar{
-    width: 244px;
+    width: clamp(220px, 16.5vw, 232px);
     flex-shrink:0;
     background: var(--sidebar-bg);
     -webkit-backdrop-filter: saturate(2.2) blur(16px);
@@ -211,9 +211,9 @@
   }
   #main h1{ font-size: 34px; font-weight:700; letter-spacing:0; margin: 0 0 2px; }
   #main .lib-sub{ color: var(--text-faint); font-size:12.5px; margin-bottom: 18px; }
-  #library-body{ max-width: 1050px; }
-  #main-head{ padding: 22px 30px 0; }
-  #main-content{ padding: 0 30px 64px; }
+  #library-body{ width:min(100%, 1080px); }
+  #main-head{ padding: 22px clamp(18px, 3vw, 30px) 0; }
+  #main-content{ padding: 0 clamp(18px, 3vw, 30px) 64px; }
   .home-intro{
     font-size: 26px;
     font-weight: 700;
@@ -232,6 +232,226 @@
     max-width: 560px;
     letter-spacing: 0;
   }
+  .home-feature-grid{
+    display:grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(0, 1.18fr) minmax(0, 1.18fr);
+    gap: 18px;
+    margin-top: 8px;
+  }
+  .home-feature-card{
+    position:relative;
+    min-height: 210px;
+    border-radius: 14px;
+    overflow:hidden;
+    cursor:pointer;
+    background: rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1);
+  }
+  .home-feature-card.large{ min-height: 420px; }
+  .home-feature-media,
+  .recent-card-media{
+    position:absolute;
+    inset:0;
+    background-size:cover;
+    background-position:center;
+  }
+  .home-feature-media.fallback,
+  .recent-card-media.fallback{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(135deg, var(--feature-color-a, #5a5a5a), var(--feature-color-b, #949494));
+    color: rgba(255,255,255,0.45);
+    font-size: 74px;
+    font-weight: 700;
+  }
+  .home-feature-overlay,
+  .recent-card-overlay{
+    position:absolute;
+    inset:0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.06) 0, rgba(0,0,0,0.18) 40%, rgba(0,0,0,0.72) 100%);
+  }
+  .home-feature-copy{
+    position:absolute;
+    inset:auto 14px 14px;
+    z-index:1;
+  }
+  .home-feature-kicker{ font-size:11px; font-weight:700; color: rgba(255,255,255,0.72); margin-bottom:4px; }
+  .home-feature-title{ font-size:16px; font-weight:800; line-height:1.15; color:#fff; }
+  .home-feature-sub{ font-size:11.5px; color: rgba(255,255,255,0.76); margin-top:4px; line-height:1.3; }
+  .home-feature-card.large .home-feature-title{ font-size: 28px; letter-spacing:-0.4px; }
+  .home-feature-card.large .home-feature-sub{ font-size: 13px; max-width: 240px; }
+  .home-feature-play{
+    position:absolute;
+    right:14px;
+    bottom:14px;
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: rgba(255,255,255,0.14);
+    color:#fff;
+    z-index:1;
+    font-size:13px;
+    backdrop-filter: blur(8px);
+  }
+  .recent-strip{ margin-top: 28px; }
+  .recent-strip-header{ display:flex; align-items:center; gap:8px; margin-bottom: 12px; }
+  .recent-strip-title{ font-size:17px; font-weight:800; }
+  .recent-strip-arrow{ color: rgba(255,255,255,0.45); font-size:18px; }
+  .recent-grid{
+    display:grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .recent-card{ cursor:pointer; min-width:0; }
+  .recent-card-art{
+    position:relative;
+    width:100%;
+    aspect-ratio:1/1;
+    border-radius: 12px;
+    overflow:hidden;
+    background: rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.08);
+  }
+  .recent-card-play{
+    position:absolute;
+    right:10px;
+    bottom:10px;
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: rgba(17,17,18,0.7);
+    color:#fff;
+    font-size:12px;
+    z-index:1;
+  }
+  .recent-card-title{ font-size:13px; font-weight:700; margin-top: 8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .recent-card-sub{ font-size:11px; color: rgba(255,255,255,0.54); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #desktop-rail{
+    width: clamp(236px, 17.8vw, 256px);
+    flex-shrink:0;
+    border-left: 1px solid rgba(255,255,255,0.1);
+    background: rgba(34,30,34,0.74);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    backdrop-filter: blur(18px) saturate(1.3);
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  .desktop-rail-panel{
+    position:relative;
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .desktop-rail-panel::before{
+    content:'';
+    position:absolute;
+    inset:0;
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    pointer-events:none;
+  }
+  .desktop-rail-header{
+    position:relative;
+    z-index:1;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding: 18px 16px 12px;
+  }
+  .desktop-rail-heading{ font-size:12px; font-weight:700; color: rgba(255,255,255,0.62); }
+  .desktop-rail-tabs{ display:flex; gap:6px; }
+  .desktop-rail-actions{ display:flex; align-items:center; gap:8px; }
+  .desktop-rail-tab{
+    border:none;
+    background:transparent;
+    color: rgba(255,255,255,0.46);
+    font-size:11px;
+    font-weight:700;
+    padding: 5px 8px;
+    border-radius:999px;
+    cursor:pointer;
+  }
+  .desktop-rail-tab.active{ background: rgba(255,255,255,0.12); color:#fff; }
+  .desktop-rail-expand{
+    border:none;
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.72);
+    width:28px;
+    height:28px;
+    border-radius:8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+  .desktop-rail-expand:hover{ color:#fff; background: rgba(255,255,255,0.14); }
+  .desktop-rail-expand svg{ width:14px; height:14px; fill:currentColor; }
+  .desktop-rail-body{
+    position:relative;
+    z-index:1;
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    padding: 0 16px 18px;
+  }
+  .desktop-rail-empty{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    height:100%;
+    color: rgba(255,255,255,0.38);
+    font-size:15px;
+    text-align:center;
+    line-height:1.45;
+    padding: 0 20px;
+  }
+  .desktop-rail-track{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding-bottom: 14px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .desktop-rail-cover{
+    width:52px;
+    height:52px;
+    border-radius:10px;
+    object-fit:cover;
+    background: rgba(255,255,255,0.08);
+    flex-shrink:0;
+  }
+  .desktop-rail-track-title{ font-size:13px; font-weight:700; color:#fff; }
+  .desktop-rail-track-artist{ font-size:11.5px; color: rgba(255,255,255,0.48); margin-top:2px; }
+  .desktop-rail-body .np-lyric-section{ margin-top: 18px; margin-bottom: 8px; }
+  .desktop-rail-body .np-lyric-line{
+    font-size: 18px;
+    line-height: 1.34;
+    margin-bottom: 8px;
+  }
+  #desktop-lyrics-content{ padding-bottom: 30px; }
+  .desktop-rail-queue-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    cursor:pointer;
+  }
+  .desktop-rail-queue-row.current .desktop-rail-queue-title{ color: var(--accent); }
+  .desktop-rail-queue-cover{ width:36px; height:36px; border-radius:8px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; }
+  .desktop-rail-queue-title{ font-size:12px; font-weight:700; }
+  .desktop-rail-queue-artist{ font-size:10.5px; color: rgba(255,255,255,0.44); margin-top:1px; }
 
   .am-hero{
     display:grid; grid-template-columns: 1.3fr 0.9fr; gap:18px;
@@ -296,7 +516,7 @@
   .am-card-meta{ display:flex; justify-content:space-between; align-items:center; color: var(--text-faint); font-size:11px; }
   .am-card-badge{ padding:2px 6px; border-radius:999px; background: rgba(255,255,255,0.06); }
   .shelf-section{ margin-top: 18px; }
-  .shelf-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap:12px; }
+  .shelf-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap:12px; }
   .shelf-card{
     padding: 10px;
     border-radius: 10px;
@@ -304,10 +524,15 @@
     background: rgba(255,255,255,0.04);
     cursor: pointer;
     transition: border-color .14s ease, background .14s ease, transform .14s ease;
+    min-height: 78px;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-end;
   }
   .shelf-card:hover{ border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.07); transform: translateY(-1px); }
   .shelf-title{ font-size:12.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .shelf-sub{ font-size:11px; color:var(--text-faint); margin-top:2px; }
+  .shelf-meta{ font-size:10.5px; color: rgba(255,255,255,0.34); margin-top:8px; }
   .am-list-wrap{
     margin-top: 16px;
     border: 1px solid rgba(255,255,255,0.12);
@@ -510,36 +735,41 @@
   /* ---------- bottom mini player ---------- */
   #mini-player{
     display:none;
-    flex-shrink:0;
-    height: 72px;
-    border-top: 1px solid rgba(255,255,255,0.14);
-    background: rgba(50,50,50,0.92);
-    -webkit-backdrop-filter: blur(20px) saturate(1.05);
-    backdrop-filter: blur(20px) saturate(1.05);
+      position:fixed;
+      left:50%;
+      bottom:14px;
+      z-index:45;
+      width:min(820px, calc(100vw - 44px));
+      height: 82px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 22px;
+      background: rgba(44,38,42,0.92);
+      -webkit-backdrop-filter: blur(24px) saturate(1.08);
+      backdrop-filter: blur(24px) saturate(1.08);
     align-items:center;
     padding: 0 18px;
     gap: 14px;
-    transform: translateY(100%);
+      transform: translate(-50%, calc(100% + 28px));
     opacity: 0;
     transition: transform .38s cubic-bezier(.32,.72,.35,1), opacity .3s ease;
-    box-shadow: none;
+      box-shadow: 0 22px 44px rgba(0,0,0,0.34);
   }
   #mini-player.visible{ display:flex; }
-  #mini-player.has-track{ transform: translateY(0); opacity:1; }
-  .mini-track-info{ display:flex; align-items:center; gap:10px; width:230px; flex-shrink:0; min-width:0; }
-  .mini-cover{ width:42px; height:42px; border-radius:5px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; cursor:pointer; transition: opacity .25s ease; }
+    #mini-player.has-track{ transform: translate(-50%, 0); opacity:1; }
+    .mini-track-info{ display:flex; align-items:center; gap:10px; width:235px; flex-shrink:0; min-width:0; }
+    .mini-cover{ width:46px; height:46px; border-radius:8px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; cursor:pointer; transition: opacity .25s ease; }
   .mini-text{ min-width:0; }
   .mini-title{ font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .mini-artist{ font-size:11.5px; color: var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-  .mini-center{ flex:1; display:flex; flex-direction:column; align-items:center; gap:6px; max-width: 620px; margin: 0 auto; }
-  .mini-transport-buttons{ display:flex; align-items:center; gap: 18px; }
+    .mini-center{ flex:1; display:flex; flex-direction:column; align-items:center; gap:7px; max-width: 420px; margin: 0 auto; }
+    .mini-transport-buttons{ display:flex; align-items:center; gap: 16px; }
   .mini-btn{ background:none; border:none; cursor:pointer; color:#fff; opacity:0.82; display:flex; align-items:center; justify-content:center; padding:0; transition: opacity .15s ease, transform .1s ease; }
   .mini-btn:hover{ opacity:1; }
   .mini-btn:active{ transform: scale(0.9); }
-  .mini-btn svg{ width:15px; height:15px; fill:currentColor; }
-  .mini-play-btn{ width:30px; height:30px; border-radius:50%; background: rgba(255,255,255,0.16); box-shadow: none; }
-  .mini-play-btn svg{ width:21px; height:21px; }
+    .mini-btn svg{ width:14px; height:14px; fill:currentColor; }
+    .mini-play-btn{ width:34px; height:34px; border-radius:50%; background: rgba(255,255,255,0.14); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
+    .mini-play-btn svg{ width:20px; height:20px; }
   .mini-scrub-row{ display:flex; align-items:center; gap:8px; width:100%; }
   .mini-time{ font-size:10.5px; color: var(--text-faint); width:34px; font-variant-numeric: tabular-nums; }
   .mini-time.right{ text-align:left; }
@@ -548,23 +778,23 @@
   .mini-scrub-dot{ position:absolute; top:50%; left:0%; width:10px; height:10px; border-radius:50%; background:#fff; transform:translate(-50%,-50%); opacity:0; transition: opacity .15s; box-shadow:0 2px 8px rgba(0,0,0,0.35); }
   .mini-scrub-track:hover .mini-scrub-dot{ opacity:1; }
 
-  .mini-right{ width:230px; flex-shrink:0; display:flex; align-items:center; justify-content:flex-end; gap:14px; }
+  .mini-right{ width:220px; flex-shrink:0; display:flex; align-items:center; justify-content:flex-end; gap:12px; }
   .mini-quick-actions{ display:flex; align-items:center; gap:8px; }
   .mini-quick-btn{
     border:none;
-    background: transparent;
+    background: rgba(255,255,255,0.06);
     color: var(--text-dim);
-    width:26px;
-    height:26px;
-    border-radius:6px;
+    width:28px;
+    height:28px;
+    border-radius:8px;
     display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
   }
   .mini-quick-btn svg{ width:14px; height:14px; fill:currentColor; }
-  .mini-quick-btn:hover{ color:#fff; background: rgba(255,255,255,0.1); }
-  .mini-vol-row{ display:flex; align-items:center; gap:6px; width:100px; }
+  .mini-quick-btn:hover{ color:#fff; background: rgba(255,255,255,0.12); }
+  .mini-vol-row{ display:flex; align-items:center; gap:6px; width:92px; }
   .mini-vol-row input[type="range"]{ width:100%; accent-color:#fff; }
   .mini-expand-btn{ background:none; border:none; cursor:pointer; color: var(--text-dim); display:flex; transition: color .15s ease; }
   .mini-expand-btn:hover{ color:#fff; }
@@ -858,6 +1088,10 @@
 
   @media (max-width: 900px){
     #sidebar{ width:210px; }
+    #desktop-rail{ display:none; }
+    .home-feature-grid{ grid-template-columns: 1fr 1fr; }
+    .home-feature-card.large{ grid-column: 1 / -1; }
+    .recent-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
     #np-body{ flex-direction:column; gap:20px; padding: 10px 24px 20px; }
     #np-art-col{ width:auto; }
     #np-cover, #np-cover-placeholder{ width:180px; height:180px; }
@@ -871,12 +1105,16 @@
     body{ overflow:auto; }
     #main-row{ flex-direction:column; }
     #sidebar{ width:auto; min-height:auto; border-right:none; border-bottom:1px solid rgba(255,255,255,0.06); }
+    #desktop-rail{ display:none; }
     #search-wrap{ padding-bottom:12px; }
     #main{ padding: 24px 18px 80px; }
     #main h1{ font-size:28px; }
     #library-body{ max-width:none; }
     .am-hero{ grid-template-columns:1fr; padding:16px; }
     .am-grid{ grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap:12px; }
+    .shelf-grid{ grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+    .home-feature-grid{ grid-template-columns:1fr; }
+    .recent-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     #mini-player{ height:auto; padding:10px 12px; min-height:84px; }
     .mini-track-info{ width:auto; }
     .mini-right{ width:auto; }
@@ -944,9 +1182,11 @@
         <button class="side-edit-btn" id="library-edit-btn" type="button">Edit</button>
       </div>
       <div id="library-list-nav" class="side-link-list"></div>
+      <div class="side-section-title">Store</div>
+      <div id="store-list-nav" class="side-link-list"></div>
       <div class="side-section-title">Playlists</div>
       <div id="playlist-list-nav" class="side-link-list"></div>
-      <div class="side-section-title">Pins</div>
+      <div class="side-section-title">Recently Played</div>
       <div id="song-list-nav"></div>
     </div>
 
@@ -960,6 +1200,26 @@
         <div id="library-body"></div>
       </div>
     </div>
+
+    <aside id="desktop-rail">
+      <div class="desktop-rail-panel">
+        <div class="desktop-rail-header">
+          <div class="desktop-rail-heading">Now Playing</div>
+          <div class="desktop-rail-actions">
+            <div class="desktop-rail-tabs">
+              <button class="desktop-rail-tab active" id="desktop-tab-lyrics" type="button">Lyrics</button>
+              <button class="desktop-rail-tab" id="desktop-tab-queue" type="button">Up Next</button>
+            </div>
+            <button class="desktop-rail-expand" id="desktop-open-fullscreen" type="button" title="Full Screen">
+              <svg viewBox="0 0 24 24"><path d="M7,14H5v5h5v-2H7V14z M5,10h2V7h3V5H5V10z M17,17h-3v2h5v-5h-2V17z M14,5v2h3v3h2V5H14z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="desktop-rail-body" id="desktop-rail-body">
+          <div class="desktop-rail-empty">Play a song to see lyrics here.</div>
+        </div>
+      </div>
+    </aside>
   </div>
 
   <!-- ---------- bottom mini player ---------- -->
@@ -1161,6 +1421,162 @@
     return 'New';
   }
 
+  function getDraftAlbumName(draft){
+    return draft.album || ((draft.title || 'Untitled') + ' - Single');
+  }
+
+  function getArtPalette(index){
+    const palettes = [
+      ['#ff6a3d', '#f71e63'],
+      ['#151515', '#454545'],
+      ['#6d6d6d', '#adadad'],
+      ['#22364a', '#4d6f8f']
+    ];
+    return palettes[index % palettes.length];
+  }
+
+  function renderBackgroundArt(className, draft, index){
+    if(draft.cover){
+      return '<div class="' + className + '" style="background-image:url(' + draft.cover + ')"></div>';
+    }
+    const palette = getArtPalette(index);
+    return '<div class="' + className + ' fallback" style="--feature-color-a:' + palette[0] + ';--feature-color-b:' + palette[1] + '">♪</div>';
+  }
+
+  function getLibraryIcon(view){
+    const icons = {
+      new: '<svg viewBox="0 0 24 24"><path d="M5.75 4A1.75 1.75 0 0 0 4 5.75v12.5C4 19.216 4.784 20 5.75 20h12.5A1.75 1.75 0 0 0 20 18.25V5.75A1.75 1.75 0 0 0 18.25 4H5.75Zm2.5 3h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5Zm0 3.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5Zm0 3.75h5a.75.75 0 0 1 0 1.5h-5a.75.75 0 0 1 0-1.5Z"/></svg>',
+      artists: '<svg viewBox="0 0 24 24"><path d="M12 12.75a3.375 3.375 0 1 0 0-6.75 3.375 3.375 0 0 0 0 6.75Zm-6.25 5A4.75 4.75 0 0 1 10.5 13h3a4.75 4.75 0 0 1 4.75 4.75.75.75 0 0 1-1.5 0A3.25 3.25 0 0 0 13.5 14.5h-3a3.25 3.25 0 0 0-3.25 3.25.75.75 0 0 1-1.5 0Z"/></svg>',
+      albums: '<svg viewBox="0 0 24 24"><path d="M6 4.75A1.75 1.75 0 0 1 7.75 3h8.5A1.75 1.75 0 0 1 18 4.75v14.5A1.75 1.75 0 0 1 16.25 21h-8.5A1.75 1.75 0 0 1 6 19.25V4.75Zm2.75 1.75a.75.75 0 0 0-.75.75v9.5c0 .414.336.75.75.75h6.5a.75.75 0 0 0 .75-.75v-9.5a.75.75 0 0 0-.75-.75h-6.5Z"/></svg>',
+      songs: '<svg viewBox="0 0 24 24"><path d="M15.5 4a.75.75 0 0 1 .75.75v9.19a2.75 2.75 0 1 1-1.5-2.44V7.07l-4.5 1.03v7.09A2.75 2.75 0 1 1 8.75 12.75V7.5a.75.75 0 0 1 .582-.73l6-1.375A.75.75 0 0 1 15.5 4Z"/></svg>',
+      videos: '<svg viewBox="0 0 24 24"><path d="M5.75 5A1.75 1.75 0 0 0 4 6.75v10.5C4 18.216 4.784 19 5.75 19h7.5A1.75 1.75 0 0 0 15 17.25V14.9l4.61 2.42A.9.9 0 0 0 21 16.53V7.47a.9.9 0 0 0-1.39-.79L15 9.1V6.75A1.75 1.75 0 0 0 13.25 5h-7.5Z"/></svg>',
+      home: '<svg viewBox="0 0 24 24"><path d="M5 10.6c0-.24.115-.465.31-.606l6.25-4.55a.75.75 0 0 1 .88 0l6.25 4.55c.195.141.31.366.31.606v7.65A1.75 1.75 0 0 1 17.25 20h-10.5A1.75 1.75 0 0 1 5 18.25V10.6Z"/></svg>'
+    };
+    return icons[view] || icons.new;
+  }
+
+  function buildArtistEntries(source){
+    const artistMap = new Map();
+    source.forEach((draft, idx) => {
+      const artist = (draft.artist || 'Unknown Artist').trim() || 'Unknown Artist';
+      const existing = artistMap.get(artist);
+      if(existing){
+        existing.count += 1;
+        if((draft.updated || 0) > (existing.updated || 0)){
+          existing.updated = draft.updated || 0;
+          existing.cover = draft.cover || existing.cover;
+          existing.playIdx = idx;
+        }
+      } else {
+        artistMap.set(artist, { label: artist, count: 1, cover: draft.cover || '', updated: draft.updated || 0, playIdx: idx });
+      }
+    });
+    return Array.from(artistMap.values()).sort((a,b) => a.label.localeCompare(b.label));
+  }
+
+  function buildAlbumEntries(source){
+    const albumMap = new Map();
+    source.forEach((draft, idx) => {
+      const album = getDraftAlbumName(draft);
+      const artist = draft.artist || 'Unknown Artist';
+      const key = album + '::' + artist;
+      const existing = albumMap.get(key);
+      if(existing){
+        existing.count += 1;
+        if((draft.updated || 0) > (existing.updated || 0)){
+          existing.updated = draft.updated || 0;
+          existing.cover = draft.cover || existing.cover;
+          existing.playIdx = idx;
+        }
+      } else {
+        albumMap.set(key, { label: album, sublabel: artist, count: 1, cover: draft.cover || '', updated: draft.updated || 0, playIdx: idx });
+      }
+    });
+    return Array.from(albumMap.values()).sort((a,b) => b.updated - a.updated || a.label.localeCompare(b.label));
+  }
+
+  function buildPlaylistEntries(source){
+    if(!source.length) return [];
+    const sortedRecent = [...source].sort((a,b) => (b.updated || 0) - (a.updated || 0));
+    const sortedTitle = [...source].sort((a,b) => (a.title || '').localeCompare(b.title || ''));
+    const synced = source.filter(d => Object.keys(d.syncedTimes || {}).length > 0);
+    const wordSynced = source.filter(d => d.syncedWords && Object.keys(d.syncedWords).length > 0);
+    const byArtist = buildArtistEntries(source);
+    const playlists = [
+      { label: 'Recently Added', sublabel: 'Latest drafts', count: sortedRecent.length, playIdx: drafts.indexOf(sortedRecent[0]) },
+      { label: 'Singles', sublabel: 'All releases', count: source.length, playIdx: drafts.indexOf(sortedTitle[0]) }
+    ];
+    if(synced.length){
+      playlists.push({ label: 'Synced Lyrics', sublabel: 'Timed lines ready', count: synced.length, playIdx: drafts.indexOf(synced[0]) });
+    }
+    if(wordSynced.length){
+      playlists.push({ label: 'Word Sync', sublabel: 'Karaoke cuts', count: wordSynced.length, playIdx: drafts.indexOf(wordSynced[0]) });
+    }
+    if(byArtist.length){
+      playlists.push({ label: byArtist[0].label + ' Essentials', sublabel: 'Artist spotlight', count: byArtist[0].count, playIdx: byArtist[0].playIdx });
+    }
+    return playlists.slice(0, 4);
+  }
+
+  function renderShelfCards(entries, attributeName, metaFormatter){
+    return entries.map(entry =>
+      '<div class="shelf-card" ' + attributeName + '="' + entry.playIdx + '">' +
+        '<div class="shelf-title">' + escapeHtml(entry.label) + '</div>' +
+        '<div class="shelf-sub">' + escapeHtml(entry.sublabel || '') + '</div>' +
+        '<div class="shelf-meta">' + escapeHtml(metaFormatter(entry)) + '</div>' +
+      '</div>'
+    ).join('');
+  }
+
+  function wireLyricSeek(container){
+    if(!container) return;
+    const d = getActive();
+    const loaded = !!(d && sessionAudio.draftId === d.id && sessionAudio.el);
+    container.querySelectorAll('.np-lyric-line[data-idx]').forEach(el => {
+      el.addEventListener('click', () => {
+        if(!loaded) return;
+        const t = normTime(d.syncedTimes && d.syncedTimes[el.dataset.idx]);
+        if(t) sessionAudio.el.currentTime = t.start;
+      });
+    });
+  }
+
+  function renderDesktopRail(){
+    const body = document.getElementById('desktop-rail-body');
+    const lyricsTab = document.getElementById('desktop-tab-lyrics');
+    const queueTab = document.getElementById('desktop-tab-queue');
+    if(!body || !lyricsTab || !queueTab) return;
+    lyricsTab.classList.toggle('active', npTab === 'lyrics');
+    queueTab.classList.toggle('active', npTab === 'queue');
+    const active = getActive();
+    if(!active){
+      body.innerHTML = '<div class="desktop-rail-empty">Play a song to see lyrics here.</div>';
+      return;
+    }
+    const cover = active.cover ? '<img class="desktop-rail-cover" src="' + active.cover + '" alt="">' : '<div class="desktop-rail-cover"></div>';
+    const trackHeader = '<div class="desktop-rail-track">' +
+      cover +
+      '<div><div class="desktop-rail-track-title">' + escapeHtml(active.title || 'Untitled') + '</div><div class="desktop-rail-track-artist">' + escapeHtml(active.artist || 'Unknown Artist') + '</div></div>' +
+    '</div>';
+    if(npTab === 'queue'){
+      body.innerHTML = trackHeader + drafts.map((draft, idx) =>
+        '<div class="desktop-rail-queue-row' + (idx === currentIdx ? ' current' : '') + '" data-rail-idx="' + idx + '">' +
+          (draft.cover ? '<img class="desktop-rail-queue-cover" src="' + draft.cover + '" alt="">' : '<div class="desktop-rail-queue-cover"></div>') +
+          '<div><div class="desktop-rail-queue-title">' + escapeHtml(draft.title || 'Untitled') + '</div><div class="desktop-rail-queue-artist">' + escapeHtml(draft.artist || 'Unknown Artist') + '</div></div>' +
+        '</div>'
+      ).join('');
+      body.querySelectorAll('[data-rail-idx]').forEach(el => el.addEventListener('click', () => playTrack(Number(el.dataset.railIdx))));
+      return;
+    }
+    if(active.lyrics && active.lyrics.trim()){
+      body.innerHTML = trackHeader + '<div id="desktop-lyrics-content">' + buildLyricsHtml(active.lyrics, active.syncedWords) + '</div>';
+      wireLyricSeek(body);
+      if(sessionAudio.el) updateSyncHighlight();
+    } else {
+      body.innerHTML = trackHeader + '<div class="desktop-rail-empty">Play a song to see lyrics here.</div>';
+    }
+  }
+
   function setView(view){
     currentView = view;
     const navId = view === 'search' ? 'nav-search' : (view === 'home' ? 'nav-listen' : (view === 'radio' ? 'nav-radio' : 'nav-library'));
@@ -1184,7 +1600,7 @@
     if(libList){
       const itemWithIcon = (label, view) =>
         '<button class="side-link-btn" data-view="' + view + '">' +
-          '<svg viewBox="0 0 24 24"><path d="M5 7.25a.75.75 0 0 1 .75-.75h12.5a.75.75 0 0 1 0 1.5H5.75A.75.75 0 0 1 5 7.25Zm0 4.75a.75.75 0 0 1 .75-.75h12.5a.75.75 0 0 1 0 1.5H5.75A.75.75 0 0 1 5 12Zm0 4.75a.75.75 0 0 1 .75-.75h12.5a.75.75 0 0 1 0 1.5H5.75a.75.75 0 0 1-.75-.75Z"/></svg>' +
+          getLibraryIcon(view) +
           label +
         '</button>';
       libList.innerHTML =
@@ -1200,10 +1616,24 @@
     }
 
     const playlistList = document.getElementById('playlist-list-nav');
+    const storeList = document.getElementById('store-list-nav');
+    if(storeList){
+      storeList.innerHTML = '<button class="side-link-btn" id="sidebar-itunes-store" type="button">' +
+        '<svg viewBox="0 0 24 24"><path d="M7.75 4A1.75 1.75 0 0 0 6 5.75v12.5C6 19.216 6.784 20 7.75 20h8.5A1.75 1.75 0 0 0 18 18.25V5.75A1.75 1.75 0 0 0 16.25 4h-8.5Zm3.5 2.5a.75.75 0 0 1 .75.75v4.94a2.25 2.25 0 1 1-1.5-2.11V8.24a.75.75 0 0 1 .582-.73l2.5-.57a.75.75 0 0 1 .918.73v3.02a2.25 2.25 0 1 1-1.5-2.11V8.62l-1 .23V6.5Z"/></svg>' +
+        'iTunes Store</button>';
+      const storeBtn = document.getElementById('sidebar-itunes-store');
+      if(storeBtn){
+        storeBtn.addEventListener('click', () => window.open('https://music.apple.com/', '_blank'));
+      }
+    }
     if(playlistList){
-      const playIcon = '<svg viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg>';
+      const playlistEntries = buildPlaylistEntries(drafts);
+      const staticPlaylists = [
+        { label: 'All Playlists', playIdx: drafts[0] ? drafts.indexOf(drafts[0]) : -1, icon: '<svg viewBox="0 0 24 24"><path d="M4 6.75A.75.75 0 0 1 4.75 6h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 4 6.75Zm0 5.25A.75.75 0 0 1 4.75 11h4.5a.75.75 0 0 1 0 1.5h-4.5A.75.75 0 0 1 4 12Zm0 5.25a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75ZM12 6.75a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5A.75.75 0 0 1 12 6.75Zm0 5.25a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5A.75.75 0 0 1 12 12Zm0 5.25a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Z"/></svg>' },
+        { label: 'Favourite Songs', playIdx: drafts[0] ? drafts.indexOf(drafts[0]) : -1, icon: '<svg viewBox="0 0 24 24"><path d="M12.1 20.3 4.9 13.1a4.9 4.9 0 0 1 6.9-6.9l.2.2.2-.2a4.9 4.9 0 0 1 6.9 6.9l-7.2 7.2a.6.6 0 0 1-.8 0Z"/></svg>' }
+      ];
       playlistList.innerHTML = drafts.length
-        ? drafts.slice(0, 6).map(d => '<button class="side-link-btn" data-play-idx="' + drafts.indexOf(d) + '">' + playIcon + escapeHtml(d.title || 'Untitled') + '</button>').join('')
+        ? staticPlaylists.concat(playlistEntries.map(entry => ({ label: entry.label, playIdx: entry.playIdx, icon: '<svg viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg>' }))).map(entry => '<button class="side-link-btn" data-play-idx="' + entry.playIdx + '">' + entry.icon + escapeHtml(entry.label) + '</button>').join('')
         : '<div class="empty-side-note">No playlists yet.</div>';
       playlistList.querySelectorAll('[data-play-idx]').forEach(btn => {
         btn.addEventListener('click', () => playTrack(Number(btn.dataset.playIdx)));
@@ -1345,16 +1775,18 @@
     }
 
     if(currentView === 'artists'){
+      const artists = buildArtistEntries(filtered);
       body.innerHTML = '<div class="am-section"><div class="am-section-header"><div class="am-section-title">Artists</div></div><div class="shelf-grid">' +
-        filtered.map(d => '<div class="shelf-card" data-shelf-open="' + drafts.indexOf(d) + '"><div class="shelf-title">' + escapeHtml(d.artist || 'Unknown Artist') + '</div><div class="shelf-sub">Artist</div></div>').join('') +
+        renderShelfCards(artists, 'data-shelf-open', entry => entry.count + (entry.count === 1 ? ' song' : ' songs')) +
       '</div></div>';
       body.querySelectorAll('[data-shelf-open]').forEach(el => el.addEventListener('click', () => playTrack(Number(el.dataset.shelfOpen))));
       return;
     }
 
     if(currentView === 'albums'){
+      const albums = buildAlbumEntries(filtered);
       body.innerHTML = '<div class="am-section"><div class="am-section-header"><div class="am-section-title">Albums</div></div><div class="shelf-grid">' +
-        filtered.map(d => '<div class="shelf-card" data-shelf-open="' + drafts.indexOf(d) + '"><div class="shelf-title">' + escapeHtml(d.title || 'Untitled') + '</div><div class="shelf-sub">Album</div></div>').join('') +
+        renderShelfCards(albums, 'data-shelf-open', entry => entry.count + (entry.count === 1 ? ' track' : ' tracks')) +
       '</div></div>';
       body.querySelectorAll('[data-shelf-open]').forEach(el => el.addEventListener('click', () => playTrack(Number(el.dataset.shelfOpen))));
       return;
@@ -1434,33 +1866,40 @@
         return;
       }
       const picks = filtered.slice(0, 4);
-      const madeForYou = filtered.slice().reverse().slice(0, 4);
+      const recent = filtered.slice(0, 4);
       body.innerHTML =
         '<div class="home-intro">Home<br><span>Recently played, made for you, and fresh picks from your library.</span></div>' +
         '<div class="am-section">' +
-          '<div class="am-section-header"><div class="am-section-title">Top Picks</div></div>' +
-          '<div class="am-grid">' + picks.map((d) => {
+          '<div class="am-section-header"><div class="am-section-title">Top Picks for You</div></div>' +
+          '<div class="home-feature-grid">' + picks.map((d, i) => {
             const idx = drafts.indexOf(d);
-            return '<div class="am-card" data-idx="' + idx + '">' +
-              '<img class="am-card-cover" src="' + (d.cover || '') + '" alt="">' +
-              '<div class="am-card-title">' + escapeHtml(d.title || 'Untitled') + '</div>' +
-              '<div class="am-card-artist">' + escapeHtml(d.artist || 'Unknown Artist') + '</div>' +
+            const large = i === 0 ? ' large' : '';
+            const kicker = i === 0 ? 'Made for You' : (i === 1 ? 'We Recommend' : 'Featuring ' + escapeHtml(d.artist || 'Unknown Artist'));
+            const sub = i === 0 ? escapeHtml((d.artist || 'Unknown Artist') + '\'s Station') : escapeHtml(d.lyrics ? d.lyrics.split(/\n+/).filter(Boolean)[0] || (d.artist || 'Unknown Artist') : (d.artist || 'Unknown Artist'));
+            return '<div class="home-feature-card' + large + '" data-idx="' + idx + '">' +
+              renderBackgroundArt('home-feature-media', d, i) +
+              '<div class="home-feature-overlay"></div>' +
+              '<div class="home-feature-copy"><div class="home-feature-kicker">' + kicker + '</div><div class="home-feature-title">' + escapeHtml(d.title || 'Untitled') + '</div><div class="home-feature-sub">' + sub + '</div></div>' +
+              '<div class="home-feature-play">▶</div>' +
             '</div>';
           }).join('') + '</div>' +
         '</div>' +
-        '<div class="shelf-section">' +
-          '<div class="am-section-header"><div class="am-section-title">Made for You</div></div>' +
-          '<div class="shelf-grid">' + madeForYou.map((d) => {
-            return '<div class="shelf-card" data-shelf-open="' + drafts.indexOf(d) + '"><div class="shelf-title">' + escapeHtml(d.title || 'Untitled') + '</div><div class="shelf-sub">Personal mix</div></div>';
-          }).join('') + '</div>' +
-        '</div>' +
-        '<div class="shelf-section">' +
-          '<div class="am-section-header"><div class="am-section-title">Recently Played</div></div>' +
-          '<div class="shelf-grid">' + filtered.slice(0, 6).map((d) => {
-            return '<div class="shelf-card" data-shelf-open="' + drafts.indexOf(d) + '"><div class="shelf-title">' + escapeHtml(d.artist || 'Unknown Artist') + '</div><div class="shelf-sub">' + escapeHtml(d.title || 'Untitled') + '</div></div>';
+        '<div class="recent-strip">' +
+          '<div class="recent-strip-header"><div class="recent-strip-title">Recently Played</div><div class="recent-strip-arrow">›</div></div>' +
+          '<div class="recent-grid">' + recent.map((d, i) => {
+            const idx = drafts.indexOf(d);
+            return '<div class="recent-card" data-shelf-open="' + idx + '">' +
+              '<div class="recent-card-art">' +
+                renderBackgroundArt('recent-card-media', d, i) +
+                '<div class="recent-card-overlay"></div>' +
+                '<div class="recent-card-play">▶</div>' +
+              '</div>' +
+              '<div class="recent-card-title">' + escapeHtml(d.title || 'Untitled') + '</div>' +
+              '<div class="recent-card-sub">' + escapeHtml(d.artist || 'Unknown Artist') + '</div>' +
+            '</div>';
           }).join('') + '</div>' +
         '</div>';
-      body.querySelectorAll('.am-card[data-idx]').forEach(card => {
+      body.querySelectorAll('.home-feature-card[data-idx]').forEach(card => {
         card.addEventListener('click', () => playTrack(Number(card.dataset.idx)));
       });
       body.querySelectorAll('[data-shelf-open]').forEach(el => {
@@ -1479,6 +1918,9 @@
     }
     const featured = filtered[0];
     const sampleLyrics = featured && featured.lyrics ? featured.lyrics.split(/\n+/).filter(Boolean).slice(0, 2).join(' • ') : 'Your draft lyrics are ready for playback and preview.';
+    const newPlaylists = buildPlaylistEntries(filtered);
+    const newAlbums = buildAlbumEntries(filtered).slice(0, 6);
+    const newArtists = buildArtistEntries(filtered).slice(0, 6);
     body.innerHTML =
       '<div class="home-intro">New<br><span>' + escapeHtml(sampleLyrics) + '</span></div>' +
       '<div class="am-section">' +
@@ -1502,21 +1944,15 @@
       '</div>' +
       '<div class="shelf-section">' +
         '<div class="am-section-header"><div class="am-section-title">Playlists</div></div>' +
-        '<div class="shelf-grid">' + filtered.map((d) => {
-          return '<div class="shelf-card" data-shelf-open="' + drafts.indexOf(d) + '"><div class="shelf-title">' + escapeHtml(d.title || 'Untitled') + '</div><div class="shelf-sub">Playlist</div></div>';
-        }).join('') + '</div>' +
+        '<div class="shelf-grid">' + renderShelfCards(newPlaylists, 'data-shelf-open', entry => entry.count + (entry.count === 1 ? ' track' : ' tracks')) + '</div>' +
       '</div>' +
       '<div class="shelf-section">' +
         '<div class="am-section-header"><div class="am-section-title">Albums</div></div>' +
-        '<div class="shelf-grid">' + filtered.map((d) => {
-          return '<div class="shelf-card" data-shelf-open="' + drafts.indexOf(d) + '"><div class="shelf-title">' + escapeHtml(d.artist || 'Manuscript') + '</div><div class="shelf-sub">' + escapeHtml(d.title || 'Untitled') + '</div></div>';
-        }).join('') + '</div>' +
+        '<div class="shelf-grid">' + renderShelfCards(newAlbums, 'data-shelf-open', entry => entry.count + (entry.count === 1 ? ' track' : ' tracks')) + '</div>' +
       '</div>' +
       '<div class="shelf-section">' +
-        '<div class="am-section-header"><div class="am-section-title">EPs &amp; Singles</div></div>' +
-        '<div class="shelf-grid">' + filtered.map((d) => {
-          return '<div class="shelf-card" data-shelf-open="' + drafts.indexOf(d) + '"><div class="shelf-title">' + escapeHtml(d.title || 'Untitled') + '</div><div class="shelf-sub">Single</div></div>';
-        }).join('') + '</div>' +
+        '<div class="am-section-header"><div class="am-section-title">Artists</div></div>' +
+        '<div class="shelf-grid">' + renderShelfCards(newArtists, 'data-shelf-open', entry => entry.count + (entry.count === 1 ? ' song' : ' songs')) + '</div>' +
       '</div>' +
       '<div class="am-list-wrap" id="tracks-table-section">' +
         '<table class="song-table">' +
@@ -1594,6 +2030,7 @@
     renderNowPlayingInfo();
     renderLyrics();
     refreshTransportUI();
+    renderDesktopRail();
   }
 
   function renderNowPlayingInfo(){
@@ -1625,6 +2062,7 @@
       });
     }, 160);
     renderQueuePanel();
+    renderDesktopRail();
   }
 
   function renderQueuePanel(){
@@ -1640,6 +2078,7 @@
     panel.querySelectorAll('.np-queue-row').forEach(el => {
       el.addEventListener('click', () => playTrack(Number(el.dataset.idx)));
     });
+    renderDesktopRail();
   }
 
   function renderLyrics(){
@@ -1669,6 +2108,7 @@
       });
     });
     syncPrevActiveIdx = null;
+    renderDesktopRail();
   }
 
   // ---------- session audio loading (per-track, not persisted — mirrors the
@@ -1842,22 +2282,25 @@
     });
   }
 
-  function keepActiveLyricInView(activeEl){
-    const panel = document.getElementById('np-lyrics-panel');
+  function keepLyricInView(panel, activeEl, topPct, bottomPct, targetPct){
     if(!panel || !activeEl) return;
     const panelRect = panel.getBoundingClientRect();
     const lineRect = activeEl.getBoundingClientRect();
     const lineCenter = lineRect.top + (lineRect.height / 2);
-    const topBound = panelRect.top + (panelRect.height * 0.34);
-    const bottomBound = panelRect.top + (panelRect.height * 0.68);
+    const topBound = panelRect.top + (panelRect.height * topPct);
+    const bottomBound = panelRect.top + (panelRect.height * bottomPct);
     if(lineCenter >= topBound && lineCenter <= bottomBound) return;
-    const targetCenter = panelRect.top + (panelRect.height * 0.54);
+    const targetCenter = panelRect.top + (panelRect.height * targetPct);
     const delta = lineCenter - targetCenter;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     panel.scrollTo({
       top: panel.scrollTop + delta,
       behavior: prefersReducedMotion ? 'auto' : 'smooth'
     });
+  }
+
+  function keepActiveLyricInView(activeEl){
+    keepLyricInView(document.getElementById('np-lyrics-panel'), activeEl, 0.34, 0.68, 0.54);
   }
 
   function updateLyricDepthClasses(activeEl, lyricLines){
@@ -1890,65 +2333,70 @@
     let activeIdx = null;
     entries.forEach(e => { if(e.time.start <= t) activeIdx = e.idx; });
 
-    const lyricLines = Array.from(document.querySelectorAll('#np-lyrics-content .np-lyric-line[data-idx]'));
-    const activeEl = activeIdx !== null
-      ? document.querySelector('#np-lyrics-content .np-lyric-line[data-idx="' + activeIdx + '"]')
-      : null;
-    if(activeIdx !== syncPrevActiveIdx){
-      syncPrevActiveIdx = activeIdx;
-      lyricLines.forEach(resetLyricLineState);
-      if(activeEl) keepActiveLyricInView(activeEl);
-    }
-    if(activeEl){
-      updateLyricDepthClasses(activeEl, lyricLines);
-    } else {
-      lyricLines.forEach(lineEl => lineEl.classList.remove('active-sync', 'was-sung', 'is-near', 'is-mid'));
-    }
+    const containers = [
+      { content: '#np-lyrics-content', panel: document.getElementById('np-lyrics-panel'), bounds: [0.34, 0.68, 0.54] },
+      { content: '#desktop-lyrics-content', panel: document.getElementById('desktop-rail-body'), bounds: [0.24, 0.76, 0.5] }
+    ];
 
-    lyricLines.forEach(lineEl => {
-      if(lineEl.dataset.idx !== String(activeIdx)){
-        lineEl.classList.remove('line-sync-active', 'word-sync-active');
-        lineEl.style.removeProperty('--line-progress');
-        lineEl.querySelectorAll('.np-line-fill .np-word').forEach(wordEl => {
-          wordEl.style.setProperty('--word-progress', '0%');
-          wordEl.classList.remove('active-word', 'sung-word');
+    containers.forEach(({ content, panel, bounds }) => {
+      const lyricLines = Array.from(document.querySelectorAll(content + ' .np-lyric-line[data-idx]'));
+      if(!lyricLines.length) return;
+      const activeEl = activeIdx !== null
+        ? document.querySelector(content + ' .np-lyric-line[data-idx="' + activeIdx + '"]')
+        : null;
+      if(activeIdx !== syncPrevActiveIdx){
+        lyricLines.forEach(resetLyricLineState);
+        if(activeEl) keepLyricInView(panel, activeEl, bounds[0], bounds[1], bounds[2]);
+      }
+      if(activeEl) updateLyricDepthClasses(activeEl, lyricLines);
+      else lyricLines.forEach(lineEl => lineEl.classList.remove('active-sync', 'was-sung', 'is-near', 'is-mid'));
+
+      lyricLines.forEach(lineEl => {
+        if(lineEl.dataset.idx !== String(activeIdx)){
+          lineEl.classList.remove('line-sync-active', 'word-sync-active');
+          lineEl.style.removeProperty('--line-progress');
+          lineEl.querySelectorAll('.np-line-fill .np-word').forEach(wordEl => {
+            wordEl.style.setProperty('--word-progress', '0%');
+            wordEl.classList.remove('active-word', 'sung-word');
+          });
+        }
+      });
+
+      if(activeIdx === null) return;
+      const lineHasWordSync = lineHasWordSyncData(d.syncedWords, activeIdx);
+      if(lineHasWordSync){
+        const lineEl = document.querySelector(content + ' .np-lyric-line[data-idx="' + activeIdx + '"]');
+        if(!lineEl) return;
+        lineEl.classList.add('word-sync-active');
+        lineEl.classList.remove('line-sync-active');
+        lineEl.querySelectorAll('.np-line-fill .np-word').forEach(wEl => {
+          const key = wordKey(activeIdx, wEl.dataset.wordIdx);
+          const wt = normTime(d.syncedWords && d.syncedWords[key]);
+          let progress = 0;
+          if(wt){
+            if(t >= wt.end) progress = 100;
+            else if(t > wt.start && wt.end > wt.start) progress = ((t - wt.start) / (wt.end - wt.start)) * 100;
+          }
+          progress = Math.max(0, Math.min(100, progress));
+          wEl.style.setProperty('--word-progress', progress + '%');
+          wEl.classList.toggle('active-word', !!wt && t >= wt.start && t < wt.end);
+          wEl.classList.toggle('sung-word', !!wt && t >= wt.end);
         });
+      } else {
+        const lineEl = document.querySelector(content + ' .np-lyric-line[data-idx="' + activeIdx + '"]');
+        if(lineEl){
+          lineEl.classList.add('line-sync-active');
+          lineEl.classList.remove('word-sync-active');
+          const curPos = entries.findIndex(e => e.idx === activeIdx);
+          const lineStart = entries[curPos].time.start;
+          const nextEntry = entries[curPos + 1];
+          const lineEnd = nextEntry ? nextEntry.time.start : (sessionAudio.el.duration || lineStart + 4);
+          const progress = lineEnd > lineStart ? Math.min(1, Math.max(0, (t - lineStart) / (lineEnd - lineStart))) : 1;
+          lineEl.style.setProperty('--line-progress', (progress * 100) + '%');
+        }
       }
     });
-
-    if(activeIdx === null) return;
-    const lineHasWordSync = lineHasWordSyncData(d.syncedWords, activeIdx);
-    if(lineHasWordSync){
-      const lineEl = document.querySelector('#np-lyrics-content .np-lyric-line[data-idx="' + activeIdx + '"]');
-      if(!lineEl) return;
-      lineEl.classList.add('word-sync-active');
-      lineEl.classList.remove('line-sync-active');
-      lineEl.querySelectorAll('.np-line-fill .np-word').forEach(wEl => {
-        const key = wordKey(activeIdx, wEl.dataset.wordIdx);
-        const wt = normTime(d.syncedWords && d.syncedWords[key]);
-        let progress = 0;
-        if(wt){
-          if(t >= wt.end) progress = 100;
-          else if(t > wt.start && wt.end > wt.start) progress = ((t - wt.start) / (wt.end - wt.start)) * 100;
-        }
-        progress = Math.max(0, Math.min(100, progress));
-        wEl.style.setProperty('--word-progress', progress + '%');
-        wEl.classList.toggle('active-word', !!wt && t >= wt.start && t < wt.end);
-        wEl.classList.toggle('sung-word', !!wt && t >= wt.end);
-      });
-    } else {
-      const lineEl = document.querySelector('#np-lyrics-content .np-lyric-line[data-idx="' + activeIdx + '"]');
-      if(lineEl){
-        lineEl.classList.add('line-sync-active');
-        lineEl.classList.remove('word-sync-active');
-        const curPos = entries.findIndex(e => e.idx === activeIdx);
-        const lineStart = entries[curPos].time.start;
-        const nextEntry = entries[curPos + 1];
-        const lineEnd = nextEntry ? nextEntry.time.start : (sessionAudio.el.duration || lineStart + 4);
-        const progress = lineEnd > lineStart ? Math.min(1, Math.max(0, (t - lineStart) / (lineEnd - lineStart))) : 1;
-        lineEl.style.setProperty('--line-progress', (progress * 100) + '%');
-      }
-    }
+    syncPrevActiveIdx = activeIdx;
   }
 
   // ---------- fullscreen now-playing open/close + tabs ----------
@@ -2000,6 +2448,7 @@
     const queueUtil = document.getElementById('np-util-queue');
     if(lyricsUtil) lyricsUtil.classList.toggle('active', tab === 'lyrics');
     if(queueUtil) queueUtil.classList.toggle('active', tab === 'queue');
+    renderDesktopRail();
   }
 
   function setActiveNav(navId){
@@ -2082,6 +2531,12 @@
     const miniQueueBtn = document.getElementById('mini-open-queue');
     if(miniLyricsBtn) miniLyricsBtn.addEventListener('click', () => { openFullscreen(); setTab('lyrics'); });
     if(miniQueueBtn) miniQueueBtn.addEventListener('click', () => { openFullscreen(); setTab('queue'); });
+    const desktopLyricsBtn = document.getElementById('desktop-tab-lyrics');
+    const desktopQueueBtn = document.getElementById('desktop-tab-queue');
+    const desktopFullscreenBtn = document.getElementById('desktop-open-fullscreen');
+    if(desktopLyricsBtn) desktopLyricsBtn.addEventListener('click', () => setTab('lyrics'));
+    if(desktopQueueBtn) desktopQueueBtn.addEventListener('click', () => setTab('queue'));
+    if(desktopFullscreenBtn) desktopFullscreenBtn.addEventListener('click', openFullscreen);
   }
   document.getElementById('np-tab-lyrics').addEventListener('click', () => setTab('lyrics'));
   document.getElementById('np-tab-queue').addEventListener('click', () => setTab('queue'));
