@@ -1146,6 +1146,8 @@
     padding-bottom: 10px;
     border-bottom: 1px dashed var(--line);
   }
+  .collection-section.collapsed .collection-header{ margin-bottom: 8px; }
+  .collection-section.collapsed .note-grid{ display:none; }
   .collection-header[draggable="true"]{ cursor: grab; }
   .collection-header[draggable="true"]:active{ cursor: grabbing; }
   .collection-drag-handle{
@@ -2620,10 +2622,11 @@ Everything saves automatically, right in this file — nothing leaves your brows
           </div>
           <div class="helper-tabs">
             <button class="helper-tab active" data-tab="rhyme" type="button">Rhymes</button>
+            <button class="helper-tab" data-tab="phrase" type="button">Phrase rhymes</button>
             <button class="helper-tab" data-tab="near" type="button">Near rhymes</button>
             <button class="helper-tab" data-tab="synonym" type="button">Synonyms</button>
           </div>
-          <div id="helper-results"><div class="helper-empty">Look up a word to see rhymes, near-rhymes, and synonyms here.</div></div>
+          <div id="helper-results"><div class="helper-empty">Look up a word or short phrase to see rhymes, phrase-rhymes, near-rhymes, and synonyms here.</div></div>
           <div class="helper-foot">
             <div class="helper-syllable-row">
               <span class="helper-syllable-label">Show syllable counts</span>
@@ -2678,6 +2681,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
   const APP_PASSWORD = 'PASSW0RDF0RV1PS';
   const OWNER_EMAIL = 'jscaylum@gmail.com';
   const BANNED_KEY = 'manuscript_banned_emails_v1';
+  const BANNED_STATE_KEY = 'manuscript_banned_state_v2';
+  const DEVICE_ID_KEY = 'manuscript_device_id_v1';
+  const LAST_CLOUD_UID_KEY = 'manuscript_last_cloud_uid_v1';
   const CUSTOM_THEME_KEY = 'manuscript_custom_theme_v1';
   const SIDEBAR_SORT_KEY = 'manuscript_sidebar_sort_v1';
 
@@ -2830,6 +2836,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
   let showingScrapped = false; // whether the menu screen is showing the scrap pile instead of the main note board
   let saveTimeout = null;
   let sessionAudio = { draftId: null, url: null, el: null }; // in-memory handle to whichever draft's audio is currently loaded (element/object URL can't be persisted as-is; the underlying blob is saved to IndexedDB — see saveAudioBlob/loadAudioBlob)
+  let audioLoadToken = 0; // increments whenever an async audio lookup should invalidate older in-flight lookups
+  let audioLoadingDraftId = null; // draft id currently being looked up in IndexedDB for audio
+  const audioMissingDraftIds = new Set(); // drafts confirmed to have no saved audio in IndexedDB this session
   let syncPlaybackDraftId = null;
   let syncCursorIdx = null; // raw lyric-line index that's "next up" to be tapped in sync mode
   let wordSyncMode = false; // false = syncing whole lines, true = syncing individual words
@@ -2852,22 +2861,77 @@ Everything saves automatically, right in this file — nothing leaves your brows
   // banned person from using the app in a different browser/device; it only
   // blocks sign-in on the device where the owner set the ban. Once a real
   // backend exists, this becomes a Firestore-side check enforced server-side.
+  function getOrCreateDeviceId(){
+    let id = safeLS.getItem(DEVICE_ID_KEY);
+    if(id) return id;
+    id = 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,10);
+    safeLS.setItem(DEVICE_ID_KEY, id);
+    return id;
+  }
+  const localDeviceId = getOrCreateDeviceId();
+
+  let bannedState = { emails: [], uids: {}, records: {} };
   let bannedEmails = [];
   try{
-    bannedEmails = JSON.parse(safeLS.getItem(BANNED_KEY) || '[]');
-    if(!Array.isArray(bannedEmails)) bannedEmails = [];
-  }catch(e){ bannedEmails = []; }
+    const raw = JSON.parse(safeLS.getItem(BANNED_STATE_KEY) || 'null');
+    if(raw && Array.isArray(raw.emails) && raw.uids && typeof raw.uids === 'object'){
+      bannedState = {
+        emails: raw.emails.map(e => String(e || '').trim().toLowerCase()).filter(Boolean),
+        uids: raw.uids,
+        records: raw.records && typeof raw.records === 'object' ? raw.records : {}
+      };
+    }else{
+      const legacy = JSON.parse(safeLS.getItem(BANNED_KEY) || '[]');
+      const legacyEmails = Array.isArray(legacy) ? legacy.map(e => String(e || '').trim().toLowerCase()).filter(Boolean) : [];
+      bannedState = { emails: legacyEmails, uids: {}, records: {} };
+    }
+  }catch(e){
+    bannedState = { emails: [], uids: {}, records: {} };
+  }
+  bannedEmails = bannedState.emails.slice();
+
   function saveBannedEmails(){
+    bannedEmails = bannedState.emails.slice();
+    safeLS.setItem(BANNED_STATE_KEY, JSON.stringify(bannedState));
+    // Keep writing the legacy key so older builds can still read the email list.
     safeLS.setItem(BANNED_KEY, JSON.stringify(bannedEmails));
   }
-  function isBanned(email){
-    return !!email && bannedEmails.includes(email.toLowerCase());
+  function isBanned(email, uid){
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if(normalizedEmail && bannedState.emails.includes(normalizedEmail)) return true;
+    if(uid && bannedState.uids && bannedState.uids[uid]) return true;
+    return false;
+  }
+  function addBan(email, uid){
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if(normalizedEmail && !bannedState.emails.includes(normalizedEmail)) bannedState.emails.push(normalizedEmail);
+    if(uid){
+      bannedState.uids[uid] = true;
+      bannedState.records[uid] = {
+        email: normalizedEmail || null,
+        bannedAt: Date.now(),
+        deviceId: localDeviceId
+      };
+    }
+    saveBannedEmails();
+  }
+  function removeBanByEmail(email){
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    bannedState.emails = bannedState.emails.filter(e => e !== normalizedEmail);
+    Object.keys(bannedState.records).forEach(uid=>{
+      const rec = bannedState.records[uid];
+      if(rec && rec.email === normalizedEmail){
+        delete bannedState.records[uid];
+        delete bannedState.uids[uid];
+      }
+    });
+    saveBannedEmails();
   }
   // If the currently signed-in account is on the ban list, sign them out and
   // let them know. Called right after auth state changes and right after the
   // owner adds someone to the list (in case that person is signed in right now).
   function enforceBanOnCurrentSession(){
-    if(account.signedIn && isBanned(account.email)){
+    if(account.signedIn && isBanned(account.email, account.uid)){
       googleSignOut();
       alert('This account has been blocked from signing in here by the site owner.');
       return true;
@@ -2918,6 +2982,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     try{ firestoreDb = firebase.firestore(); }catch(e){ console.error('Firestore init failed:', e); }
     firebaseAuth.onAuthStateChanged(user => {
       const wasSignedIn = account.signedIn;
+      const prevUid = account.uid;
       account = user
         ? { signedIn: true, email: user.email, name: user.displayName, photo: user.photoURL, uid: user.uid }
         : { signedIn: false, email: null, name: null, photo: null, uid: null };
@@ -2926,9 +2991,12 @@ Everything saves automatically, right in this file — nothing leaves your brows
       // Only on the actual signed-out -> signed-in transition: pull down anything
       // saved to this account from another device/browser, merge it with whatever
       // is already local, then push the merged result back up so both sides match.
-      if(account.signedIn && !wasSignedIn){
+      const switchedAccount = !!(account.signedIn && wasSignedIn && prevUid && account.uid && prevUid !== account.uid);
+      const firstSeenUidThisSession = !!(account.signedIn && safeLS.getItem(LAST_CLOUD_UID_KEY) !== account.uid);
+      if(account.signedIn && (!wasSignedIn || switchedAccount || firstSeenUidThisSession)){
         mergeCloudAndLocalDrafts();
         mergeCloudSettings();
+        safeLS.setItem(LAST_CLOUD_UID_KEY, account.uid);
       }
     });
   }catch(e){
@@ -3513,8 +3581,10 @@ Everything saves automatically, right in this file — nothing leaves your brows
   }
 
   function renderCollectionSectionHtml(col, colDrafts){
+    const collapsed = collapsedCollectionIds.has(col.id);
     const actionsHtml =
       '<div class="collection-actions">' +
+        '<button class="collection-action-btn" data-col-toggle="' + col.id + '" title="' + (collapsed ? 'Expand folder' : 'Collapse folder') + '">' + (collapsed ? '▸' : '▾') + '</button>' +
         '<button class="collection-action-btn" data-col-up="' + col.id + '" title="Move section up">↑</button>' +
         '<button class="collection-action-btn" data-col-down="' + col.id + '" title="Move section down">↓</button>' +
         '<button class="collection-action-btn" data-col-rename="' + col.id + '" title="Rename">✎</button>' +
@@ -3523,7 +3593,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const bodyHtml = colDrafts.length
       ? colDrafts.map(d => renderNoteCardHtml(d, true)).join('')
       : '<div class="collection-empty">No tracks here yet — tap a card\'s 📂 tag to move one in, or drag a card here.</div>';
-    return '<div class="collection-section" data-collection="' + col.id + '">' +
+    return '<div class="collection-section' + (collapsed ? ' collapsed' : '') + '" data-collection="' + col.id + '">' +
       '<div class="collection-header" draggable="true" data-collection-drag="' + col.id + '">' +
         '<span class="collection-drag-handle" title="Drag to reorder collections">⠿</span>' +
         '<span class="collection-name">' + escapeHtml(col.name) + '</span>' +
@@ -3613,6 +3683,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
     });
     grid.querySelectorAll('[data-col-up]').forEach(el=>{
       el.addEventListener('click', (e)=>{ e.stopPropagation(); moveCollection(el.dataset.colUp, -1); });
+    });
+    grid.querySelectorAll('[data-col-toggle]').forEach(el=>{
+      el.addEventListener('click', (e)=>{ e.stopPropagation(); toggleCollectionCollapsed(el.dataset.colToggle); });
     });
     grid.querySelectorAll('[data-col-down]').forEach(el=>{
       el.addEventListener('click', (e)=>{ e.stopPropagation(); moveCollection(el.dataset.colDown, 1); });
@@ -3846,26 +3919,33 @@ Everything saves automatically, right in this file — nothing leaves your brows
   }
 
   // ---------- audio + synced lyrics ----------
-  // Tracks which draft ids we've already checked IndexedDB for, so switching
-  // between drafts repeatedly doesn't re-query storage every single render.
-  const audioCheckedDraftIds = new Set();
 
   function renderAudioBar(d){
     const slot = document.getElementById('audio-bar-slot');
     const loaded = sessionAudio.draftId === d.id;
 
     if(!loaded){
-      if(!audioCheckedDraftIds.has(d.id)){
+      if(!audioMissingDraftIds.has(d.id) && audioLoadingDraftId !== d.id){
+        const token = ++audioLoadToken;
+        audioLoadingDraftId = d.id;
         slot.innerHTML = '<div class="audio-bar"><span style="color:var(--ink-faint); font-size:12px;">Checking for saved audio…</span></div>';
         loadAudioBlob(d.id).then(record=>{
-          audioCheckedDraftIds.add(d.id);
+          if(token !== audioLoadToken) return;
+          audioLoadingDraftId = null;
           if(record && record.blob && getActive() && getActive().id === d.id && sessionAudio.draftId !== d.id){
+            audioMissingDraftIds.delete(d.id);
             const url = URL.createObjectURL(record.blob);
             const el = new Audio(url);
             sessionAudio = { draftId: d.id, url, el, file: record.blob, fileName: record.fileName, persisted: true };
             wireAudioElement(el);
+          }else{
+            audioMissingDraftIds.add(d.id);
           }
-          renderMain();
+          if(getActive() && getActive().id === d.id) renderMain();
+        }).catch(()=>{
+          if(token !== audioLoadToken) return;
+          audioLoadingDraftId = null;
+          if(getActive() && getActive().id === d.id) renderMain();
         });
         return;
       }
@@ -3883,6 +3963,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
       document.getElementById('audio-file-input').addEventListener('change', (e)=>{
         const file = e.target.files[0];
         if(!file) return;
+        audioLoadToken++;
+        audioLoadingDraftId = null;
+        audioMissingDraftIds.delete(d.id);
         if(sessionAudio.url) URL.revokeObjectURL(sessionAudio.url);
         const url = URL.createObjectURL(file);
         const el = new Audio(url);
@@ -3931,6 +4014,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
     document.getElementById('audio-eject').addEventListener('click', ()=>{
       if(!confirm('Delete the saved audio for this song? Your synced timestamps stay intact — you can re-upload the audio later and they\'ll still line up.')) return;
       audioEl.pause();
+      audioLoadToken++;
+      audioLoadingDraftId = null;
+      audioMissingDraftIds.add(d.id);
       if(sessionAudio.url) URL.revokeObjectURL(sessionAudio.url);
       const draftId = sessionAudio.draftId;
       sessionAudio = { draftId: null, url: null, el: null };
@@ -4846,7 +4932,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     } else {
       html += '<div class="admin-note">No one is banned. A banned email is signed out immediately and can\'t sign back in on this device.</div>';
     }
-    html += '<div class="admin-note">This list lives in this browser only — it isn\'t enforced anywhere else, since drafts have no shared server yet. Treat it as a local access switch, not real moderation.</div>';
+    html += '<div class="admin-note">This list is enforced on this device/browser only. Bans now also link to account IDs seen on this device, so changing email aliases won\'t bypass the local block here.</div>';
     html += '</div>';
 
     html += '<div class="admin-section">';
@@ -4935,16 +5021,15 @@ Everything saves automatically, right in this file — nothing leaves your brows
         alert('The owner account can\'t be banned.');
         return;
       }
-      if(!bannedEmails.includes(email)) bannedEmails.push(email);
-      saveBannedEmails();
+      const bannedUid = account.signedIn && account.email && account.email.toLowerCase() === email ? account.uid : null;
+      addBan(email, bannedUid);
       enforceBanOnCurrentSession();
       renderAdminContent();
     });
     content.querySelectorAll('[data-unban]').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const email = btn.dataset.unban;
-        bannedEmails = bannedEmails.filter(e=>e!==email);
-        saveBannedEmails();
+        removeBanByEmail(email);
         renderAdminContent();
       });
     });
@@ -5127,7 +5212,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     '<button class="fix-btn" id="add-exception-btn" style="border-color:var(--ink-faint); color:var(--ink-dim);" title="Protect a word (like a name) from being auto-corrected">+ Exception</button>' +
     '<button class="fix-btn" id="fix-format-btn" title="Fix spelling in the lyric text and add a question mark where clearly missing — leaves anything in [brackets] untouched and never adds a period">✓ Fix formatting</button>' +
     '<button class="undo-fix-btn" id="undo-fix-btn" style="display:none;">Undo</button>' +
-    '<button class="fix-btn helper-toggle-btn" id="toggle-helper-btn" title="Open rhyme, near-rhyme and synonym suggestions">📝 Word helper</button>';
+    '<button class="fix-btn helper-toggle-btn" id="toggle-helper-btn" title="Open rhyme, phrase-rhyme, near-rhyme and synonym suggestions">📝 Word helper</button>';
   document.getElementById('canvas-wrap').after(hintWrap);
   hintWrap.querySelectorAll('.tag-chip').forEach(chip=>{
     chip.addEventListener('click', ()=>{
@@ -5148,6 +5233,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
 
   // ---------- playlist sectioning (optional EP/album-style grouping, plus manual reordering) ----------
   const COLLECTIONS_KEY = 'manuscript_collections_v1';
+  const COLLECTION_COLLAPSED_KEY = 'manuscript_collection_collapsed_v1';
   let collections = [];
   try{
     collections = JSON.parse(safeLS.getItem(COLLECTIONS_KEY) || '[]');
@@ -5157,6 +5243,21 @@ Everything saves automatically, right in this file — nothing leaves your brows
   function saveCollections(skipCloudPush){
     safeLS.setItem(COLLECTIONS_KEY, JSON.stringify(collections));
     if(!skipCloudPush && account.signedIn) pushSettingsToCloud();
+  }
+
+  let collapsedCollectionIds = new Set();
+  try{
+    const savedCollapsed = JSON.parse(safeLS.getItem(COLLECTION_COLLAPSED_KEY) || '[]');
+    if(Array.isArray(savedCollapsed)) collapsedCollectionIds = new Set(savedCollapsed);
+  }catch(e){ collapsedCollectionIds = new Set(); }
+  function saveCollapsedCollections(){
+    safeLS.setItem(COLLECTION_COLLAPSED_KEY, JSON.stringify(Array.from(collapsedCollectionIds)));
+  }
+  function toggleCollectionCollapsed(id){
+    if(collapsedCollectionIds.has(id)) collapsedCollectionIds.delete(id);
+    else collapsedCollectionIds.add(id);
+    saveCollapsedCollections();
+    renderMenu();
   }
 
   function uidCollection(){ return 'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,6); }
@@ -5538,7 +5639,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     renderExceptionChips();
   });
 
-  // ---------- writing helper: rhymes / synonyms / syllable counts ----------
+  // ---------- writing helper: rhymes / phrase-rhymes / synonyms / syllable counts ----------
   const SYLLABLE_TOGGLE_KEY = 'manuscript_show_syllables_v1';
   let showSyllables = safeLS.getItem(SYLLABLE_TOGGLE_KEY) === 'true';
   let helperTab = 'rhyme';
@@ -5618,6 +5719,7 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const base = 'https://api.datamuse.com/words';
     const enc = encodeURIComponent(word);
     if(tab === 'rhyme') return base + '?rel_rhy=' + enc + '&max=30';
+    if(tab === 'phrase') return base + '?rel_nry=' + enc + '&max=40'; // near-rhyme phrase suggestions
     if(tab === 'near') return base + '?sl=' + enc + '&max=30'; // "sounds like" — good for slant/near rhymes
     return base + '?ml=' + enc + '&max=30'; // "means like" — synonyms/related words
   }
@@ -6033,7 +6135,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
           const el = new Audio(url);
           sessionAudio = { draftId: d.id, url, el, file: audioFile, fileName: audioFile.name, persisted: false };
           wireAudioElement(el);
-          audioCheckedDraftIds.add(d.id);
+          audioLoadToken++;
+          audioLoadingDraftId = null;
+          audioMissingDraftIds.delete(d.id);
           saveAudioBlob(d.id, audioFile, audioFile.name).then(ok=>{
             sessionAudio.persisted = ok;
             if(getActive() && getActive().id === d.id) renderMain();
