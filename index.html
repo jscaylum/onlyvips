@@ -2574,6 +2574,7 @@
       <button id="back-to-menu">← Menu</button>
       <button class="topbar-btn" id="scrap-toggle-btn" title="Set aside without deleting — kept out of the main list, but never lost">🗑 Scrap</button>
       <button class="topbar-btn" id="desc-toggle-btn" title="Add a short description for this song">📝 Description</button>
+      <button class="topbar-btn" id="export-lyrics-btn" title="Export lyrics as text, formatted for Genius or for distribution">⬇ Export lyrics</button>
       <div class="cover-thumb" id="cover-thumb" title="Add a cover image">
         <span id="cover-placeholder">+</span>
         <img id="cover-img" style="display:none;" alt="">
@@ -4589,21 +4590,23 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const transport = document.getElementById('apple-transport');
     const transportControls = document.getElementById('apple-transport-controls');
     const transportNote = document.getElementById('apple-transport-note');
-    if(hasSyncData && hasAudioLoaded){
-      transport.classList.add('has-track');
-      transportControls.style.display = '';
-      transportNote.style.display = 'none';
-      // Playing (or scrubbing) this draft's audio while its lyrics are open always
-      // drives the karaoke highlight — the transport bar IS the sync-playback control.
-      syncPlaybackDraftId = d.id;
-      refreshAppleTransportUI();
-    } else if(hasSyncData && !hasAudioLoaded){
-      transport.classList.add('has-track');
-      transportControls.style.display = 'none';
-      transportNote.style.display = '';
-      transportNote.textContent = 'This draft has synced timestamps — its saved audio should load automatically in a moment. If it doesn\'t, upload the song again in Write mode.';
-    } else {
-      transport.classList.remove('has-track');
+    if(transport && transportControls && transportNote){
+      if(hasSyncData && hasAudioLoaded){
+        transport.classList.add('has-track');
+        transportControls.style.display = '';
+        transportNote.style.display = 'none';
+        // Playing (or scrubbing) this draft's audio while its lyrics are open always
+        // drives the karaoke highlight — the transport bar IS the sync-playback control.
+        syncPlaybackDraftId = d.id;
+        refreshAppleTransportUI();
+      } else if(hasSyncData && !hasAudioLoaded){
+        transport.classList.add('has-track');
+        transportControls.style.display = 'none';
+        transportNote.style.display = '';
+        transportNote.textContent = 'This draft has synced timestamps — its saved audio should load automatically in a moment. If it doesn\'t, upload the song again in Write mode.';
+      } else {
+        transport.classList.remove('has-track');
+      }
     }
 
     if(!lyrics.trim()){
@@ -5157,6 +5160,9 @@ Everything saves automatically, right in this file — nothing leaves your brows
     const d = getActive();
     if(!d) return;
     setDraftScrapped(d.id); // toggle
+  });
+  document.getElementById('export-lyrics-btn').addEventListener('click', (e)=>{
+    openExportMenu(e.currentTarget);
   });
   document.getElementById('scrapped-toggle-link').addEventListener('click', ()=>{
     showingScrapped = !showingScrapped;
@@ -6099,6 +6105,93 @@ Everything saves automatically, right in this file — nothing leaves your brows
     a.click();
     URL.revokeObjectURL(url);
   }
+
+  // ---------- lyrics text export (Genius-formatted vs. clean distribution copy) ----------
+  function safeFileName(title){
+    return (title || 'untitled').replace(/[^a-z0-9\-_ ]/gi, '').trim() || 'untitled';
+  }
+
+  function downloadTextFile(filename, text){
+    const blob = new Blob([text], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Genius' lyric box uses the [Verse]/[Chorus]-style section tags directly, which is
+  // exactly how drafts are already written here — so this is just the lyrics as typed,
+  // with any accidental triple-blank-lines tidied up.
+  function buildGeniusLyricsText(d){
+    return (d.lyrics || '').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  // Distribution platforms (DistroKid, CD Baby, etc.) generally want plain lyrics with
+  // no section labels — stanza breaks are kept, but every [Tag] line is stripped out.
+  function buildDistributionLyricsText(d){
+    const lines = (d.lyrics || '').split('\n');
+    const stripped = lines.filter(line => !/^\s*\[.+\]\s*$/.test(line.trim()));
+    return stripped.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+  }
+
+  function exportLyricsGenius(d){
+    const text = buildGeniusLyricsText(d);
+    if(!text){ alert('Nothing written yet in this draft — there\'s nothing to export.'); return; }
+    downloadTextFile(safeFileName(d.title) + ' (Genius).txt', text);
+  }
+
+  function exportLyricsDistribution(d){
+    const text = buildDistributionLyricsText(d);
+    if(!text){ alert('Nothing written yet in this draft — there\'s nothing to export.'); return; }
+    downloadTextFile(safeFileName(d.title) + ' (Distribution).txt', text);
+  }
+
+  // Small floating menu, same look as the collection picker, offering the two export formats.
+  let closeExportMenuFn = null;
+  function closeExportMenu(){
+    if(closeExportMenuFn){ closeExportMenuFn(); closeExportMenuFn = null; }
+  }
+  function openExportMenu(anchorEl){
+    closeExportMenu();
+    closeCollectionPicker();
+    const d = getActive();
+    if(!d) return;
+
+    const menu = document.createElement('div');
+    menu.className = 'collection-picker-menu';
+    const rect = anchorEl.getBoundingClientRect();
+    menu.style.left = Math.min(rect.left, window.innerWidth - 260) + 'px';
+    menu.style.top = (rect.bottom + 6) + 'px';
+    menu.innerHTML =
+      '<button class="collection-picker-item" data-export="genius">🎵 Genius format — tags &amp; formatting</button>' +
+      '<button class="collection-picker-item" data-export="distribution">📤 Distribution format — plain lines, no tags</button>';
+    document.body.appendChild(menu);
+
+    menu.querySelector('[data-export="genius"]').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      exportLyricsGenius(d);
+      closeExportMenu();
+    });
+    menu.querySelector('[data-export="distribution"]').addEventListener('click', (e)=>{
+      e.stopPropagation();
+      exportLyricsDistribution(d);
+      closeExportMenu();
+    });
+
+    const onDocClick = (e)=>{
+      if(!menu.contains(e.target)) closeExportMenu();
+    };
+    setTimeout(()=> document.addEventListener('click', onDocClick), 0);
+    closeExportMenuFn = ()=>{
+      document.removeEventListener('click', onDocClick);
+      menu.remove();
+    };
+  }
+  document.addEventListener('keydown', (e)=>{
+    if(e.key === 'Escape') closeExportMenu();
+  });
 
   function importSongPackage(file){
     const reader = new FileReader();
