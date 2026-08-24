@@ -805,18 +805,27 @@
     display:none;
     position:fixed; inset:0;
     z-index:50;
-    background: linear-gradient(180deg, rgba(30,30,31,0.94), rgba(17,17,18,0.98));
-    flex-direction:column;
+    background: #000;
+    align-items:center;
+    justify-content:center;
+    padding: clamp(10px, 3.4vh, 44px);
   }
   #fullscreen-np.visible{ display:flex; }
   #fullscreen-np.open #np-panel-inner{
-    transform: translateY(0);
+    transform: scale(1);
     opacity:1;
   }
   #np-panel-inner{
-    position:absolute; inset:0;
+    position:relative;
+    width:100%; height:100%;
+    max-width: 1360px;
     display:flex; flex-direction:column;
-    transform: translateY(28px);
+    border-radius: 16px;
+    overflow:hidden;
+    border: 1px solid rgba(255,255,255,0.14);
+    box-shadow: 0 50px 120px rgba(0,0,0,0.65);
+    background:#1a1a1a;
+    transform: scale(0.965);
     opacity:0;
     transition: transform .42s cubic-bezier(.32,.72,.35,1), opacity .32s ease;
   }
@@ -829,19 +838,19 @@
   }
   #np-backdrop.has-cover{ opacity: 0.9; }
   #np-scrim{ position:absolute; inset:0; background: rgba(0,0,0,0.35); }
-  #np-top-row{ position:relative; z-index:2; display:flex; align-items:center; padding: 18px 26px 0; }
-  .np-close-btn{ background:none; border:none; color: rgba(255,255,255,0.7); cursor:pointer; padding:6px; transition: color .15s ease, transform .12s ease; }
-  .np-close-btn:hover{ color:#fff; }
-  .np-close-btn:active{ transform: scale(0.88); }
-  .np-close-btn svg{ width:19px; height:19px; fill:currentColor; }
-  .np-tabs{ margin-left:auto; display:flex; gap:4px; background: rgba(255,255,255,0.08); border-radius:8px; padding:3px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04); }
-  .np-tab-btn{
-    background:none; border:none; cursor:pointer; color: rgba(255,255,255,0.55);
-    font-size:12px; font-weight:600; padding: 6px 12px; border-radius:6px;
-    transition: color .15s ease, background .15s ease;
-  }
-  .np-tab-btn:hover{ color: rgba(255,255,255,0.85); }
-  .np-tab-btn.active{ background: rgba(255,255,255,0.16); color:#fff; }
+  #np-top-row{ position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; padding: 16px 22px 0; }
+  .np-top-left, .np-top-right{ display:flex; align-items:center; gap:10px; }
+  .np-close-btn, .np-icon-btn{ background: rgba(255,255,255,0.1); border:none; color: rgba(255,255,255,0.82); cursor:pointer; width:27px; height:27px; border-radius:7px; display:flex; align-items:center; justify-content:center; transition: background .15s ease, color .15s ease, transform .12s ease; }
+  .np-close-btn:hover, .np-icon-btn:hover{ color:#fff; background: rgba(255,255,255,0.18); }
+  .np-close-btn:active, .np-icon-btn:active{ transform: scale(0.88); }
+  .np-close-btn svg, .np-icon-btn svg{ width:14px; height:14px; fill:currentColor; }
+  .np-window-pill{ width:36px; height:23px; border-radius:6px; border:1.5px solid rgba(255,255,255,0.5); background:transparent; cursor:pointer; padding:0; }
+  .np-window-pill:hover{ border-color:#fff; }
+  .np-airplay-btn{ background:none; border:none; color: rgba(255,255,255,0.75); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:4px; }
+  .np-airplay-btn:hover{ color:#fff; }
+  .np-airplay-btn svg{ width:17px; height:17px; fill:currentColor; }
+  .np-top-right .np-vol-row{ width:118px; min-width:0; }
+  .np-top-right .np-vol-row svg{ opacity:0.75; }
 
   #np-body{
     position:relative; z-index:2;
@@ -850,35 +859,44 @@
     align-items:stretch;
     justify-content:center;
     gap: 54px;
-    padding: 10px 60px 20px;
+    padding: 8px 56px 26px;
   }
-  #np-art-col{ display:flex; flex-direction:column; align-items:center; width: 360px; flex-shrink:0; padding-top: 10px; }
+  #fullscreen-np.centered #np-body{ justify-content:center; }
+  #fullscreen-np.centered #np-lyrics-panel{ display:none !important; }
+  #fullscreen-np.centered #np-art-col{ padding-top:0; justify-content:center; }
+  #np-art-col{ display:flex; flex-direction:column; width: 280px; flex-shrink:0; padding-top: 26px; }
   #np-cover{
-    width: 340px; height:340px; border-radius:18px;
+    width: 280px; height:280px; border-radius:10px;
     object-fit:cover;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    box-shadow: 0 26px 54px rgba(0,0,0,0.6);
     background: rgba(255,255,255,0.06);
     transition: opacity .28s ease, transform .28s ease;
   }
   #np-cover-placeholder{
-    width:340px; height:340px; border-radius:18px;
+    width:280px; height:280px; border-radius:10px;
     display:flex; align-items:center; justify-content:center;
     background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
     border: 1px solid rgba(255,255,255,0.1);
-    font-size:56px; color: rgba(255,255,255,0.24);
+    font-size:48px; color: rgba(255,255,255,0.24);
     transition: opacity .28s ease;
   }
-  #np-title, #np-artist{ transition: opacity .25s ease; }
-  #np-title{ font-size:22px; font-weight:800; margin-top:22px; text-align:center; letter-spacing:-0.3px; }
-  #np-artist{ font-size:14px; color: rgba(255,255,255,0.55); margin-top:4px; text-align:center; }
+  .np-meta-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-top:16px; }
+  #np-title, #np-artist{ transition: opacity .25s ease; text-align:left; }
+  #np-title{ font-size:15px; font-weight:700; letter-spacing:-0.1px; }
+  #np-artist{ font-size:13px; color: rgba(255,255,255,0.55); margin-top:3px; }
+  .np-meta-actions{ display:flex; align-items:center; gap:10px; flex-shrink:0; padding-top:1px; }
+  .np-meta-btn{ background:none; border:none; color: rgba(255,255,255,0.6); cursor:pointer; padding:0; display:flex; }
+  .np-meta-btn:hover{ color:#fff; }
+  .np-meta-btn svg{ width:16px; height:16px; fill:currentColor; }
+  #np-favorite.active{ color: var(--accent); }
+  .np-icon-btn.active, .np-airplay-btn.active{ color:#fff; background: rgba(255,255,255,0.22); }
 
   #np-lyrics-panel, #np-queue-panel{
-    flex:1; max-width: 700px; height:100%;
+    flex:1; max-width: 760px; height:100%;
     overflow-y:auto;
-    padding: 18px 6px 34vh;
+    padding: 30px 6px 34vh;
     transition: opacity .22s ease;
-    border-left: 1px solid rgba(255,255,255,0.06);
-    padding-left: 20px;
+    padding-left: 4px;
     scroll-padding-block: 38vh;
   }
   #np-lyrics-panel{
@@ -900,7 +918,7 @@
     overflow:hidden;
   }
   .np-lyric-line{
-    font-size: 26px; font-weight:700; line-height:1.38; letter-spacing:-0.22px;
+    font-size: 28px; font-weight:700; line-height:1.38; letter-spacing:-0.22px;
     color: rgba(255,255,255,0.48);
     margin-bottom: 12px;
     transition: color .35s ease, transform .35s ease, opacity .35s ease, filter .35s ease;
@@ -1009,63 +1027,59 @@
 
   #np-no-lyrics{ color: rgba(255,255,255,0.4); font-size:14px; padding-top:20px; }
 
-  .np-queue-row{ display:flex; align-items:center; gap:12px; padding:10px 10px; border-radius:10px; cursor:pointer; }
+  .np-queue-toolbar{ display:flex; gap:10px; margin-bottom:20px; }
+  .np-queue-mode-btn{
+    flex:1; display:flex; align-items:center; justify-content:center; gap:7px;
+    padding:9px 14px; border-radius:9px;
+    border:1px solid rgba(255,255,255,0.14);
+    background: rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.6);
+    font-size:12.5px; font-weight:600; cursor:pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .np-queue-mode-btn:hover{ color:#fff; background: rgba(255,255,255,0.1); }
+  .np-queue-mode-btn.active{ background: rgba(255,255,255,0.94); color:#111; border-color:transparent; }
+  .np-queue-mode-btn svg{ width:14px; height:14px; fill:currentColor; }
+  .np-queue-section-header{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:2px; }
+  .np-queue-section-title{ font-size:13px; font-weight:700; color: rgba(255,255,255,0.85); }
+  .np-queue-section-sub{ font-size:11px; color: rgba(255,255,255,0.4); margin-bottom:14px; }
+  .np-queue-clear-btn{ background:none; border:none; color: var(--accent); font-size:12px; font-weight:600; cursor:pointer; }
+  .np-queue-clear-btn:hover{ opacity:0.8; }
+  .np-queue-row{ display:flex; align-items:center; gap:12px; padding:8px 8px; border-radius:10px; cursor:pointer; }
   .np-queue-row:hover{ background: rgba(255,255,255,0.06); }
   .np-queue-row.current{ background: rgba(255,255,255,0.14); }
-  .np-queue-cover{ width:44px; height:44px; border-radius:7px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; }
+  .np-queue-cover{ width:42px; height:42px; border-radius:6px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; }
   .np-queue-title{ font-size:13px; font-weight:600; }
   .np-queue-row.current .np-queue-title{ color: var(--accent); }
   .np-queue-artist{ font-size:11.5px; color: rgba(255,255,255,0.4); }
+  .np-queue-more{ margin-left:auto; color: rgba(255,255,255,0.35); font-size:16px; padding:4px 6px; flex-shrink:0; }
 
-  #np-bottom{ position:relative; z-index:2; padding: 4px 60px 26px; }
-  .np-scrub-row{ max-width:540px; margin:0 auto; }
-  .np-scrub-track{ position:relative; width:100%; height:4px; border-radius:2px; background: rgba(255,255,255,0.22); cursor:pointer; }
+  .np-scrub-track{ position:relative; width:100%; height:4px; border-radius:2px; background: rgba(255,255,255,0.22); cursor:pointer; margin-top:16px; }
   .np-scrub-fill{ position:absolute; top:0; left:0; height:100%; width:0%; border-radius:2px; background:#fff; }
-  .np-scrub-dot{ position:absolute; top:50%; left:0%; width:11px; height:11px; border-radius:50%; background:#fff; transform:translate(-50%,-50%); box-shadow:0 1px 4px rgba(0,0,0,0.4); }
-  .np-time-row{ display:flex; justify-content:space-between; font-size:10.5px; color: rgba(255,255,255,0.45); margin-top:7px; max-width:540px; margin-left:auto; margin-right:auto; }
-  .np-transport-buttons{ display:flex; align-items:center; justify-content:center; gap:30px; margin-top:12px; }
-  .np-transport-btn{ background:none; border:none; cursor:pointer; color:#fff; width:34px; height:34px; display:flex; align-items:center; justify-content:center; padding:0; opacity:0.85; transition: opacity .15s ease, transform .1s ease; }
+  .np-scrub-dot{ position:absolute; top:50%; left:0%; width:10px; height:10px; border-radius:50%; background:#fff; transform:translate(-50%,-50%); box-shadow:0 1px 4px rgba(0,0,0,0.4); opacity:0; transition: opacity .15s ease; }
+  .np-scrub-track:hover .np-scrub-dot{ opacity:1; }
+  .np-time-row{ display:flex; justify-content:space-between; font-size:10.5px; color: rgba(255,255,255,0.45); margin-top:6px; }
+  .np-transport-buttons{ display:flex; align-items:center; justify-content:space-between; margin-top:14px; }
+  .np-transport-btn{ background:none; border:none; cursor:pointer; color:#fff; width:26px; height:26px; display:flex; align-items:center; justify-content:center; padding:0; opacity:0.85; transition: opacity .15s ease, transform .1s ease; }
   .np-transport-btn:hover{ opacity:1; }
   .np-transport-btn:active{ transform: scale(0.92); }
-  .np-transport-btn svg{ width:20px; height:20px; fill:currentColor; }
-  .np-play-btn{ width:48px; height:48px; }
-  .np-play-btn svg{ width:30px; height:30px; }
-  .np-utility-row{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap: 14px;
-    margin-top: 12px;
-    flex-wrap:wrap;
-  }
-  .np-utility-btn{
-    border:none;
-    background:none;
-    color: rgba(255,255,255,0.55);
-    width:26px;
-    height:26px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+  .np-transport-btn svg{ width:19px; height:19px; fill:currentColor; }
+  .np-transport-btn.active{ color: var(--accent); opacity:1; }
+  #np-shuffle svg, #np-repeat svg{ width:16px; height:16px; }
+  .np-play-btn svg{ width:24px; height:24px; }
+
+  .np-corner-tabs{ position:absolute; right:18px; bottom:18px; z-index:3; display:flex; gap:8px; }
+  .np-corner-btn{
+    width:30px; height:30px; border-radius:8px;
+    background: rgba(255,255,255,0.1);
+    border:none; color: rgba(255,255,255,0.72);
+    display:flex; align-items:center; justify-content:center;
     cursor:pointer;
-    transition: color .12s ease, transform .1s ease;
+    transition: background .15s ease, color .15s ease;
   }
-  .np-utility-btn:hover{ color:#fff; }
-  .np-utility-btn.active{ color: var(--accent); }
-  .np-utility-btn:active{ transform: scale(0.92); }
-  .np-utility-btn svg{ width:17px; height:17px; fill:currentColor; }
-  .np-vol-row{
-    display:flex;
-    align-items:center;
-    gap:8px;
-    min-width:148px;
-    padding: 0 2px;
-  }
-  .np-vol-row svg{ flex-shrink:0; }
-  .np-vol-row input[type="range"]{
-    width:100%;
-    accent-color:#fff;
-  }
+  .np-corner-btn:hover{ color:#fff; background: rgba(255,255,255,0.18); }
+  .np-corner-btn.active{ color:#fff; background: rgba(255,255,255,0.24); }
+  .np-corner-btn svg{ width:15px; height:15px; fill:currentColor; }
 
   /* ---------- load-audio prompt ---------- */
   #load-audio-banner{
@@ -1126,8 +1140,6 @@
     #np-title{ font-size:20px; }
     #np-lyrics-panel, #np-queue-panel{ padding: 6px 0 20px; }
     .np-lyric-line{ font-size:22px; }
-    #np-bottom{ padding: 4px 18px 20px; }
-    .np-transport-buttons{ gap: 20px; }
   }
 
   @media (max-width: 520px){
@@ -1142,10 +1154,7 @@
     .mini-center{ width:100%; }
     .mini-transport-buttons{ gap:16px; }
     #np-top-row{ padding: 14px 14px 0; }
-    .np-tabs{ margin-left:0; }
-    .np-scrub-row, .np-time-row{ max-width:none; }
-    .np-transport-buttons{ gap:16px; }
-    .np-vol-row{ min-width:100%; }
+    .np-top-right .np-vol-row{ width:70px; }
   }
 </style>
 </head>
@@ -1268,18 +1277,48 @@
   <div id="np-backdrop"></div>
   <div id="np-scrim"></div>
   <div id="np-top-row">
-    <button class="np-close-btn" id="np-close" title="Close"><svg viewBox="0 0 24 24"><path d="M7,10l5,5l5,-5z"/></svg></button>
-    <div class="np-tabs">
-      <button class="np-tab-btn active" id="np-tab-lyrics">Lyrics</button>
-      <button class="np-tab-btn" id="np-tab-queue">Up Next</button>
+    <div class="np-top-left">
+      <button class="np-window-pill" id="np-pill" title="Mini player"></button>
+      <button class="np-close-btn" id="np-close" title="Close"><svg viewBox="0 0 24 24"><path d="M18.3 5.71 12 12l6.3 6.29-1.41 1.42L10.59 13.4 4.3 19.71 2.88 18.3 9.17 12 2.88 5.71 4.3 4.29l6.29 6.3 6.29-6.3 1.42 1.42Z"/></svg></button>
+      <button class="np-icon-btn" id="np-pip" title="Picture in Picture"><svg viewBox="0 0 24 24"><path d="M20 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 14H4V6h16v12Zm-1-7h-6v5h6v-5Z"/></svg></button>
+    </div>
+    <div class="np-top-right">
+      <button class="np-airplay-btn" id="np-airplay" title="AirPlay"><svg viewBox="0 0 24 24"><path d="M6 21h12l-6-6-6 6ZM21 3H3a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h4v-2H3V5h18v11h-4v2h4a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Z"/></svg></button>
+      <div class="np-vol-row">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="rgba(255,255,255,0.62)"><path d="M3,9V15H7L12,20V4L7,9H3Z"/></svg>
+        <input type="range" id="np-volume" min="0" max="1" step="0.01" value="0.9" aria-label="Volume">
+      </div>
     </div>
   </div>
   <div id="np-body">
     <div id="np-art-col">
       <img id="np-cover" style="display:none;" alt="">
       <div id="np-cover-placeholder">♪</div>
-      <div id="np-title"></div>
-      <div id="np-artist"></div>
+      <div class="np-meta-row">
+        <div class="np-meta-text">
+          <div id="np-title"></div>
+          <div id="np-artist"></div>
+        </div>
+        <div class="np-meta-actions">
+          <button class="np-meta-btn" id="np-favorite" title="Favorite"><svg viewBox="0 0 24 24"><path d="m12 17.27 5.18 3.13-1.37-5.9 4.19-3.62-5.83-.5L12 4.87 9.83 10.4l-5.83.5 4.19 3.62-1.37 5.9L12 17.27Z"/></svg></button>
+          <button class="np-meta-btn" id="np-more" title="More"><svg viewBox="0 0 24 24"><path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm0 2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm0 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg></button>
+        </div>
+      </div>
+      <div class="np-scrub-track" id="np-scrub-track">
+        <div class="np-scrub-fill" id="np-scrub-fill"></div>
+        <div class="np-scrub-dot" id="np-scrub-dot"></div>
+      </div>
+      <div class="np-time-row">
+        <span id="np-time-elapsed">0:00</span>
+        <span id="np-time-remaining">-0:00</span>
+      </div>
+      <div class="np-transport-buttons">
+        <button class="np-transport-btn" id="np-shuffle" title="Shuffle"><svg viewBox="0 0 24 24"><path d="M17.59 3 22 7.41l-1.06 1.06-2.35-2.35h-2.34c-1.54 0-2.42.63-3.55 2.2L11 10.75l-1.2-1.2 1.42-1.96C12.64 5.61 14.14 4.5 16.25 4.5h2.34l2.35-2.35L22 3.2 17.59 7.6V3Zm-7.34 9.04 1.2 1.2-1.43 1.97c-1.41 1.96-2.91 3.07-5.02 3.07H2v-1.5h2.99c1.54 0 2.42-.63 3.55-2.2l1.71-2.54Zm8.34 2.24 2.35-2.35L22 13l-4.41 4.41V13h-2.34c-2.11 0-3.61-1.11-5.02-3.07L9 8.28C7.87 6.71 6.99 6.08 5.45 6.08H2v-1.5h3.45c2.11 0 3.61 1.11 5.02 3.07l1.23 1.7c1.13 1.57 2.01 2.2 3.55 2.2h2.34v-4.41Z"/></svg></button>
+        <button class="np-transport-btn" id="np-prev" title="Previous"><svg viewBox="0 0 24 24"><path d="M6,6H8V18H6V6M9.5,12L18,6V18L9.5,12Z"/></svg></button>
+        <button class="np-transport-btn np-play-btn" id="np-play" title="Play/Pause"><svg id="np-play-icon" viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg></button>
+        <button class="np-transport-btn" id="np-next" title="Next"><svg viewBox="0 0 24 24"><path d="M16,18H18V6H16M6,18L14.5,12L6,6V18Z"/></svg></button>
+        <button class="np-transport-btn" id="np-repeat" title="Repeat"><svg viewBox="0 0 24 24"><path d="M7 7h10V4l4 4-4 4V9H8v3H6V9a2 2 0 0 1 2-2Zm10 10H7v3l-4-4 4-4v3h9v-3h2v3a2 2 0 0 1-2 2Z"/></svg></button>
+      </div>
     </div>
     <div id="np-lyrics-panel">
       <div id="load-audio-banner">
@@ -1292,32 +1331,9 @@
     </div>
     <div id="np-queue-panel"></div>
   </div>
-  <div id="np-bottom">
-    <div class="np-scrub-row">
-      <div class="np-scrub-track" id="np-scrub-track">
-        <div class="np-scrub-fill" id="np-scrub-fill"></div>
-        <div class="np-scrub-dot" id="np-scrub-dot"></div>
-      </div>
-      <div class="np-time-row">
-        <span id="np-time-elapsed">0:00</span>
-        <span id="np-time-remaining">-0:00</span>
-      </div>
-    </div>
-    <div class="np-transport-buttons">
-      <button class="np-transport-btn" id="np-prev" title="Previous"><svg viewBox="0 0 24 24"><path d="M6,6H8V18H6V6M9.5,12L18,6V18L9.5,12Z"/></svg></button>
-      <button class="np-transport-btn np-play-btn" id="np-play" title="Play/Pause"><svg id="np-play-icon" viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg></button>
-      <button class="np-transport-btn" id="np-next" title="Next"><svg viewBox="0 0 24 24"><path d="M16,18H18V6H16M6,18L14.5,12L6,6V18Z"/></svg></button>
-    </div>
-    <div class="np-utility-row">
-      <button class="np-utility-btn" id="np-util-lyrics" title="Lyrics"><svg viewBox="0 0 24 24"><path d="M5 5.75A1.75 1.75 0 0 1 6.75 4h10.5A1.75 1.75 0 0 1 19 5.75v12.5A1.75 1.75 0 0 1 17.25 20H6.75A1.75 1.75 0 0 1 5 18.25V5.75Zm3 2.25a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5H8Zm0 3.75a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5H8Zm0 3.75a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5H8Z"/></svg></button>
-      <button class="np-utility-btn" id="np-util-queue" title="Queue"><svg viewBox="0 0 24 24"><path d="M4 7.25a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 7.25Zm0 4.75a.75.75 0 0 1 .75-.75h9.5a.75.75 0 0 1 0 1.5h-9.5A.75.75 0 0 1 4 12Zm0 4.75a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H4.75a.75.75 0 0 1-.75-.75ZM17 11l3 2-3 2v-4Z"/></svg></button>
-      <button class="np-utility-btn" id="np-shuffle" title="Shuffle"><svg viewBox="0 0 24 24"><path d="M17.59 3 22 7.41l-1.06 1.06-2.35-2.35h-2.34c-1.54 0-2.42.63-3.55 2.2L11 10.75l-1.2-1.2 1.42-1.96C12.64 5.61 14.14 4.5 16.25 4.5h2.34l2.35-2.35L22 3.2 17.59 7.6V3Zm-7.34 9.04 1.2 1.2-1.43 1.97c-1.41 1.96-2.91 3.07-5.02 3.07H2v-1.5h2.99c1.54 0 2.42-.63 3.55-2.2l1.71-2.54Zm8.34 2.24 2.35-2.35L22 13l-4.41 4.41V13h-2.34c-2.11 0-3.61-1.11-5.02-3.07L9 8.28C7.87 6.71 6.99 6.08 5.45 6.08H2v-1.5h3.45c2.11 0 3.61 1.11 5.02 3.07l1.23 1.7c1.13 1.57 2.01 2.2 3.55 2.2h2.34v-4.41Z"/></svg></button>
-      <button class="np-utility-btn" id="np-repeat" title="Repeat"><svg viewBox="0 0 24 24"><path d="M7 7h10V4l4 4-4 4V9H8v3H6V9a2 2 0 0 1 2-2Zm10 10H7v3l-4-4 4-4v3h9v-3h2v3a2 2 0 0 1-2 2Z"/></svg></button>
-      <div class="np-vol-row">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="rgba(255,255,255,0.62)"><path d="M3,9V15H7L12,20V4L7,9H3Z"/></svg>
-        <input type="range" id="np-volume" min="0" max="1" step="0.01" value="0.9" aria-label="Volume">
-      </div>
-    </div>
+  <div class="np-corner-tabs">
+    <button class="np-corner-btn active" id="np-util-lyrics" title="Lyrics"><svg viewBox="0 0 24 24"><path d="M5 5.75A1.75 1.75 0 0 1 6.75 4h10.5A1.75 1.75 0 0 1 19 5.75v12.5A1.75 1.75 0 0 1 17.25 20H6.75A1.75 1.75 0 0 1 5 18.25V5.75Zm3 2.25a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5H8Zm0 3.75a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5H8Zm0 3.75a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5H8Z"/></svg></button>
+    <button class="np-corner-btn" id="np-util-queue" title="Up Next"><svg viewBox="0 0 24 24"><path d="M4 7.25a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 7.25Zm0 4.75a.75.75 0 0 1 .75-.75h9.5a.75.75 0 0 1 0 1.5h-9.5A.75.75 0 0 1 4 12Zm0 4.75a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H4.75a.75.75 0 0 1-.75-.75ZM17 11l3 2-3 2v-4Z"/></svg></button>
   </div>
  </div>
 </div>
@@ -2067,17 +2083,35 @@
 
   function renderQueuePanel(){
     const panel = document.getElementById('np-queue-panel');
-    if(!drafts.length){ panel.innerHTML = '<div id="np-no-lyrics">Nothing queued.</div>'; return; }
-    panel.innerHTML = drafts.map((d, i) => {
+    const active = getActive();
+    const toolbar =
+      '<div class="np-queue-toolbar">' +
+        '<button class="np-queue-mode-btn active" id="np-queue-autoplay" type="button"><svg viewBox="0 0 24 24"><path d="M12 5V2L8 6l4 4V7c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0 0 20 13c0-4.42-3.58-8-8-8Zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 8.74A7.93 7.93 0 0 0 4 13c0 4.42 3.58 8 8 8v3l4-4-4-4v3Z"/></svg>AutoPlay</button>' +
+        '<button class="np-queue-mode-btn" id="np-queue-automix" type="button"><svg viewBox="0 0 24 24"><path d="M14 6.5l4-2.5v16l-4-2.5M6 4h5v16H6zM3 9h1v6H3z"/></svg>AutoMix</button>' +
+      '</div>' +
+      '<div class="np-queue-section-header">' +
+        '<div class="np-queue-section-title">Continue Playing</div>' +
+        '<button class="np-queue-clear-btn" id="np-queue-clear" type="button">Clear</button>' +
+      '</div>' +
+      '<div class="np-queue-section-sub">' + (active ? 'From ' + escapeHtml(active.album || ((active.title || 'Untitled') + ' - Single')) : '') + '</div>';
+    if(!drafts.length){ panel.innerHTML = toolbar + '<div id="np-no-lyrics">There\u2019s no music in the queue.</div>'; return; }
+    panel.innerHTML = toolbar + drafts.map((d, i) => {
       return '<div class="np-queue-row' + (i===currentIdx ? ' current' : '') + '" data-idx="' + i + '">' +
         (d.cover ? '<img class="np-queue-cover" src="' + d.cover + '">' : '<div class="np-queue-cover"></div>') +
         '<div><div class="np-queue-title">' + escapeHtml(d.title || 'Untitled') + '</div>' +
         '<div class="np-queue-artist">' + escapeHtml(d.artist || 'Unknown Artist') + '</div></div>' +
+        '<span class="np-queue-more">\u22EF</span>' +
       '</div>';
     }).join('');
     panel.querySelectorAll('.np-queue-row').forEach(el => {
       el.addEventListener('click', () => playTrack(Number(el.dataset.idx)));
     });
+    const autoplayBtn = document.getElementById('np-queue-autoplay');
+    const automixBtn = document.getElementById('np-queue-automix');
+    if(autoplayBtn && automixBtn){
+      autoplayBtn.addEventListener('click', (e) => { e.stopPropagation(); autoplayBtn.classList.add('active'); automixBtn.classList.remove('active'); });
+      automixBtn.addEventListener('click', (e) => { e.stopPropagation(); automixBtn.classList.add('active'); autoplayBtn.classList.remove('active'); });
+    }
     renderDesktopRail();
   }
 
@@ -2108,6 +2142,7 @@
       });
     });
     syncPrevActiveIdx = null;
+    updateLayoutMode();
     renderDesktopRail();
   }
 
@@ -2442,13 +2477,21 @@
     setTimeout(() => {
       requestAnimationFrame(() => { incoming.style.opacity = '1'; });
     }, 140);
-    document.getElementById('np-tab-lyrics').classList.toggle('active', tab === 'lyrics');
-    document.getElementById('np-tab-queue').classList.toggle('active', tab === 'queue');
     const lyricsUtil = document.getElementById('np-util-lyrics');
     const queueUtil = document.getElementById('np-util-queue');
     if(lyricsUtil) lyricsUtil.classList.toggle('active', tab === 'lyrics');
     if(queueUtil) queueUtil.classList.toggle('active', tab === 'queue');
+    updateLayoutMode();
     renderDesktopRail();
+  }
+
+  // Apple Music collapses the split view and centers the art/controls column
+  // when the current track has no lyrics to show — only while on the lyrics
+  // tab; the queue tab always keeps the two-column layout.
+  function updateLayoutMode(){
+    const d = getActive();
+    const hasLyrics = !!(d && (d.lyrics || '').trim());
+    document.getElementById('fullscreen-np').classList.toggle('centered', npTab === 'lyrics' && !hasLyrics);
   }
 
   function setActiveNav(navId){
@@ -2538,8 +2581,16 @@
     if(desktopQueueBtn) desktopQueueBtn.addEventListener('click', () => setTab('queue'));
     if(desktopFullscreenBtn) desktopFullscreenBtn.addEventListener('click', openFullscreen);
   }
-  document.getElementById('np-tab-lyrics').addEventListener('click', () => setTab('lyrics'));
-  document.getElementById('np-tab-queue').addEventListener('click', () => setTab('queue'));
+  // Decorative window chrome — mirrors the real app's controls closely enough
+  // to sell the look, without wiring up real PiP/AirPlay/mini-player behavior.
+  const npPill = document.getElementById('np-pill');
+  if(npPill) npPill.addEventListener('click', closeFullscreen);
+  const npPip = document.getElementById('np-pip');
+  if(npPip) npPip.addEventListener('click', () => npPip.classList.toggle('active'));
+  const npAirplay = document.getElementById('np-airplay');
+  if(npAirplay) npAirplay.addEventListener('click', () => npAirplay.classList.toggle('active'));
+  const npFavorite = document.getElementById('np-favorite');
+  if(npFavorite) npFavorite.addEventListener('click', () => npFavorite.classList.toggle('active'));
 
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape' && document.getElementById('fullscreen-np').classList.contains('open')){
