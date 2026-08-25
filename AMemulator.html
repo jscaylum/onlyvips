@@ -732,75 +732,97 @@
   }
   #empty-library b{ color: var(--text-dim); }
 
-  /* ---------- bottom mini player ---------- */
+  /* ---------- top toolbar (docked playback bar, like the real macOS app) ---------- */
+  #app-toolbar{
+    display:flex; align-items:center;
+    height: 52px; flex-shrink:0;
+    padding: 0 12px;
+    gap: 10px;
+    background: rgba(32,32,34,0.88);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    backdrop-filter: blur(20px) saturate(1.5);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    position:relative;
+    z-index: 30;
+  }
+  .toolbar-nav-group{ display:flex; align-items:center; gap:2px; flex-shrink:0; }
+  .toolbar-icon-btn{
+    background:none; border:none; color: rgba(255,255,255,0.55); cursor:pointer;
+    width:26px; height:26px; border-radius:6px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    transition: background .12s ease, color .12s ease;
+  }
+  .toolbar-icon-btn:hover{ color:#fff; background: rgba(255,255,255,0.09); }
+  .toolbar-icon-btn:active{ transform: scale(0.92); }
+  .toolbar-icon-btn.disabled{ opacity:0.32; pointer-events:none; }
+  .toolbar-icon-btn svg{ width:14px; height:14px; fill:currentColor; }
+  #sidebar-toggle svg{ width:15px; height:15px; }
+
   #mini-player{
     display:none;
-      position:fixed;
-      left:50%;
-      bottom:14px;
-      z-index:45;
-      width:min(820px, calc(100vw - 44px));
-      height: 82px;
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 22px;
-      background: rgba(44,38,42,0.92);
-      -webkit-backdrop-filter: blur(24px) saturate(1.08);
-      backdrop-filter: blur(24px) saturate(1.08);
     align-items:center;
-    padding: 0 18px;
-    gap: 14px;
-      transform: translate(-50%, calc(100% + 28px));
-    opacity: 0;
-    transition: transform .38s cubic-bezier(.32,.72,.35,1), opacity .3s ease;
-      box-shadow: 0 22px 44px rgba(0,0,0,0.34);
+    flex:1;
+    min-width:0;
+    gap: 16px;
   }
   #mini-player.visible{ display:flex; }
-    #mini-player.has-track{ transform: translate(-50%, 0); opacity:1; }
-    .mini-track-info{ display:flex; align-items:center; gap:10px; width:235px; flex-shrink:0; min-width:0; }
-    .mini-cover{ width:46px; height:46px; border-radius:8px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; cursor:pointer; transition: opacity .25s ease; }
+    .mini-track-info{ display:flex; align-items:center; gap:9px; width:200px; flex-shrink:0; min-width:0; order:2; }
+    .mini-cover{ width:34px; height:34px; border-radius:5px; object-fit:cover; background: rgba(255,255,255,0.08); flex-shrink:0; cursor:pointer; transition: opacity .25s ease; }
   .mini-text{ min-width:0; }
-  .mini-title{ font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .mini-artist{ font-size:11.5px; color: var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mini-title{ font-size:12px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mini-artist{ font-size:10.5px; color: var(--text-faint); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-    .mini-center{ flex:1; display:flex; flex-direction:column; align-items:center; gap:7px; max-width: 420px; margin: 0 auto; }
-    .mini-transport-buttons{ display:flex; align-items:center; gap: 16px; }
+    .mini-center{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; max-width: 460px; margin: 0 auto; order:1; }
+    .mini-transport-buttons{ display:flex; align-items:center; gap: 18px; }
   .mini-btn{ background:none; border:none; cursor:pointer; color:#fff; opacity:0.82; display:flex; align-items:center; justify-content:center; padding:0; transition: opacity .15s ease, transform .1s ease; }
   .mini-btn:hover{ opacity:1; }
   .mini-btn:active{ transform: scale(0.9); }
-    .mini-btn svg{ width:14px; height:14px; fill:currentColor; }
-    .mini-play-btn{ width:34px; height:34px; border-radius:50%; background: rgba(255,255,255,0.14); box-shadow: inset 0 1px 0 rgba(255,255,255,0.08); }
-    .mini-play-btn svg{ width:20px; height:20px; }
-  .mini-scrub-row{ display:flex; align-items:center; gap:8px; width:100%; }
-  .mini-time{ font-size:10.5px; color: var(--text-faint); width:34px; font-variant-numeric: tabular-nums; }
+    .mini-btn svg{ width:13px; height:13px; fill:currentColor; }
+    .mini-play-btn{ width:22px; height:22px; }
+    .mini-play-btn svg{ width:17px; height:17px; }
+  .mini-scrub-row{ display:flex; align-items:center; gap:7px; width:100%; }
+  .mini-time{ font-size:10px; color: var(--text-faint); width:32px; font-variant-numeric: tabular-nums; }
   .mini-time.right{ text-align:left; }
   .mini-scrub-track{ position:relative; flex:1; height:3px; border-radius:999px; background: rgba(255,255,255,0.2); cursor:pointer; }
   .mini-scrub-fill{ position:absolute; top:0; left:0; height:100%; width:0%; border-radius:999px; background:linear-gradient(90deg, #fff, #f1f1f1); }
-  .mini-scrub-dot{ position:absolute; top:50%; left:0%; width:10px; height:10px; border-radius:50%; background:#fff; transform:translate(-50%,-50%); opacity:0; transition: opacity .15s; box-shadow:0 2px 8px rgba(0,0,0,0.35); }
+  .mini-scrub-dot{ position:absolute; top:50%; left:0%; width:9px; height:9px; border-radius:50%; background:#fff; transform:translate(-50%,-50%); opacity:0; transition: opacity .15s; box-shadow:0 2px 8px rgba(0,0,0,0.35); }
   .mini-scrub-track:hover .mini-scrub-dot{ opacity:1; }
 
-  .mini-right{ width:220px; flex-shrink:0; display:flex; align-items:center; justify-content:flex-end; gap:12px; }
-  .mini-quick-actions{ display:flex; align-items:center; gap:8px; }
+  .mini-right{ width:auto; flex-shrink:0; display:flex; align-items:center; justify-content:flex-end; gap:10px; order:3; }
+  .mini-quick-actions{ display:flex; align-items:center; gap:4px; }
   .mini-quick-btn{
     border:none;
-    background: rgba(255,255,255,0.06);
-    color: var(--text-dim);
-    width:28px;
-    height:28px;
-    border-radius:8px;
+    background:none;
+    color: rgba(255,255,255,0.55);
+    width:26px;
+    height:26px;
+    border-radius:6px;
     display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
   }
   .mini-quick-btn svg{ width:14px; height:14px; fill:currentColor; }
-  .mini-quick-btn:hover{ color:#fff; background: rgba(255,255,255,0.12); }
-  .mini-vol-row{ display:flex; align-items:center; gap:6px; width:92px; }
-  .mini-vol-row input[type="range"]{ width:100%; accent-color:#fff; }
-  .mini-expand-btn{ background:none; border:none; cursor:pointer; color: var(--text-dim); display:flex; transition: color .15s ease; }
+  .mini-quick-btn:hover{ color:#fff; background: rgba(255,255,255,0.09); }
+  .mini-quick-btn.active{ color: var(--accent); }
+  .mini-vol-row{ display:flex; align-items:center; gap:5px; width:78px; flex-shrink:0; }
+  .mini-vol-row input[type="range"]{ width:100%; accent-color:#fff; height:3px; }
+  .mini-expand-btn{ background:none; border:none; cursor:pointer; color: var(--text-dim); display:flex; padding:0; transition: color .15s ease; }
   .mini-expand-btn:hover{ color:#fff; }
-  .mini-expand-btn svg{ width:15px; height:15px; fill:currentColor; }
+  .mini-expand-btn svg{ width:14px; height:14px; fill:currentColor; }
+  .toolbar-search-wrap{ flex-shrink:0; width:160px; margin-left:4px; }
+  .toolbar-search-input{
+    width:100%; background: rgba(255,255,255,0.09); border:none; border-radius:7px;
+    padding:5px 10px 5px 26px; color:#fff; font-size:12px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='rgba(255,255,255,0.45)'><path d='M9.5 3a6.5 6.5 0 1 0 4.23 11.44l4.4 4.4 1.42-1.41-4.4-4.4A6.5 6.5 0 0 0 9.5 3Zm-4.5 6.5a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0Z'/></svg>");
+    background-repeat:no-repeat; background-position:8px center; background-size:12px;
+    cursor:pointer;
+  }
+  .toolbar-search-input::placeholder{ color: rgba(255,255,255,0.45); }
+  #sidebar.hidden{ display:none; }
 
   /* ---------- fullscreen now playing ---------- */
+
   #fullscreen-np{
     display:none;
     position:fixed; inset:0;
@@ -1111,7 +1133,7 @@
     #np-cover, #np-cover-placeholder{ width:180px; height:180px; }
     #np-lyrics-panel, #np-queue-panel{ max-width:100%; width:100%; border-left:none; padding-left:4px; }
     .mini-track-info{ width:150px; }
-    .mini-right{ width:60px; }
+    .mini-right{ width:auto; }
     .mini-vol-row{ display:none; }
   }
 
@@ -1129,7 +1151,8 @@
     .shelf-grid{ grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
     .home-feature-grid{ grid-template-columns:1fr; }
     .recent-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-    #mini-player{ height:auto; padding:10px 12px; min-height:84px; }
+    #app-toolbar{ height:auto; min-height:52px; flex-wrap:wrap; padding:8px 10px; }
+    .toolbar-search-wrap{ display:none; }
     .mini-track-info{ width:auto; }
     .mini-right{ width:auto; }
     .mini-center{ max-width:none; }
@@ -1149,6 +1172,7 @@
     .brand-name{ font-size:14px; }
     .am-nav-list{ gap:2px; }
     .am-nav-btn{ padding:9px 10px; }
+    .toolbar-nav-group #nav-back, .toolbar-nav-group #nav-forward{ display:none; }
     .mini-track-info{ display:none; }
     .mini-right{ display:none; }
     .mini-center{ width:100%; }
@@ -1161,6 +1185,54 @@
 <body>
 
 <div id="app">
+  <div id="app-toolbar">
+    <div class="toolbar-nav-group">
+      <button class="toolbar-icon-btn" id="sidebar-toggle" title="Show/Hide Sidebar"><svg viewBox="0 0 24 24"><path d="M4 5.75A1.75 1.75 0 0 1 5.75 4h12.5A1.75 1.75 0 0 1 20 5.75v12.5A1.75 1.75 0 0 1 18.25 20H5.75A1.75 1.75 0 0 1 4 18.25V5.75Zm5.5.75H5.5v11h4v-11Zm1.5 0v11h7.5v-11H11Z"/></svg></button>
+      <button class="toolbar-icon-btn disabled" id="nav-back" title="Back"><svg viewBox="0 0 24 24"><path d="M15.5 4.5 8 12l7.5 7.5 1.4-1.4L10.8 12l6.1-6.1z"/></svg></button>
+      <button class="toolbar-icon-btn disabled" id="nav-forward" title="Forward"><svg viewBox="0 0 24 24"><path d="M8.5 19.5 16 12 8.5 4.5l-1.4 1.4L13.2 12l-6.1 6.1z"/></svg></button>
+    </div>
+    <!-- ---------- docked playback bar ---------- -->
+    <div id="mini-player">
+      <div class="mini-track-info">
+        <img id="mini-cover" class="mini-cover" alt="">
+        <div class="mini-text">
+          <div id="mini-title" class="mini-title"></div>
+          <div id="mini-artist" class="mini-artist"></div>
+        </div>
+      </div>
+      <div class="mini-center">
+        <div class="mini-transport-buttons">
+          <button class="mini-btn" id="mini-prev" title="Previous"><svg viewBox="0 0 24 24"><path d="M6,6H8V18H6V6M9.5,12L18,6V18L9.5,12Z"/></svg></button>
+          <button class="mini-btn mini-play-btn" id="mini-play" title="Play/Pause"><svg id="mini-play-icon" viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg></button>
+          <button class="mini-btn" id="mini-next" title="Next"><svg viewBox="0 0 24 24"><path d="M16,18H18V6H16M6,18L14.5,12L6,6V18Z"/></svg></button>
+        </div>
+        <div class="mini-scrub-row">
+          <span class="mini-time" id="mini-time-elapsed">0:00</span>
+          <div class="mini-scrub-track" id="mini-scrub-track">
+            <div class="mini-scrub-fill" id="mini-scrub-fill"></div>
+            <div class="mini-scrub-dot" id="mini-scrub-dot"></div>
+          </div>
+          <span class="mini-time right" id="mini-time-remaining">-0:00</span>
+        </div>
+      </div>
+      <div class="mini-right">
+        <div class="mini-quick-actions">
+          <button class="mini-quick-btn" id="mini-open-lyrics" title="Lyrics"><svg viewBox="0 0 24 24"><path d="M5 5.75A1.75 1.75 0 0 1 6.75 4h10.5A1.75 1.75 0 0 1 19 5.75v12.5A1.75 1.75 0 0 1 17.25 20H6.75A1.75 1.75 0 0 1 5 18.25V5.75Zm3 2.25a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5H8Zm0 3.75a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5H8Zm0 3.75a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5H8Z"/></svg></button>
+          <button class="mini-quick-btn" id="mini-open-queue" title="Up Next"><svg viewBox="0 0 24 24"><path d="M4 7.25a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 7.25Zm0 4.75a.75.75 0 0 1 .75-.75h9.5a.75.75 0 0 1 0 1.5h-9.5A.75.75 0 0 1 4 12Zm0 4.75a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H4.75a.75.75 0 0 1-.75-.75ZM17 11l3 2-3 2v-4Z"/></svg></button>
+        </div>
+        <div class="mini-vol-row">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)"><path d="M3,9V15H7L12,20V4L7,9H3Z"/></svg>
+          <input type="range" id="mini-volume" min="0" max="1" step="0.01" value="0.9">
+        </div>
+        <button class="mini-expand-btn" id="mini-expand" title="Full screen">
+          <svg viewBox="0 0 24 24"><path d="M7,14H5v5h5v-2H7V14z M5,10h2V7h3V5H5V10z M17,17h-3v2h5v-5h-2V17z M14,5v2h3v3h2V5H14z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="toolbar-search-wrap">
+      <input class="toolbar-search-input" id="toolbar-search-input" placeholder="Search" readonly>
+    </div>
+  </div>
   <div id="main-row">
     <!-- ---------- sidebar ---------- -->
     <div id="sidebar">
@@ -1175,11 +1247,11 @@
         </button>
         <button class="am-nav-btn active" id="nav-listen" type="button">
           <svg viewBox="0 0 24 24"><path d="M4 6.75A2.75 2.75 0 0 1 6.75 4h10.5A2.75 2.75 0 0 1 20 6.75v10.5A2.75 2.75 0 0 1 17.25 20H6.75A2.75 2.75 0 0 1 4 17.25V6.75Zm5.2 2.4v5.7l5-2.85-5-2.85Z"/></svg>
-          Home
+          Listen Now
         </button>
         <button class="am-nav-btn" id="nav-library" type="button">
           <svg viewBox="0 0 24 24"><path d="M5.75 4A1.75 1.75 0 0 0 4 5.75v12.5C4 19.216 4.784 20 5.75 20h12.5A1.75 1.75 0 0 0 20 18.25V5.75A1.75 1.75 0 0 0 18.25 4H5.75Zm2.5 3h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5Zm0 3.75h7.5a.75.75 0 0 1 0 1.5h-7.5a.75.75 0 0 1 0-1.5Zm0 3.75h5a.75.75 0 0 1 0 1.5h-5a.75.75 0 0 1 0-1.5Z"/></svg>
-          New
+          Browse
         </button>
         <button class="am-nav-btn" id="nav-radio" type="button">
           <svg viewBox="0 0 24 24"><path d="M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm-5.7.35a.75.75 0 1 0-1.06-1.06 9.75 9.75 0 0 0 0 13.79.75.75 0 0 0 1.06-1.06 8.25 8.25 0 0 1 0-11.67Zm12.46-1.06a.75.75 0 0 0-1.06 1.06 8.25 8.25 0 0 1 0 11.67.75.75 0 1 0 1.06 1.06 9.75 9.75 0 0 0 0-13.79ZM9.12 12a2.88 2.88 0 0 0-.84-2.04.75.75 0 0 0-1.06 1.06 1.38 1.38 0 0 1 0 1.96.75.75 0 0 0 1.06 1.06c.54-.54.84-1.27.84-2.04Zm6.6-2.04a.75.75 0 0 0-1.06 1.06 1.38 1.38 0 0 1 0 1.96.75.75 0 1 0 1.06 1.06c1.13-1.13 1.13-2.95 0-4.08Z"/></svg>
@@ -1229,45 +1301,6 @@
         </div>
       </div>
     </aside>
-  </div>
-
-  <!-- ---------- bottom mini player ---------- -->
-  <div id="mini-player">
-    <div class="mini-track-info">
-      <img id="mini-cover" class="mini-cover" alt="">
-      <div class="mini-text">
-        <div id="mini-title" class="mini-title"></div>
-        <div id="mini-artist" class="mini-artist"></div>
-      </div>
-    </div>
-    <div class="mini-center">
-      <div class="mini-transport-buttons">
-        <button class="mini-btn" id="mini-prev" title="Previous"><svg viewBox="0 0 24 24"><path d="M6,6H8V18H6V6M9.5,12L18,6V18L9.5,12Z"/></svg></button>
-        <button class="mini-btn mini-play-btn" id="mini-play" title="Play/Pause"><svg id="mini-play-icon" viewBox="0 0 24 24"><path d="M8,5V19L19,12Z"/></svg></button>
-        <button class="mini-btn" id="mini-next" title="Next"><svg viewBox="0 0 24 24"><path d="M16,18H18V6H16M6,18L14.5,12L6,6V18Z"/></svg></button>
-      </div>
-      <div class="mini-scrub-row">
-        <span class="mini-time" id="mini-time-elapsed">0:00</span>
-        <div class="mini-scrub-track" id="mini-scrub-track">
-          <div class="mini-scrub-fill" id="mini-scrub-fill"></div>
-          <div class="mini-scrub-dot" id="mini-scrub-dot"></div>
-        </div>
-        <span class="mini-time right" id="mini-time-remaining">-0:00</span>
-      </div>
-    </div>
-    <div class="mini-right">
-      <div class="mini-quick-actions">
-        <button class="mini-quick-btn" id="mini-open-lyrics" title="Lyrics"><svg viewBox="0 0 24 24"><path d="M5 5.75A1.75 1.75 0 0 1 6.75 4h10.5A1.75 1.75 0 0 1 19 5.75v12.5A1.75 1.75 0 0 1 17.25 20H6.75A1.75 1.75 0 0 1 5 18.25V5.75Zm3 2.25a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5H8Zm0 3.75a.75.75 0 0 0 0 1.5h8a.75.75 0 0 0 0-1.5H8Zm0 3.75a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5H8Z"/></svg></button>
-        <button class="mini-quick-btn" id="mini-open-queue" title="Up Next"><svg viewBox="0 0 24 24"><path d="M4 7.25a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H4.75A.75.75 0 0 1 4 7.25Zm0 4.75a.75.75 0 0 1 .75-.75h9.5a.75.75 0 0 1 0 1.5h-9.5A.75.75 0 0 1 4 12Zm0 4.75a.75.75 0 0 1 .75-.75h14.5a.75.75 0 0 1 0 1.5H4.75a.75.75 0 0 1-.75-.75ZM17 11l3 2-3 2v-4Z"/></svg></button>
-      </div>
-      <div class="mini-vol-row">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="rgba(255,255,255,0.5)"><path d="M3,9V15H7L12,20V4L7,9H3Z"/></svg>
-        <input type="range" id="mini-volume" min="0" max="1" step="0.01" value="0.9">
-      </div>
-      <button class="mini-expand-btn" id="mini-expand" title="Full screen">
-        <svg viewBox="0 0 24 24"><path d="M7,14H5v5h5v-2H7V14z M5,10h2V7h3V5H5V10z M17,17h-3v2h5v-5h-2V17z M14,5v2h3v3h2V5H14z"/></svg>
-      </button>
-    </div>
   </div>
 </div>
 
@@ -2539,6 +2572,16 @@
       openInMusicBtn.addEventListener('click', () => {
         window.open('https://music.apple.com/', '_blank');
       });
+    }
+    const sidebarToggle = document.getElementById('sidebar-toggle');
+    if(sidebarToggle){
+      sidebarToggle.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('hidden');
+      });
+    }
+    const toolbarSearch = document.getElementById('toolbar-search-input');
+    if(toolbarSearch){
+      toolbarSearch.addEventListener('click', () => setView('search'));
     }
     const signInBtn = document.getElementById('sign-in-btn');
     if(signInBtn){
